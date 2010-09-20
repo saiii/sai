@@ -26,9 +26,13 @@ namespace sai
 namespace math
 {
 
+class EigenSolver;
 class Matrix
 {
   friend class Vector;
+  private:
+    EigenSolver   *_eigenSolver;
+
   protected:
     matrixsize_t   _row;
     matrixsize_t   _col;
@@ -59,6 +63,8 @@ class Matrix
     virtual void         set(matrixsize_t row, matrixsize_t col, matrixdata_t data);
     virtual matrixdata_t get(matrixsize_t row, matrixsize_t col);
     virtual void         print(std::ostream& os = std::cout);
+
+    EigenSolver* getEigenSolver();
 
     inline matrixsize_t getRow();
     inline matrixsize_t getCol();

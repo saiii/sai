@@ -15,6 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#include <cstdlib>
+#include <limits>
 #include <math/Vector.h>
 
 using namespace sai::math;
@@ -214,3 +216,130 @@ Vector::init(matrixsize_t row, matrixsize_t col)
     _data[0] = new matrixdata_t[_col];
   }
 }
+
+void
+Vector::max(matrixdata_t *mx, matrixsize_t *index)
+{
+  matrixdata_t val = (matrixdata_t) 0.0;
+  matrixsize_t ind = std::numeric_limits<matrixsize_t>::min();
+  if (_type == SAI_MATH_ROW_VECTOR)
+  {
+    for (matrixsize_t r = 0; r < _row; r += 1)
+    {
+      if (abs(_data[r][0]) > abs(val))
+      {
+        val = _data[r][0];
+        ind = r;
+      }
+    }
+  }
+  else
+  {
+    for (matrixsize_t c = 0; c < _col; c += 1)
+    {
+      if (abs(_data[0][c]) > abs(val))
+      {
+        val = _data[0][c];
+        ind = c;
+      }
+    }
+  }
+  
+  if (mx)
+  {
+    *mx = val;
+  }
+
+  if (index)
+  {
+    *index = ind;
+  }
+}
+
+void
+Vector::min(matrixdata_t *mn, matrixsize_t *index)
+{
+  matrixdata_t val = _data[0][0];
+  matrixsize_t ind = std::numeric_limits<matrixsize_t>::min();
+  if (_type == SAI_MATH_ROW_VECTOR)
+  {
+    for (matrixsize_t r = 0; r < _row; r += 1)
+    {
+      if (abs(_data[r][0]) < abs(val))
+      {
+        val = _data[r][0];
+        ind = r;
+      }
+    }
+  }
+  else
+  {
+    for (matrixsize_t c = 0; c < _col; c += 1)
+    {
+      if (abs(_data[0][c]) < abs(val))
+      {
+        val = _data[0][c];
+        ind = c;
+      }
+    }
+  }
+  
+  if (mn)
+  {
+    *mn = val;
+  }
+
+  if (index)
+  {
+    *index = ind;
+  }
+}
+
+matrixdata_t 
+Vector::sum()
+{
+  matrixdata_t val = (matrixdata_t) 0.0;
+
+  if (_type == SAI_MATH_ROW_VECTOR)
+  {
+    for (matrixsize_t r = 0; r < _row; r += 1)
+    {
+      val += _data[r][0];
+    }
+  }
+  else
+  {
+    for (matrixsize_t c = 0; c < _col; c += 1)
+    {
+      val += _data[0][c];
+    }
+  }
+
+  return val;
+}
+
+matrixdata_t 
+Vector::dist2(const Vector& other)
+{
+  matrixdata_t val = (matrixdata_t) 0.0;
+
+  if (_type == SAI_MATH_ROW_VECTOR)
+  {
+    for (matrixsize_t r = 0; r < _row; r += 1)
+    {
+      matrixdata_t diff = _data[r][0] - other._data[r][0];
+      val += (diff * diff);
+    }
+  }
+  else
+  {
+    for (matrixsize_t c = 0; c < _col; c += 1)
+    {
+      matrixdata_t diff = _data[0][c] - other._data[0][c];
+      val += (diff * diff);
+    }
+  }
+
+  return val;
+}
+

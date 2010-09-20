@@ -18,6 +18,7 @@
 #ifndef __SAI_MATH_VECTOR__
 #define __SAI_MATH_VECTOR__
 
+#include <cmath>
 #include <math/Matrix.h>
 
 namespace sai
@@ -51,7 +52,20 @@ class Vector : public Matrix
     Matrix& operator*=(matrixdata_t rhs);
 
     void init(matrixsize_t row, matrixsize_t col);
+
+    void         max(matrixdata_t *mx, matrixsize_t *index = 0);
+    void         min(matrixdata_t *mn, matrixsize_t *index = 0);
+    matrixdata_t sum();
+
+    inline matrixdata_t dist(const Vector& other);
+    matrixdata_t        dist2(const Vector& other);
 };
+
+inline matrixdata_t 
+Vector::dist(const Vector& other)
+{
+  return sqrt(dist2(other));
+}
 
 }
 }

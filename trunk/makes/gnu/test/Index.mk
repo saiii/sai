@@ -16,7 +16,8 @@
 ##=============================================================================
 
 TEST_SRC = MathMatrix.cpp \
-					 MathVector.cpp
+					 MathVector.cpp \
+					 MathEigenSolver.cpp
 
 TEST_INC = 
 
