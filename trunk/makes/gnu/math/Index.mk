@@ -15,9 +15,11 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##=============================================================================
 
-MATH_SRC = Matrix.cpp
+MATH_SRC = Matrix.cpp \
+					 Vector.cpp
 
 MATH_INC = $(SAI_ROOT)/math/Matrix.h \
+					 $(SAI_ROOT)/math/Vector.h \
 					 $(SAI_ROOT)/math/Types.h
 
 MATH_OBJ1= $(MATH_SRC:.cpp=.o)

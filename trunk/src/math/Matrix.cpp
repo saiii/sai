@@ -30,8 +30,8 @@ Matrix::Matrix():
 }
 
 Matrix::Matrix(matrixsize_t row, matrixsize_t col):
-  _row(0),
-  _col(0),
+  _row((matrixsize_t)0),
+  _col((matrixsize_t)0),
   _data(0)
 {
   init(row, col);
@@ -45,11 +45,15 @@ Matrix::~Matrix()
 void 
 Matrix::clean()
 {
-  for (matrixsize_t i = 0; i < _row; i += 1)
+  if (_data)
   {
-    delete [] _data[i];
+    for (matrixsize_t i = 0; i < _row; i += 1)
+    {
+      delete [] _data[i];
+    }
+    delete [] _data;
+    _data = 0;
   }
-  delete [] _data;
 }
 
 Matrix& 
@@ -157,11 +161,14 @@ Matrix::transpose(const Matrix& other)
 void 
 Matrix::multiply(const Matrix& other, Matrix& result) const
 {
+  // TODO
 }
 
 void 
 Matrix::inverse(Matrix& other)
-{}
+{
+  // TODO
+}
 
 void 
 Matrix::init(matrixsize_t row, matrixsize_t col)
@@ -182,6 +189,12 @@ void
 Matrix::set(matrixsize_t row, matrixsize_t col, matrixdata_t data)
 {
   _data[row][col] = data;
+}
+
+matrixdata_t 
+Matrix::get(matrixsize_t row, matrixsize_t col)
+{
+  return _data[row][col];
 }
 
 void 
