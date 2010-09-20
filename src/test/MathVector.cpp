@@ -39,6 +39,9 @@ void subtractionAssignment(ARGUMENTS_2);
 void multiplicationAssignment(ARGUMENTS_2);
 void transpose(ARGUMENTS_2);
 void get(ARGUMENTS_2);
+void max(ARGUMENTS_2);
+void sum(ARGUMENTS_2);
+void dist(ARGUMENTS_2);
 
 int main(int argc, char * argv[])
 {
@@ -53,9 +56,72 @@ int main(int argc, char * argv[])
   multiplicationAssignment(ARGUMENTS_4);
   transpose(ARGUMENTS_4);
   get(ARGUMENTS_4);
+  max(ARGUMENTS_4);
+  sum(ARGUMENTS_4);
+  dist(ARGUMENTS_4);
 
   destructor(ARGUMENTS_3);
   return 0;
+}
+
+void 
+dist(ARGUMENTS_2)
+{
+  std::cout << "Dist" << std::endl;
+  matrixdata_t val;
+
+  c.init(a.getRow(), a.getCol());
+  c  = a;
+  c += (matrixdata_t)2.0;
+
+  std::cout << "A = "; a.print();
+  std::cout << "C = "; c.print();
+  val = a.dist2(c);
+  std::cout << "Dist2 = " << val << std::endl;
+  val = a.dist(c);
+  std::cout << "Dist = " << val << std::endl;
+  
+  c.init(b.getRow(), b.getCol());
+  c  = b;
+  c += (matrixdata_t)2.0;
+
+  std::cout << "B = "; b.print();
+  std::cout << "C = "; c.print();
+  val = b.dist2(c);
+  std::cout << "Dist2 = " << val << std::endl;
+  val = b.dist(c);
+  std::cout << "Dist = " << val << std::endl;
+}
+
+void 
+sum(ARGUMENTS_2)
+{
+  std::cout << "Sum" << std::endl;
+  matrixdata_t val;
+
+  a.print();
+  val = a.sum();
+  std::cout << "Sum = " << val << std::endl;
+
+  b.print();
+  val = b.sum();
+  std::cout << "Sum = " << val << std::endl;
+}
+
+void 
+max(ARGUMENTS_2)
+{
+  std::cout << "Max" << std::endl;
+  matrixdata_t mval;
+  matrixsize_t mind;
+
+  a.print();
+  a.max(&mval, &mind);
+  std::cout << "Max = " << mval << ", Ind = " << mind << std::endl;
+
+  b.print();
+  b.max(&mval, &mind);
+  std::cout << "Max = " << mval << ", Ind = " << mind << std::endl;
 }
 
 void 

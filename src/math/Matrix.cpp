@@ -15,14 +15,17 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#include <string.h>
+#include <cstring>
 #include <iomanip>
+#include <stdexcept>
 
 #include <math/Matrix.h>
+#include <math/EigenSolver.h>
 
 using namespace sai::math;
 
 Matrix::Matrix():
+  _eigenSolver(0),
   _row((matrixsize_t)0),
   _col((matrixsize_t)0),
   _data(0)
@@ -30,6 +33,7 @@ Matrix::Matrix():
 }
 
 Matrix::Matrix(matrixsize_t row, matrixsize_t col):
+  _eigenSolver(0),
   _row((matrixsize_t)0),
   _col((matrixsize_t)0),
   _data(0)
@@ -40,6 +44,7 @@ Matrix::Matrix(matrixsize_t row, matrixsize_t col):
 Matrix::~Matrix()
 {
   clean();
+  delete _eigenSolver;
 }
 
 void 
@@ -161,7 +166,28 @@ Matrix::transpose(const Matrix& other)
 void 
 Matrix::multiply(const Matrix& other, Matrix& result) const
 {
-  // TODO
+  if (_col != other._row )
+  {
+    throw std::invalid_argument("Invaid dimensions");
+  }
+  result.init(_row, other._col);
+
+  matrixsize_t row = result._row;
+  matrixsize_t col = result._col;
+  matrixsize_t size = _col;
+
+  for (matrixsize_t r = 0; r < row; r += 1)
+  {
+    for (matrixsize_t c = 0; c < col; c += 1)
+    {
+      matrixdata_t sum = (matrixdata_t) 0.0;
+      for (matrixsize_t i = 0; i < size; i += 1)
+      {
+        sum += (_data[r][i] * other._data[i][c]);
+      }
+      result._data[r][c] = sum;
+    }
+  }
 }
 
 void 
@@ -211,8 +237,24 @@ Matrix::print(std::ostream& os)
     {
       os << " " << std::setw(6) << std::setprecision(2) << _data[r][c];
     }
-    os << ";" << std::endl;
+
+    if (r + 1 < _row)
+    {
+      os << ";";
+    }
+    os << std::endl;
   }
   os << "]" << std::endl;
   os.setf(flgs);
+}
+
+EigenSolver* 
+Matrix::getEigenSolver()
+{
+  if (!_eigenSolver)
+  {
+    _eigenSolver = new EigenSolver(this);
+  }
+
+  return _eigenSolver;
 }

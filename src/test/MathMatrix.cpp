@@ -40,6 +40,7 @@ void subtractionAssignment(ARGUMENTS_2);
 void multiplicationAssignment(ARGUMENTS_2);
 void transpose(ARGUMENTS_2);
 void get(ARGUMENTS_2);
+void multiplication(ARGUMENTS_2);
 
 int main(int argc, char * argv[])
 {
@@ -54,9 +55,40 @@ int main(int argc, char * argv[])
   multiplicationAssignment(ARGUMENTS_4);
   transpose(ARGUMENTS_4);
   get(ARGUMENTS_4);
+  multiplication(ARGUMENTS_4);
 
   destructor(ARGUMENTS_3);
   return 0;
+}
+
+void 
+multiplication(ARGUMENTS_2)
+{
+  std::cout << "Multiplication" << std::endl;
+  std::cout << "A = " << std::endl;
+  a.print();
+  std::cout << "B = " << std::endl;
+  b.print();
+
+  Matrix m(a.getRow(), b.getCol());
+  a.multiply(b, m);
+  std::cout << "M = A * B" << std::endl;
+  m.print();
+
+  matrixdata_t ndata [][5] = {{1.0}, {2.0}, {3.0}, {4.0}, {5.0}, {6.0}};
+  Matrix n(5, 1);
+  INIT_MATRIX(n, 5, 1, ndata);
+
+  std::cout << "C = ";
+  c.print();
+
+  std::cout << "N = ";
+  n.print();
+
+  c.multiply(n, m);
+  std::cout << "M = C * N" << std::endl;
+  std::cout << "M = ";
+  m.print();
 }
 
 void 

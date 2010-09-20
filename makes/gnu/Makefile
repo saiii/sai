@@ -32,7 +32,7 @@ SAI_ROOT = ../../src
 
 all: MATH LIBS TEST
 
-LIBS: libSai.a $(SAI_OBJS)
+LIBS: $(SAI_OBJS) libSai.a
 
 libSai.so: $(SAI_OBJS)
 	$(CC) -fPIC -shared -o $@ $(SAI_OBJS)

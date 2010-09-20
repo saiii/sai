@@ -15,30 +15,34 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_MATH_TYPES__
-#define __SAI_MATH_TYPES__
-
-#include <vector>
+#ifndef __SAI_MATH_EIGENSOLVER__
+#define __SAI_MATH_EIGENSOLVER__
 
 namespace sai
 {
 namespace math
 {
 
-class Matrix; 
-class Vector;
+class Matrix;
+class EigenSolverImpl;
+class EigenSolver
+{
+  friend class Matrix;
+  private:
+    EigenSolverImpl *_impl;
+    Matrix          *_matrix;
 
-typedef unsigned int matrixsize_t;
-typedef double       matrixdata_t;
+  private:
+    EigenSolver(Matrix *matrix);
 
-typedef std::vector<Matrix*>           MatrixList;
-typedef std::vector<Matrix*>::iterator MatrixListIterator;
+  public:
+    ~EigenSolver();
 
-typedef std::vector<Vector*>           VectorList;
-typedef std::vector<Vector*>::iterator VectorListIterator;
-
-typedef std::vector<matrixdata_t>           MatrixDataList;
-typedef std::vector<matrixdata_t>::iterator MatrixDataListIterator;
+    void            configure();
+    void            solve();
+    VectorList&     getEigenVectors();
+    MatrixDataList& getEigenValues();
+};
 
 }
 }
