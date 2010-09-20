@@ -15,7 +15,8 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##=============================================================================
 
-TEST_SRC = MathMatrix.cpp
+TEST_SRC = MathMatrix.cpp \
+					 MathVector.cpp
 
 TEST_INC = 
 

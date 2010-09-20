@@ -15,19 +15,18 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#include <math/Matrix.h>
+#include <math/Vector.h>
 
 using namespace sai::math;
 
-#define ARGUMENTS_1 Matrix *&a, Matrix *&b, Matrix *&c, Matrix *&d
-#define ARGUMENTS_2 Matrix &a, Matrix &b, Matrix &c, Matrix &d
+#define ARGUMENTS_1 Vector *&a, Vector *&b, Vector *&c, Vector *&d
+#define ARGUMENTS_2 Vector &a, Vector &b, Vector &c, Vector &d
 #define ARGUMENTS_3 a,b,c,d
 #define ARGUMENTS_4 *a,*b,*c,*d
 
-#define INIT_MATRIX(matrix,rows,cols,data) { \
-    for(int _r = 0; _r < rows; _r += 1) { \
-      for(int _c = 0; _c < cols; _c += 1) { \
-        matrix.set(_r,_c,data[_r][_c]); }}}
+#define INIT_VECTOR(matrix,dim,data) { \
+    for(int _d = 0; _d < dim; _d += 1) { \
+      matrix.set(_d, 0, data[_d]); }}
 
 
 void constructor(ARGUMENTS_1);
@@ -43,7 +42,7 @@ void get(ARGUMENTS_2);
 
 int main(int argc, char * argv[])
 {
-  Matrix *a, *b, *c, *d;
+  Vector *a, *b, *c, *d;
   constructor(ARGUMENTS_3);
 
   set(ARGUMENTS_4);
@@ -68,7 +67,7 @@ get(ARGUMENTS_2)
   d.print();
   for (matrixsize_t r = 0; r < row; r += 1)
   {
-    std::cout << d.get(r,r) << " " << std::endl;
+    std::cout << d.get(r, 0) << " " << std::endl;
   }
 }
 
@@ -76,10 +75,10 @@ void
 transpose(ARGUMENTS_2)
 {
   std::cout << "Transpose" << std::endl;
-  matrixdata_t adata [][5] = {{1.0}, {2.0}, {3.0}, {4.0}, {5.0}, {6.0}};
+  matrixdata_t adata [] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
   
   a.init(6, 1);
-  INIT_MATRIX(a, 6, 1, adata);
+  INIT_VECTOR(a, 6, adata);
   a.print();
 
   b.transpose(a);
@@ -132,8 +131,8 @@ additionAssignment(ARGUMENTS_2)
 void 
 assign(ARGUMENTS_2)
 {
-  a.init(c.getRow(), c.getCol());
-  b.init(d.getRow(), d.getCol());
+  a.init(c.getRow(), 1);
+  b.init(d.getRow(), 1);
 
   a = c;
   b = d;
@@ -153,19 +152,11 @@ print(ARGUMENTS_2)
 void
 set(ARGUMENTS_2)
 {
-  matrixdata_t cdata [][5] = {{1, 2, 3, 4, 5}, 
-                              {2, 3, 4, 5, 6}, 
-                              {3, 4, 5, 6, 7}, 
-                              {4, 5, 6, 7, 8}, 
-                              {5, 6, 7, 8, 9}};
-  INIT_MATRIX(c, 5, 5, cdata);  
+  matrixdata_t cdata [5] = {1, 2, 3, 4, 5};
+  INIT_VECTOR(c, 5, cdata);  
 
-  matrixdata_t ddata [][5] = {{10, 11, 12, 13, 14},
-                              {11, 12, 13, 14, 15},
-                              {12, 13, 14, 15, 16},
-                              {13, 14, 15, 16, 17},
-                              {14, 15, 16, 17, 18}};
-  INIT_MATRIX(d, 5, 5, ddata);
+  matrixdata_t ddata [5] = {10, 11, 12, 13, 14};
+  INIT_VECTOR(d, 5, ddata);
 }
 
 void
@@ -180,9 +171,9 @@ destructor(ARGUMENTS_1)
 void 
 constructor(ARGUMENTS_1)
 {
-  a = new Matrix();
-  b = new Matrix();
-  c = new Matrix(5, 5);
-  d = new Matrix(5, 5);
+  a = new Vector();
+  b = new Vector();
+  c = new Vector(5,1);
+  d = new Vector(5,1);
 }
 

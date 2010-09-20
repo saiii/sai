@@ -28,6 +28,7 @@ namespace math
 
 class Matrix
 {
+  friend class Vector;
   protected:
     matrixsize_t   _row;
     matrixsize_t   _col;
@@ -41,22 +42,23 @@ class Matrix
     Matrix(matrixsize_t row, matrixsize_t col);
     virtual ~Matrix();
 
-    Matrix& operator= (const Matrix& rhs);
-    Matrix& operator+=(const Matrix& rhs);
-    Matrix& operator-=(const Matrix& rhs);
+    virtual Matrix& operator= (const Matrix& rhs);
+    virtual Matrix& operator+=(const Matrix& rhs);
+    virtual Matrix& operator-=(const Matrix& rhs);
 
-    Matrix& operator= (matrixdata_t rhs);
-    Matrix& operator+=(matrixdata_t rhs);
-    Matrix& operator-=(matrixdata_t rhs);
-    Matrix& operator*=(matrixdata_t rhs);
+    virtual Matrix& operator= (matrixdata_t rhs);
+    virtual Matrix& operator+=(matrixdata_t rhs);
+    virtual Matrix& operator-=(matrixdata_t rhs);
+    virtual Matrix& operator*=(matrixdata_t rhs);
 
-    void transpose(const Matrix& other);
-    void multiply(const Matrix& other, Matrix& result) const;
-    void inverse(Matrix& other);
+    virtual void transpose(const Matrix& other);
+    virtual void multiply(const Matrix& other, Matrix& result) const;
+    virtual void inverse(Matrix& other);
 
-    void init(matrixsize_t row, matrixsize_t col);
-    void set(matrixsize_t row, matrixsize_t col, matrixdata_t data);
-    void print(std::ostream& os = std::cout);
+    virtual void         init(matrixsize_t row, matrixsize_t col);
+    virtual void         set(matrixsize_t row, matrixsize_t col, matrixdata_t data);
+    virtual matrixdata_t get(matrixsize_t row, matrixsize_t col);
+    virtual void         print(std::ostream& os = std::cout);
 
     inline matrixsize_t getRow();
     inline matrixsize_t getCol();
