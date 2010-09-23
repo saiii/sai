@@ -37,8 +37,8 @@ namespace math
       EigenSolverImpl() {}
       virtual ~EigenSolverImpl() { clean(); }
       virtual void solve() = 0;
-      virtual VectorList&     getEigenVectors() = 0;
-      virtual MatrixDataList& getEigenValues() = 0;
+      virtual VectorList&     getEigenVectors() { return _vectors; }
+      virtual MatrixDataList& getEigenValues()  { return _values;  }
 
       void clean();
   };
@@ -46,25 +46,25 @@ namespace math
   class PowerMethod : public EigenSolverImpl
   {
     private:
-      Matrix        *_matrix;
+      Matrix *_matrix;
 
     public:
       PowerMethod(Matrix * matrix);
       ~PowerMethod();
 
-      void            solve();
-      VectorList&     getEigenVectors();
-      MatrixDataList& getEigenValues();
-  };
-
-  class ShiftedInversePowerMethod : public EigenSolverImpl
-  {
-    // TODO
+      void solve();
   };
 
   class JacobiMethod : public EigenSolverImpl
   {
-    // TODO
+    private:
+      Matrix *_matrix;
+
+    public:
+      JacobiMethod(Matrix * matrix);
+      ~JacobiMethod();
+
+      void solve();
   };
 
   class QLMethod : public EigenSolverImpl
@@ -96,7 +96,8 @@ EigenSolver::configure()
 
   // TODO
 
-  _impl = new PowerMethod(_matrix);
+  //_impl = new PowerMethod(_matrix);
+  _impl = new JacobiMethod(_matrix);
 }
 
 void            
@@ -119,17 +120,123 @@ EigenSolver::getEigenValues()
 
 //-----------------------------------------------------------------------------
 
-void 
-EigenSolverImpl::clean()
+JacobiMethod::JacobiMethod(Matrix * matrix):
+  _matrix(matrix)
 {
-  while (_vectors.size() > 0)
+}
+
+JacobiMethod::~JacobiMethod()
+{
+}
+
+void 
+JacobiMethod::solve()
+{
+  if (_vectors.size() > 0 || _values.size() > 0)
   {
-    Vector * vector = _vectors.front();
-    _vectors.erase(_vectors.begin());
-    delete vector;
+    clean();
   }
 
-  _values.clear();
+  matrixsize_t dim = _matrix->getRow();
+  Matrix values(dim, dim);
+  values = *_matrix;
+  Matrix vectors(dim, dim);
+  vectors = (matrixdata_t) 0.0;
+  for (matrixsize_t i = 0; i < dim; i += 1)
+  {
+    vectors.set(i, i, (matrixdata_t) 1.0);
+  }
+
+  const matrixsize_t MAX = 50;
+  const matrixdata_t THRESHOLD = 0.000000000001;
+
+  matrixsize_t d2 = dim - 1;
+  Vector xj(dim, 1), xk(dim, 1);
+  Vector yj(dim, 1), yk(dim, 1);
+  matrixdata_t err = std::numeric_limits<matrixdata_t>::max();
+  for (matrixsize_t i = 0; i < MAX; i += 1)
+  {
+    for (matrixsize_t j = 0; j < d2; j += 1)
+    {
+      for (matrixsize_t k = j + 1; k < dim; k += 1)
+      {
+        matrixdata_t theta = (values.get(k, k) - values.get(j, j))/
+                             ((matrixdata_t)2.0 * values.get(j, k));
+        matrixdata_t t = 1.0 / (fabs(theta) + sqrt((theta * theta) + 1.0));
+        if (theta < 0.0) 
+        {
+          t *= -1.0;
+        }
+        matrixdata_t c = 1.0 / (sqrt((t * t) + 1.0));
+        matrixdata_t s = c * t;
+
+        for (matrixsize_t l = 0; l < dim; l += 1)
+        {
+          xj.set(l, 0, values.get(l, j));
+          xk.set(l, 0, values.get(l, k));
+        }
+
+        values.set(j, k, (matrixdata_t)0.0);
+        values.set(k, j, (matrixdata_t)0.0);
+        values.set(j, j, ((c * c * xj.get(j, 0)) + (s * s * xk.get(k, 0)) - (2.0 * c * s * xk.get(j, 0))));
+        values.set(k, k, ((s * s * xj.get(j, 0)) + (c * c * xk.get(k, 0)) + (2.0 * c * s * xk.get(j, 0))));
+
+        for (matrixsize_t l = 0; l < dim; l += 1)
+        {
+          if (l != j && l != k)
+          {
+            values.set(l, j, ((c * xj.get(l, 0)) - (s * xk.get(l, 0))));
+            values.set(j, l, values.get(l, j));
+
+            values.set(l, k, ((c * xk.get(l, 0)) + (s * xj.get(l, 0))));
+            values.set(k, l, values.get(l, k));
+          }
+        }
+
+        for (matrixsize_t l = 0; l < dim; l += 1)
+        {
+          yj.set(l, 0, vectors.get(l, j));
+          yk.set(l, 0, vectors.get(l, k));
+        }
+
+        for (matrixsize_t l = 0; l < dim; l += 1)
+        {
+          vectors.set(l, j, (c * yj.get(l,0)) - (s * yk.get(l,0)));
+          vectors.set(l, k, (s * yj.get(l,0)) + (c * yk.get(l,0)));
+        }
+      } // Loop k
+    } // Loop j
+
+    matrixdata_t sum = (matrixdata_t)0.0;
+    for (matrixsize_t ind = 0; ind < dim; ind += 1)
+    {
+      matrixdata_t val = values.get(ind, ind);
+      sum += (val * val);
+    }
+    sum = sqrt(sum);
+    if (fabs(err - sum) < THRESHOLD)
+    {
+      break;
+    }
+    err = sum;
+  } // Main Loop
+
+  // keep values
+  for (matrixsize_t i = 0; i < dim; i += 1)
+  {
+    _values.push_back(values.get(i,i));
+  }
+
+  // keep vectors
+  for (matrixsize_t i = 0; i < dim; i += 1)
+  {
+    Vector * result = new Vector(dim, 1);
+    for (matrixsize_t j = 0; j < dim; j += 1)
+    {
+      result->set(j, 0, vectors.get(j, i));
+    }
+    _vectors.push_back(result);
+  }
 }
 
 PowerMethod::PowerMethod(Matrix *matrix):
@@ -210,7 +317,7 @@ PowerMethod::solve()
     matrixdata_t max = (matrixdata_t) 0.0;
     tmp.max(&max);
 
-    matrixdata_t diff1 = abs(value - max);
+    matrixdata_t diff1 = fabs(value - max);
     tmp *= (matrixdata_t)(1.0/max);
 
     matrixdata_t diff2 = vector.dist(tmp);
@@ -227,15 +334,16 @@ PowerMethod::solve()
   _values.push_back(value);
 }
 
-VectorList& 
-PowerMethod::getEigenVectors()
+void 
+EigenSolverImpl::clean()
 {
-  return _vectors;
-}
+  while (_vectors.size() > 0)
+  {
+    Vector * vector = _vectors.front();
+    _vectors.erase(_vectors.begin());
+    delete vector;
+  }
 
-MatrixDataList& 
-PowerMethod::getEigenValues()
-{
-  return _values;
+  _values.clear();
 }
 
