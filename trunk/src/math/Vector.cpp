@@ -226,7 +226,7 @@ Vector::max(matrixdata_t *mx, matrixsize_t *index)
   {
     for (matrixsize_t r = 0; r < _row; r += 1)
     {
-      if (abs(_data[r][0]) > abs(val))
+      if (fabs(_data[r][0]) > fabs(val))
       {
         val = _data[r][0];
         ind = r;
@@ -237,7 +237,7 @@ Vector::max(matrixdata_t *mx, matrixsize_t *index)
   {
     for (matrixsize_t c = 0; c < _col; c += 1)
     {
-      if (abs(_data[0][c]) > abs(val))
+      if (fabs(_data[0][c]) > fabs(val))
       {
         val = _data[0][c];
         ind = c;
@@ -265,7 +265,7 @@ Vector::min(matrixdata_t *mn, matrixsize_t *index)
   {
     for (matrixsize_t r = 0; r < _row; r += 1)
     {
-      if (abs(_data[r][0]) < abs(val))
+      if (fabs(_data[r][0]) < fabs(val))
       {
         val = _data[r][0];
         ind = r;
@@ -276,7 +276,7 @@ Vector::min(matrixdata_t *mn, matrixsize_t *index)
   {
     for (matrixsize_t c = 0; c < _col; c += 1)
     {
-      if (abs(_data[0][c]) < abs(val))
+      if (fabs(_data[0][c]) < fabs(val))
       {
         val = _data[0][c];
         ind = c;
