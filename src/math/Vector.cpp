@@ -318,28 +318,3 @@ Vector::sum()
   return val;
 }
 
-matrixdata_t 
-Vector::dist2(const Vector& other)
-{
-  matrixdata_t val = (matrixdata_t) 0.0;
-
-  if (_type == SAI_MATH_ROW_VECTOR)
-  {
-    for (matrixsize_t r = 0; r < _row; r += 1)
-    {
-      matrixdata_t diff = _data[r][0] - other._data[r][0];
-      val += (diff * diff);
-    }
-  }
-  else
-  {
-    for (matrixsize_t c = 0; c < _col; c += 1)
-    {
-      matrixdata_t diff = _data[0][c] - other._data[0][c];
-      val += (diff * diff);
-    }
-  }
-
-  return val;
-}
-

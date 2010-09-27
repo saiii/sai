@@ -22,6 +22,7 @@
 #include <math/EigenSolver.h>
 #include <math/Matrix.h>
 #include <math/Vector.h>
+#include <math/Distance.h>
 
 namespace sai 
 {
@@ -87,17 +88,29 @@ EigenSolver::~EigenSolver()
 }
 
 void 
-EigenSolver::configure()
+EigenSolver::configure(EigenSolverProperty prop)
 {
   if (_matrix->getRow() != _matrix->getCol())
   {
     return;
   }
 
-  // TODO
+  if (_impl)
+  {
+    delete _impl;
+  }
 
-  //_impl = new PowerMethod(_matrix);
-  _impl = new JacobiMethod(_matrix);
+  switch (prop)
+  {
+    case ONE_POWERMETHOD:
+      _impl = new PowerMethod(_matrix);
+      break;
+    case ALL_JACOBIMETHOD:
+      _impl = new JacobiMethod(_matrix);
+      break;
+    default:
+      return;
+  }
 }
 
 void            
@@ -300,6 +313,7 @@ PowerMethod::solve()
   const matrixsize_t MAX = 30;
 
   matrixdata_t error = std::numeric_limits<matrixdata_t>::max();
+  Distance * distance = DistanceCreator().create(SAI_AI_DIST_EUCLIDEAN);
 
   Vector vector(_matrix->getRow(), 1);
   vector = (matrixdata_t) 1.0;
@@ -320,7 +334,7 @@ PowerMethod::solve()
     matrixdata_t diff1 = fabs(value - max);
     tmp *= (matrixdata_t)(1.0/max);
 
-    matrixdata_t diff2 = vector.dist(tmp);
+    matrixdata_t diff2 = distance->dist(vector, tmp);
     error = diff1 > diff2 ? diff1 : diff2;
 
     vector = tmp;
@@ -332,6 +346,8 @@ PowerMethod::solve()
 
   _vectors.push_back(result);
   _values.push_back(value);
+
+  delete distance;
 }
 
 void 
