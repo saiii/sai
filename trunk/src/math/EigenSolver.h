@@ -23,6 +23,12 @@ namespace sai
 namespace math
 {
 
+typedef enum 
+{
+  ONE_POWERMETHOD,
+  ALL_JACOBIMETHOD
+}EigenSolverProperty;
+
 class Matrix;
 class EigenSolverImpl;
 class EigenSolver
@@ -38,7 +44,7 @@ class EigenSolver
   public:
     ~EigenSolver();
 
-    void            configure();
+    void            configure(EigenSolverProperty);
     void            solve();
     VectorList&     getEigenVectors();
     MatrixDataList& getEigenValues();
