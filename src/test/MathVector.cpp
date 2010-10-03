@@ -16,6 +16,7 @@
 //=============================================================================
 
 #include <math/Vector.h>
+#include <math/Distance.h>
 
 using namespace sai::math;
 
@@ -70,15 +71,22 @@ dist(ARGUMENTS_2)
   std::cout << "Dist" << std::endl;
   matrixdata_t val;
 
+  Distance * distance1 = DistanceCreator().create(SAI_AI_DIST_EUCLIDEAN);
+  Distance * distance2 = DistanceCreator().create(SAI_AI_DIST_MAHALANOBIS);
+
   c.init(a.getRow(), a.getCol());
   c  = a;
   c += (matrixdata_t)2.0;
 
   std::cout << "A = "; a.print();
   std::cout << "C = "; c.print();
-  val = a.dist2(c);
+  val = distance1->dist2(a,c);
   std::cout << "Dist2 = " << val << std::endl;
-  val = a.dist(c);
+  val = distance2->dist2(a,c);
+  std::cout << "Dist2 = " << val << std::endl;
+  val = distance1->dist(a,c);
+  std::cout << "Dist = " << val << std::endl;
+  val = distance2->dist(a,c);
   std::cout << "Dist = " << val << std::endl;
   
   c.init(b.getRow(), b.getCol());
@@ -87,10 +95,17 @@ dist(ARGUMENTS_2)
 
   std::cout << "B = "; b.print();
   std::cout << "C = "; c.print();
-  val = b.dist2(c);
+  val = distance1->dist2(b,c);
   std::cout << "Dist2 = " << val << std::endl;
-  val = b.dist(c);
+  val = distance2->dist2(b,c);
+  std::cout << "Dist2 = " << val << std::endl;
+  val = distance1->dist(b,c);
   std::cout << "Dist = " << val << std::endl;
+  val = distance2->dist(b,c);
+  std::cout << "Dist = " << val << std::endl;
+
+  delete distance2;
+  delete distance1;
 }
 
 void 

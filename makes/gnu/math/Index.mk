@@ -17,6 +17,7 @@
 
 MATH_SRC = Matrix.cpp \
 					 Vector.cpp \
+					 Distance.cpp \
 					 EigenSolver.cpp
 
 MATH_INC = $(SAI_ROOT)/math/Matrix.h \
