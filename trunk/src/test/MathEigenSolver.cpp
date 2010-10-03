@@ -39,29 +39,34 @@ int main(int argc, char * argv[])
 }
 
 void 
-displayResult(VectorList& vectors, MatrixDataList& values)
+displayResult(EigenSolver * solver)
 {
+  VectorList vectors = solver->getEigenVectors();
+  MatrixDataList values = solver->getEigenValues();
   VectorListIterator vecIter;
   MatrixDataListIterator valIter;
 
+  std::cout << "EigenVectors: " << std::endl;
+  unsigned int i = 0;
   for (vecIter  = vectors.begin();
        vecIter != vectors.end();
-       vecIter ++)
+       vecIter ++, i ++)
   {
+    std::cout << "Vector[" << i << "]" << std::endl;
     Vector * vector = *vecIter;
-    std::cout << "................." << std::endl;
     vector->print(std::cout);
   }
 
-  std::cout << "+++++++++++++++++++++++++++" << std::endl;
-
+  std::cout << "EigenValues: " << std::endl;
+  i = 0;
   for (valIter  = values.begin();
        valIter != values.end();
-       valIter ++)
+       valIter ++, i ++)
   {
+    std::cout << "Value[" << i << "] = ";
     std::cout << *valIter << std::endl;
-    std::cout << "................." << std::endl;
   }
+  std::cout << "+++++++++++++++++++++++++++++++++++++++" << std::endl;
 }
 
 void 
@@ -76,13 +81,13 @@ eig33()
   m3.print();
 
   EigenSolver * solver = m3.getEigenSolver();
-  solver->configure();
+  solver->configure(ONE_POWERMETHOD);
   solver->solve();
+  displayResult(solver);
 
-  VectorList vectors = solver->getEigenVectors();
-  MatrixDataList values = solver->getEigenValues();
-
-  displayResult(vectors, values);
+  solver->configure(ALL_JACOBIMETHOD);
+  solver->solve();
+  displayResult(solver);
 }
 
 void 
@@ -96,11 +101,11 @@ eig22()
   m2.print();
 
   EigenSolver * solver = m2.getEigenSolver();
-  solver->configure();
+  solver->configure(ONE_POWERMETHOD);
   solver->solve();
+  displayResult(solver);
 
-  VectorList vectors = solver->getEigenVectors();
-  MatrixDataList values = solver->getEigenValues();
-
-  displayResult(vectors, values);
+  solver->configure(ALL_JACOBIMETHOD);
+  solver->solve();
+  displayResult(solver);
 }

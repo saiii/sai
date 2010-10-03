@@ -40,6 +40,8 @@ Vector::Vector(matrixsize_t row, matrixsize_t col):
     _type = SAI_MATH_COL_VECTOR;
     init(1, col);
   }
+
+  operator=((matrixdata_t)0.0);
 }
 
 Vector::~Vector()

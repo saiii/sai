@@ -23,15 +23,19 @@ using namespace sai::math;
 class EuclideanDistance : public Distance
 {
   public:
-    inline matrixdata_t dist (sai::math::Vector& a, sai::math::Vector& b);
-    inline matrixdata_t dist2(sai::math::Vector& a, sai::math::Vector& b);
+    inline matrixdata_t dist (Vector& a, Vector& b);
+    inline matrixdata_t dist2(Vector& a, Vector& b);
+    inline matrixdata_t dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+    inline matrixdata_t dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
 };
 
 class MahalanobisDistance : public Distance
 {
   public:
-    inline matrixdata_t dist (sai::math::Vector& a, sai::math::Vector& b);
-    inline matrixdata_t dist2(sai::math::Vector& a, sai::math::Vector& b);
+    inline matrixdata_t dist (Vector& a, Vector& b);
+    inline matrixdata_t dist2(Vector& a, Vector& b);
+    inline matrixdata_t dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+    inline matrixdata_t dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
 };
 
 Distance * 
@@ -79,6 +83,27 @@ EuclideanDistance::dist2(Vector& a, Vector& b)
   return val;
 }
 
+inline matrixdata_t 
+EuclideanDistance::dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  return sqrt(dist2(a, i, b, j));
+}
+
+inline matrixdata_t 
+EuclideanDistance::dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  matrixdata_t val = (matrixdata_t) 0.0;
+  matrixsize_t size = a.getRow();
+
+  for (matrixsize_t r = 0; r < size; r += 1)
+  {
+    matrixdata_t diff = a.get(r,i) - b.get(r,j);
+    val += (diff * diff);
+  }
+
+  return val;
+}
+
 inline matrixdata_t
 MahalanobisDistance::dist(Vector& a, Vector& b)
 {
@@ -87,6 +112,19 @@ MahalanobisDistance::dist(Vector& a, Vector& b)
 
 inline matrixdata_t
 MahalanobisDistance::dist2(Vector& a, Vector& b)
+{
+  // TODO
+  return (matrixdata_t) 0.0;
+}
+
+inline matrixdata_t 
+MahalanobisDistance::dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  return sqrt(dist2(a, i, b, j));
+}
+
+inline matrixdata_t 
+MahalanobisDistance::dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
 {
   // TODO
   return (matrixdata_t) 0.0;

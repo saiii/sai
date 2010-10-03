@@ -30,7 +30,7 @@ VERSION_COUNT = 0
 
 SAI_ROOT = ../../src
 
-all: MATH LIBS TEST
+all: MATH AI LIBS TEST
 
 LIBS: $(SAI_OBJS) libSai.a
 
@@ -42,9 +42,10 @@ libSai.a: $(SAI_OBJS)
 	ar rs $@ $(SAI_OBJS)
 
 include math/Index.mk
+include ai/Index.mk
 include test/Index.mk
 
-clean: clean_math clean_test
+clean: clean_math clean_test clean_ai
 	  @ rm -Rf lib* .*.o
 
 count:

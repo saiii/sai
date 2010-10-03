@@ -15,37 +15,19 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_MATH_DISTANCE__
-#define __SAI_MATH_DISTANCE__
+#ifndef __SAI_AI_TYPES__
+#define __SAI_AI_TYPES__
 
-#include <math/Vector.h>
-
-namespace sai 
+namespace sai
 {
-namespace math
+namespace ai
 {
 
-class Distance
-{
-  public:
-    virtual matrixdata_t dist (Vector& a, Vector& b) = 0;
-    virtual matrixdata_t dist2(Vector& a, Vector& b) = 0;
-    virtual matrixdata_t dist (Matrix& a, matrixsize_t iCol, Matrix& b, matrixsize_t jCol) = 0;
-    virtual matrixdata_t dist2(Matrix& a, matrixsize_t iCol, Matrix& b, matrixsize_t jCol) = 0;
-};
-
-typedef enum
-{
-  SAI_AI_DIST_EUCLIDEAN,
-  SAI_AI_DIST_MAHALANOBIS
-}DistanceType;
-
-class DistanceCreator
-{
-  public:
-    Distance * create(DistanceType);
-};
+typedef unsigned int counter_t;
+typedef double       error_t;
+typedef double       data_t;
 
 }
 }
+
 #endif
