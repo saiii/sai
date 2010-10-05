@@ -18,11 +18,13 @@
 MATH_SRC = Matrix.cpp \
 					 Vector.cpp \
 					 Distance.cpp \
-					 EigenSolver.cpp
+					 EigenSolver.cpp \
+					 Utils.cpp
 
 MATH_INC = $(SAI_ROOT)/math/Matrix.h \
 					 $(SAI_ROOT)/math/Vector.h \
 					 $(SAI_ROOT)/math/EigenSolver.h \
+					 $(SAI_ROOT)/math/Utils.h \
 					 $(SAI_ROOT)/math/Types.h
 
 MATH_OBJ1= $(MATH_SRC:.cpp=.o)
