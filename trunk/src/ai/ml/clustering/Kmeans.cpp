@@ -118,14 +118,14 @@ Kmeans::initCenter()
   counter_t dim = _inputs->front()->getRow();
   if (_config->_randomCenter)
   {
-    Vector v(_centers->size(), 1);
+    Vector v(_inputs->size(), 1);
     v = 0.0;
     for (counter_t i = 0; i < _centers->size(); i += 1)
     {
-      counter_t r = Utils::RandomInt(0, _centers->size() - 1);
-      if (v.get(i, 0) == 0.0)
+      counter_t r = Utils::RandomInt(0, _inputs->size() - 1);
+      if (v.get(r, 0) == 0.0)
       {
-        v.set(i, 0, (matrixdata_t)r);
+        v.set(r, 0, (matrixdata_t)1.0);
       }
       else
       {
@@ -133,11 +133,16 @@ Kmeans::initCenter()
       }
     }
 
-    for (counter_t i = 0; i < _centers->size(); i += 1)
+    counter_t c = 0;
+    for (counter_t i = 0; i < _inputs->size(); i += 1)
     {
-      for (counter_t d = 0; d < dim; d += 1)
+      if (v.get(i,0))
       {
-        _centers->at(i)->set(d, 0, _inputs->at(v.get(i, 0))->get(d,0));
+        for (counter_t d = 0; d < dim; d += 1)
+        {
+          _centers->at(c)->set(d, 0, _inputs->at(i)->get(d,0));
+        }
+        c += 1;
       }
     }
   }
