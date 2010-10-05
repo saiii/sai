@@ -18,58 +18,19 @@
 #ifndef __SAI_AI_KMEANS__
 #define __SAI_AI_KMEANS__
 
-#include <math/Types.h>
-#include <ai/Types.h>
-#include <ai/ml/Configuration.h>
+#include <ai/ml/clustering/Partition.h>
 
 namespace sai { namespace ai { 
 namespace ml 
 {
 
-class KmeansConfiguration;
-class Kmeans
+class Kmeans : public Partition
 {
-  private:
-    KmeansConfiguration   * _config;
-    sai::math::VectorList * _inputs;
-    sai::math::VectorList * _centers;
-
   public:
     Kmeans();
     ~Kmeans();
 
-    void                 setInput(sai::math::VectorList* list); 
-    void                 setCenter(sai::math::VectorList* list); 
-    void                 setCenter(sai::math::VectorList* list, sai::math::matrixsize_t dim);
-    void                 initCenter();
-    KmeansConfiguration* getConfiguration(); 
-    void                 activate(); 
-};
-
-class KmeansConfiguration : public Configuration
-{
-  friend class Kmeans;
-  private:
-    sai::ai::counter_t _maxIterations;
-    sai::ai::counter_t _numCenter;
-    sai::ai::error_t   _threshold;
-    bool               _randomCenter;
-
-  public:
-    typedef enum
-    {
-      MAX_ITERATION,
-      NUM_CENTER,
-      RANDOM_CENTER,
-      THRESHOLD
-    }Type;
-
-  public:
-    KmeansConfiguration();
-    ~KmeansConfiguration();
-    void set(int) {}
-    void set(int, counter_t);
-    void set(int, error_t);
+    void activate(); 
 };
 
 }

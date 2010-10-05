@@ -38,6 +38,33 @@ class MahalanobisDistance : public Distance
     inline matrixdata_t dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
 };
 
+class ManhattanDistance : public Distance
+{
+  public:
+    inline matrixdata_t dist (Vector& a, Vector& b);
+    inline matrixdata_t dist2(Vector& a, Vector& b);
+    inline matrixdata_t dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+    inline matrixdata_t dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+};
+
+class MaximumNormDistance : public Distance
+{
+  public:
+    inline matrixdata_t dist (Vector& a, Vector& b);
+    inline matrixdata_t dist2(Vector& a, Vector& b);
+    inline matrixdata_t dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+    inline matrixdata_t dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+};
+
+class HammingDistance : public Distance
+{
+  public:
+    inline matrixdata_t dist (Vector& a, Vector& b);
+    inline matrixdata_t dist2(Vector& a, Vector& b);
+    inline matrixdata_t dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+    inline matrixdata_t dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j);
+};
+
 Distance * 
 DistanceCreator::create(DistanceType type)
 {
@@ -47,6 +74,12 @@ DistanceCreator::create(DistanceType type)
       return new EuclideanDistance();
     case SAI_AI_DIST_MAHALANOBIS:
       return new MahalanobisDistance();
+    case SAI_AI_DIST_MANHATTAN:
+      return new ManhattanDistance();
+    case SAI_AI_DIST_MAXIMUMNORM:
+      return new MaximumNormDistance();
+    case SAI_AI_DIST_HAMMING:
+      return new HammingDistance();
     default:
       return 0;
   }
@@ -125,6 +158,84 @@ MahalanobisDistance::dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
 
 inline matrixdata_t 
 MahalanobisDistance::dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  // TODO
+  return (matrixdata_t) 0.0;
+}
+
+inline matrixdata_t
+ManhattanDistance::dist(Vector& a, Vector& b)
+{
+  return sqrt(dist2(a, b));
+}
+
+inline matrixdata_t
+ManhattanDistance::dist2(Vector& a, Vector& b)
+{
+  // TODO
+  return (matrixdata_t) 0.0;
+}
+
+inline matrixdata_t 
+ManhattanDistance::dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  return sqrt(dist2(a, i, b, j));
+}
+
+inline matrixdata_t 
+ManhattanDistance::dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  // TODO
+  return (matrixdata_t) 0.0;
+}
+
+inline matrixdata_t
+MaximumNormDistance::dist(Vector& a, Vector& b)
+{
+  return sqrt(dist2(a, b));
+}
+
+inline matrixdata_t
+MaximumNormDistance::dist2(Vector& a, Vector& b)
+{
+  // TODO
+  return (matrixdata_t) 0.0;
+}
+
+inline matrixdata_t 
+MaximumNormDistance::dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  return sqrt(dist2(a, i, b, j));
+}
+
+inline matrixdata_t 
+MaximumNormDistance::dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  // TODO
+  return (matrixdata_t) 0.0;
+}
+
+inline matrixdata_t
+HammingDistance::dist(Vector& a, Vector& b)
+{
+  return sqrt(dist2(a, b));
+}
+
+inline matrixdata_t
+HammingDistance::dist2(Vector& a, Vector& b)
+{
+  // TODO
+  return (matrixdata_t) 0.0;
+}
+
+inline matrixdata_t 
+HammingDistance::dist (Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
+{
+  return sqrt(dist2(a, i, b, j));
+}
+
+inline matrixdata_t 
+HammingDistance::dist2(Matrix& a, matrixsize_t i, Matrix& b, matrixsize_t j)
 {
   // TODO
   return (matrixdata_t) 0.0;

@@ -19,9 +19,11 @@ TEST_SRC = MathMatrix.cpp \
 					 MathVector.cpp \
 					 MathEigenSolver.cpp \
 					 AiMlKmeans.cpp \
+					 AiMlFuzzyCmeans.cpp \
 					 MathUtils.cpp
 
 TEST_INC = 
+SAI_LIB  = libSai.a
 
 TEST_OBJ1= $(TEST_SRC:.cpp=.o)
 TEST_OBJ = $(addprefix test/, $(TEST_OBJ1))
@@ -29,13 +31,13 @@ TEST_BIN = $(TEST_OBJ:.o=)
 TEST_DEP = $(TEST_OBJ:.o=.d)
 TEST_ASM = $(TEST_OBJ:.o=.asm)
 
-test/%: test/%.o
+test/%: test/%.o $(SAI_LIB)
 	$(CC) -o $@ $(OPTS) $< libSai.a $(LIBS)
 
-test/%.o: $(SAI_ROOT)/test/%.cpp
+test/%.o: $(SAI_ROOT)/test/%.cpp $(SAI_LIB)
 	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) -c $<
 
-test/%.d: $(SAI_ROOT)/test/%.cpp
+test/%.d: $(SAI_ROOT)/test/%.cpp $(SAI_LIB)
 	@ set -e; rm -f $@; \
 		$(CC) -M $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) -c $< > $@.d; \
 		sed 's,\($*\)\.o[ :]*,test/\1.o $@: ,g' < $@.d > $@; \

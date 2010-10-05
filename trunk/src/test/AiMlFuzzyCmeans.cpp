@@ -19,7 +19,7 @@
 #include <math/Types.h>
 #include <math/Utils.h>
 #include <math/Vector.h>
-#include <ai/ml/clustering/Kmeans.h>
+#include <ai/ml/clustering/FuzzyCmeans.h>
 
 using namespace sai::math;
 using namespace sai::ai;
@@ -74,40 +74,40 @@ test2dim2centers22samples()
   VectorList center;
   INIT_VECTOR(list, 2, cdata, 22);
 
-  Kmeans kmeans;
-  Configuration *config = kmeans.getConfiguration();
+  FuzzyCmeans fcm;
+  Configuration *config = fcm.getConfiguration();
   config->set(PartitionConfiguration::MAX_ITERATION, (sai::ai::counter_t)50);
   config->set(PartitionConfiguration::THRESHOLD, (sai::ai::error_t)0.0001);
   config->set(PartitionConfiguration::NUM_CENTER, (sai::ai::counter_t)2);
 
-  kmeans.setInput(&list);
-  kmeans.setCenter(&center, 2);
-  kmeans.activate();
+  fcm.setInput(&list);
+  fcm.setCenter(&center, 2);
+  fcm.activate();
   print(list, center);
   cleanup(list, center);
 
-  Kmeans kmeans2;
-  config = kmeans2.getConfiguration();
+  FuzzyCmeans fcm2;
+  config = fcm2.getConfiguration();
   config->set(PartitionConfiguration::MAX_ITERATION, (sai::ai::counter_t)50);
   config->set(PartitionConfiguration::THRESHOLD, (sai::ai::error_t)0.0001);
   config->set(PartitionConfiguration::NUM_CENTER, (sai::ai::counter_t)2);
   config->set(PartitionConfiguration::RANDOM_CENTER, (sai::ai::counter_t)1);
   INIT_VECTOR(list, 2, cdata, 22);
-  kmeans2.setInput(&list);
-  kmeans2.setCenter(&center, 2);
-  kmeans2.activate();
+  fcm2.setInput(&list);
+  fcm2.setCenter(&center, 2);
+  fcm2.activate();
   print(list, center);
   cleanup(list, center);
 
-  Kmeans kmeans3;
-  config = kmeans3.getConfiguration();
+  FuzzyCmeans fcm3;
+  config = fcm3.getConfiguration();
   config->set(PartitionConfiguration::MAX_ITERATION, (sai::ai::counter_t)50);
   config->set(PartitionConfiguration::THRESHOLD, (sai::ai::error_t)0.0001);
   config->set(PartitionConfiguration::NUM_CENTER, (sai::ai::counter_t)2);
   config->set(PartitionConfiguration::USER_SPECIFIED_CENTER, (sai::ai::counter_t)1);
   INIT_VECTOR(list, 2, cdata, 22);
-  kmeans3.setInput(&list);
-  kmeans3.setCenter(&center, 2);
+  fcm3.setInput(&list);
+  fcm3.setCenter(&center, 2);
   counter_t cntIndex [] = {10, 12};
   for (counter_t c = 0; c < 2; c += 1)
   {
@@ -116,7 +116,7 @@ test2dim2centers22samples()
       center.at(c)->set(i, 0, list.at(cntIndex[c])->get(i, 0));
     }
   }
-  kmeans3.activate();
+  fcm3.activate();
   print(list, center);
   cleanup(list, center);
 }
@@ -150,15 +150,15 @@ test1dim2centers22samples()
   VectorList center;
   INIT_VECTOR(list, 1, cdata, 22);
 
-  Kmeans kmeans;
-  Configuration *config = kmeans.getConfiguration();
+  FuzzyCmeans fcm;
+  Configuration *config = fcm.getConfiguration();
   config->set(PartitionConfiguration::MAX_ITERATION, (sai::ai::counter_t)50);
   config->set(PartitionConfiguration::THRESHOLD, (sai::ai::error_t)0.0001);
   config->set(PartitionConfiguration::NUM_CENTER, (sai::ai::counter_t)2);
 
-  kmeans.setInput(&list);
-  kmeans.setCenter(&center, 1);
-  kmeans.activate();
+  fcm.setInput(&list);
+  fcm.setCenter(&center, 1);
+  fcm.activate();
 
   print(list, center);
   cleanup(list, center);

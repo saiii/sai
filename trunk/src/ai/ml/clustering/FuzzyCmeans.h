@@ -15,22 +15,41 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_AI_ML_CONFIGURATION__
-#define __SAI_AI_ML_CONFIGURATION__
+#ifndef __SAI_AI_FUZZYCMEANS__
+#define __SAI_AI_FUZZYCMEANS__
 
-#include <ai/Types.h>
+#include <ai/ml/clustering/Partition.h>
 
 namespace sai { namespace ai { 
 namespace ml 
 {
 
-class Configuration
+class FuzzyCmeans : public Partition
 {
   public:
-    virtual void set(int){}
-    virtual void set(int, counter_t){}
-    virtual void set(int, error_t)  {}
-    virtual void set(int, void*)    {}
+    FuzzyCmeans();
+    ~FuzzyCmeans();
+
+    void activate(); 
+};
+
+class FuzzyCmeansConfiguration : public PartitionConfiguration
+{
+  friend class FuzzyCmeans;
+  private:
+    sai::ai::error_t _fuzzifier;
+
+  public:
+    typedef enum
+    {
+      FUZZIFIER = 1000
+    }Type;
+
+  public:
+    FuzzyCmeansConfiguration();
+    ~FuzzyCmeansConfiguration();
+
+    void set(int, error_t);
 };
 
 }

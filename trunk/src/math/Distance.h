@@ -37,7 +37,10 @@ class Distance
 typedef enum
 {
   SAI_AI_DIST_EUCLIDEAN,
-  SAI_AI_DIST_MAHALANOBIS
+  SAI_AI_DIST_MAHALANOBIS,
+  SAI_AI_DIST_MANHATTAN,
+  SAI_AI_DIST_MAXIMUMNORM,
+  SAI_AI_DIST_HAMMING
 }DistanceType;
 
 class DistanceCreator
