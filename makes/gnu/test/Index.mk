@@ -18,7 +18,8 @@
 TEST_SRC = MathMatrix.cpp \
 					 MathVector.cpp \
 					 MathEigenSolver.cpp \
-					 AiMlKmeans.cpp
+					 AiMlKmeans.cpp \
+					 MathUtils.cpp
 
 TEST_INC = 
 

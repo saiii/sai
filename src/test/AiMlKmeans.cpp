@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <math/Types.h>
+#include <math/Utils.h>
 #include <math/Vector.h>
 #include <ai/ml/clustering/Kmeans.h>
 
@@ -25,12 +26,15 @@ using namespace sai::ai;
 using namespace sai::ai::ml;
 
 void test1dim2centers22samples();
+void test2dim2centers22samples();
 void print(VectorList& input, VectorList& center);
 void cleanup(VectorList& input, VectorList& center);
 
 int main(int argc, char * argv[])
 {
+  Utils::RandomSeed(10);
   test1dim2centers22samples();
+  test2dim2centers22samples();
   return 0;
 }
 
@@ -40,6 +44,62 @@ int main(int argc, char * argv[])
             for (int _d = 0; _d < dim; _d += 1) { \
               v->set(_d, 0, data[_r][_d]); } \
             list.push_back(v); }}
+
+void 
+test2dim2centers22samples()
+{
+  matrixdata_t cdata [][2] = {{1, 1},
+                              {2, 1},
+                              {3, 1},
+                              {3, 1},
+                              {4, 1},
+                              {5, 1},
+                              {5, 1},
+                              {3, 1},
+                              {3, 1},
+                              {5, 1},
+                              {8, 1},
+                              {5, 1},
+                              {9, 1},
+                              {5, 1},
+                              {7, 1},
+                              {5, 1},
+                              {8, 1},
+                              {8, 1},
+                              {8, 1},
+                              {8, 1},
+                              {7, 1},
+                              {7, 1}};
+  VectorList list;
+  VectorList center;
+  INIT_VECTOR(list, 2, cdata, 22);
+
+  Kmeans kmeans;
+  Configuration *config = kmeans.getConfiguration();
+  config->set(KmeansConfiguration::MAX_ITERATION, (sai::ai::counter_t)50);
+  config->set(KmeansConfiguration::THRESHOLD, (sai::ai::error_t)0.0001);
+  config->set(KmeansConfiguration::NUM_CENTER, (sai::ai::counter_t)2);
+
+  kmeans.setInput(&list);
+  kmeans.setCenter(&center, 2);
+  kmeans.activate();
+
+  print(list, center);
+  cleanup(list, center);
+
+  Kmeans kmeans2;
+  config = kmeans2.getConfiguration();
+  config->set(KmeansConfiguration::MAX_ITERATION, (sai::ai::counter_t)50);
+  config->set(KmeansConfiguration::THRESHOLD, (sai::ai::error_t)0.0001);
+  config->set(KmeansConfiguration::NUM_CENTER, (sai::ai::counter_t)2);
+  config->set(KmeansConfiguration::RANDOM_CENTER, (sai::ai::counter_t)1);
+  INIT_VECTOR(list, 2, cdata, 22);
+  kmeans2.setInput(&list);
+  kmeans2.setCenter(&center, 2);
+  kmeans2.activate();
+  print(list, center);
+  cleanup(list, center);
+}
 
 void 
 test1dim2centers22samples()

@@ -18,6 +18,7 @@
 #include <limits>
 #include <stdexcept>
 #include <math/Distance.h>
+#include <math/Utils.h>
 #include <ai/ml/clustering/Kmeans.h>
 
 using namespace sai::ai;
@@ -121,11 +122,10 @@ Kmeans::initCenter()
     v = 0.0;
     for (counter_t i = 0; i < _centers->size(); i += 1)
     {
-      // TODO : Random input
-      counter_t r = 0;
-      if (v.get(r, 0) == 0.0)
+      counter_t r = Utils::RandomInt(0, _centers->size() - 1);
+      if (v.get(i, 0) == 0.0)
       {
-        v.set(r, 0, (matrixdata_t)1.0);
+        v.set(i, 0, (matrixdata_t)r);
       }
       else
       {
@@ -173,7 +173,7 @@ Kmeans::activate()
 
   Distance * distance = DistanceCreator().create(SAI_AI_DIST_EUCLIDEAN);
   Vector dist (csize, 1);
-  Vector sum  (dsize, csize);
+  Matrix sum  (dsize, csize);
   Vector count(csize, 1);
 
   for (counter_t cnt = 0; cnt < MAX && changed > THRESHOLD; cnt += 1)
