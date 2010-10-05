@@ -15,9 +15,13 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##=============================================================================
 
-AI_SRC = ml/clustering/Kmeans.cpp
+AI_SRC = ml/clustering/Partition.cpp \
+         ml/clustering/Kmeans.cpp \
+				 ml/clustering/FuzzyCmeans.cpp
 
-AI_INC = $(SAI_ROOT)/ai/ml/clustering/Kmeans.h \
+AI_INC = $(SAI_ROOT)/ai/ml/clustering/Partition.h \
+         $(SAI_ROOT)/ai/ml/clustering/Kmeans.h \
+				 $(SAI_ROOT)/ai/ml/clustering/FuzzyCmeans.h \
 				 $(SAI_ROOT)/ai/ml/Configuration.h \
 				 $(SAI_ROOT)/ai/Types.h
 
