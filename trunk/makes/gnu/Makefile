@@ -34,6 +34,7 @@ all: LIBS TEST
 
 include math/Index.mk
 include ai/Index.mk
+include utils/Index.mk
 include test/Index.mk
 
 LIBS: $(SAI_OBJS) libSai.a
