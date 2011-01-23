@@ -19,22 +19,40 @@
 #define __SAI_UTILS_KDTREESORT__
 
 #include <utils/Sorter.h>
+#include <utils/Searcher.h>
 
 namespace sai
 {
 namespace utils
 {
 
-class ListSorter
+class KDTreeListSorter
 {
 public:
   virtual void sort(List*, index_t dim) = 0;
 };
 
+class KDTreeElementCombiner
+{
+public:
+  virtual Element* createAggregate(Element*, Element*) = 0;
+  virtual Element* createAverage(Element*, index_t) = 0;
+};
+
+class FindableKDTreeElement
+{
+public:
+  virtual bool isGreaterThan(FindableKDTreeElement*,index_t) = 0;
+  virtual bool isLessThan(FindableKDTreeElement*,index_t) = 0;
+  virtual bool isEqual(FindableKDTreeElement*,index_t) = 0;
+};
+
 class List;
 class Element;
 class KDTreeTraversalHandler;
-class KDTree : public Sorter
+class ExpandSearchData;
+class KDTree : public Sorter,
+               public Searcher
 {
 public:
   class Node
@@ -43,25 +61,33 @@ public:
       virtual bool     isLeaf()   = 0;
       virtual Node*    getLeft()  = 0;
       virtual Node*    getRight() = 0;
+      virtual Node*    getParent()= 0;
       virtual Element* getValue() = 0;
   };
 
 private:
-  index_t      _dim;
-  Node       * _root;
-  ListSorter * _sorter;
+  index_t                 _dim;
+  Node                  * _root;
+  KDTreeListSorter      * _sorter;
+  KDTreeElementCombiner * _comb;
+  ExpandSearchData      * _expandSearch;
 
 private:
   Node* sort(List*, index_t, Node*);
   void  preorder(KDTreeTraversalHandler*, Node*);
 
 public:
-  KDTree(index_t dim, ListSorter *sorter);
+  KDTree(index_t, KDTreeListSorter *, KDTreeElementCombiner*);
   ~KDTree();
 
-  void sort(List* list, Comparer*) { sort(list); } // Note: The given list will be destroyed
-  void sort(List*); 
-  void traverse(KDTreeTraversalHandler*); // only preorder for now
+  void     sort(List* list, Comparer*) { sort(list); } // Note: The given list will be destroyed
+  void     sort(List*); 
+  Element* search(List*, Key* key) { return search(key, false); }
+  Element* search(Key* key)        { return search(key, false); }
+  Element* search(Key*,bool);
+  Element* nearestSearch(Key* key) { return search(key, true);  }
+  Element* expandSearch();
+  void     traverse(KDTreeTraversalHandler*); // only preorder for now
 };
 
 class KDTreeTraversalHandler
