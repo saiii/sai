@@ -28,17 +28,31 @@ namespace utils
 class ParentNode : public KDTree::Node
 {
   public:
+    index_t        dim;
+    index_t        count;
+    Element      * aggregate;
+    Element      * average;
     KDTree::Node * left;
     KDTree::Node * right;
     KDTree::Node * parent;
 
   public:
-    ParentNode() : left(0),right(0) {}
-    ~ParentNode() {}
-    bool     isLeaf()  { return false; }
-    Node*    getLeft() { return left;  }
-    Node*    getRight(){ return right; }
-    Element* getValue(){ return 0;     }
+    ParentNode() : 
+      dim(0), count(0), 
+      aggregate(0), 
+      average(0), left(0),
+      right(0), parent(0) 
+    {}
+    ~ParentNode() 
+    {
+      delete aggregate;
+      delete average;
+    }
+    bool     isLeaf()   { return false;   }
+    Node*    getLeft()  { return left;    }
+    Node*    getRight() { return right;   }
+    Node*    getParent(){ return parent;  }
+    Element* getValue() { return average; }
 };
 
 class LeafNode : public KDTree::Node
@@ -50,25 +64,36 @@ class LeafNode : public KDTree::Node
   public:
     LeafNode() : value(0), parent(0) {}
     ~LeafNode() {}
-    bool     isLeaf()  { return true; }
-    Node*    getLeft() { return 0;    } 
-    Node*    getRight(){ return 0;    } 
-    Element* getValue(){ return value;}
+    bool     isLeaf()   { return true;   }
+    Node*    getLeft()  { return 0;      } 
+    Node*    getRight() { return 0;      } 
+    Node*    getParent(){ return parent; }
+    Element* getValue() { return value;  }
+};
+
+class ExpandSearchData
+{
+public:
+    LeafNode * left;
+    LeafNode * right;
 };
 
 }
 }
 
-KDTree::KDTree(index_t dim, ListSorter * sorter):
+KDTree::KDTree(index_t dim, KDTreeListSorter * sorter, KDTreeElementCombiner * comb):
   _dim(dim),
   _root(0),
-  _sorter(sorter)
+  _sorter(sorter),
+  _comb(comb),
+  _expandSearch(0)
 {
   _root = new ParentNode();
 }
 
 KDTree::~KDTree()
 {
+  delete _expandSearch;
   delete _root;
 }
 
@@ -97,6 +122,7 @@ KDTree::sort(List* list, index_t depth, Node* parent)
 
   ParentNode * pNode = new ParentNode();
   index_t axis = depth % _dim; 
+  pNode->dim   = axis;
 
   // Sort data from the selected axis
   _sorter->sort(list, axis);
@@ -124,7 +150,67 @@ KDTree::sort(List* list, index_t depth, Node* parent)
     pNode->right = sort(right, depth + 1, pNode);
   }
 
+  if (!pNode->isLeaf())
+  {
+    ParentNode * pL = dynamic_cast<ParentNode*>(pNode->left);
+    ParentNode * pR = dynamic_cast<ParentNode*>(pNode->right);
+    Element * left, *right;
+    index_t   cLeft, cRight;
+
+    left  = pL ? pL->aggregate : pNode->left->getValue();
+    right = pR ? pR->aggregate : pNode->right->getValue();
+    pNode->aggregate = _comb->createAggregate(left, right);
+
+    cLeft = pL ? pL->count : 1;
+    cRight= pR ? pR->count : 1;
+    pNode->count = cLeft + cRight;
+
+    pNode->average  = _comb->createAverage(pNode->aggregate, pNode->count);
+  }
+
   return pNode;
+}
+
+Element* 
+KDTree::search(Key* key, bool nearestSearch)
+{
+  Node * node = _root; 
+  FindableKDTreeElement * fKey = dynamic_cast<FindableKDTreeElement*>(key);
+  if (!fKey)
+  {
+    return 0;
+  }
+
+  do
+  {
+    ParentNode * pNode = dynamic_cast<ParentNode*>(node);
+    if (pNode)
+    {
+      FindableKDTreeElement * elem = dynamic_cast<FindableKDTreeElement*>(pNode->average);
+      if (elem && (elem->isGreaterThan(fKey, pNode->dim) || elem->isEqual(fKey, pNode->dim)))
+      {
+        node = node->getLeft(); 
+      }
+      else
+      {
+        node = node->getRight(); 
+      }
+    }
+  } while(!node->isLeaf());
+
+  if (nearestSearch)
+  {
+    return node->getValue(); 
+  }
+
+  if (node->getValue()->operator==(key))
+  {
+    return node->getValue();
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 void 

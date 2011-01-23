@@ -16,12 +16,13 @@
 ##=============================================================================
 
 TEST_SRC = MathMatrix.cpp \
-	 Utils.cpp \
-	 MathVector.cpp \
-	 MathEigenSolver.cpp \
-	 AiMlKmeans.cpp \
-	 AiMlFuzzyCmeans.cpp \
-	 MathUtils.cpp
+           Utils.cpp \
+           KDTree.cpp \
+           MathVector.cpp \
+           MathEigenSolver.cpp \
+           AiMlKmeans.cpp \
+           AiMlFuzzyCmeans.cpp \
+           MathUtils.cpp
 
 TEST_INC = 
 SAI_LIB  = libSai.a
