@@ -35,6 +35,7 @@ all: LIBS TEST
 include math/Index.mk
 include ai/Index.mk
 include utils/Index.mk
+include net/Index.mk
 include test/Index.mk
 
 LIBS: $(SAI_OBJS) libSai.a
@@ -46,7 +47,7 @@ libSai.so: $(SAI_OBJS)
 libSai.a: $(SAI_OBJS)
 	ar rs $@ $(SAI_OBJS)
 
-clean: clean_math clean_test clean_ai
+clean: clean_math clean_test clean_ai clean_utils clean_net
 	  @ rm -Rf lib* *.o
 
 count:
