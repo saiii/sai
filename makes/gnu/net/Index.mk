@@ -32,7 +32,7 @@ NET_ASM = $(NET_OBJ:.o=.asm)
 SAI_OBJS += $(NET_OBJ)
 SAI_INC  += $(NET_INC)
 
-INC += -I/home/athip/Dev/boost_1_45_0/BIN/include
+INC += -I$(BOOST_INC)
 
 net/%.o: $(SAI_ROOT)/net/%.cpp
 	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) -c $<
