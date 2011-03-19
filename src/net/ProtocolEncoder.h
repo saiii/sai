@@ -15,34 +15,24 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET_NET__
-#define __SAI_NET_NET__
+#ifndef __SAI_NET_PROTOCOLENCODER__
+#define __SAI_NET_PROTOCOLENCODER__
 
-#include <boost/asio.hpp>
 #include <stdint.h>
+#include <net/DataDescriptor.h>
 
 namespace sai 
 { 
 namespace net 
 {
 
-typedef std::vector<std::string*>           StringList;
-typedef std::vector<std::string*>::iterator StringListIterator;
-typedef std::vector<uint32_t>           IntList;
-typedef std::vector<uint32_t>::iterator IntListIterator;
-
-class Net
+class ProtocolEncoder
 {
-private:
-  boost::asio::io_service& _io;
-
 public:
-  Net(boost::asio::io_service& io);
-  ~Net();
+  ProtocolEncoder();
+  ~ProtocolEncoder();
 
-  boost::asio::io_service& getIO() { return _io; }
-
-  std::string getIpFromName(std::string);
+  void encode(DataDescriptor&, uint32_t, std::string&, std::string&);
 };
 
 }

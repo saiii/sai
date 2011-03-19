@@ -15,36 +15,17 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET_NET__
-#define __SAI_NET_NET__
+#include "DataChainable.h"
 
-#include <boost/asio.hpp>
-#include <stdint.h>
+using namespace sai::net;
 
-namespace sai 
-{ 
-namespace net 
+
+DataChainable::DataChainable():
+  _filter(0)
 {
+}
 
-typedef std::vector<std::string*>           StringList;
-typedef std::vector<std::string*>::iterator StringListIterator;
-typedef std::vector<uint32_t>           IntList;
-typedef std::vector<uint32_t>::iterator IntListIterator;
-
-class Net
+DataChainable::~DataChainable()
 {
-private:
-  boost::asio::io_service& _io;
-
-public:
-  Net(boost::asio::io_service& io);
-  ~Net();
-
-  boost::asio::io_service& getIO() { return _io; }
-
-  std::string getIpFromName(std::string);
-};
-
 }
-}
-#endif
+

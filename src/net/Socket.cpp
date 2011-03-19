@@ -1,4 +1,20 @@
-// SAI [ 14 Oct 2009 ]
+//=============================================================================
+// Copyright (C) 2009 Athip Rooprayochsilp <athipr@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//	        
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//=============================================================================
+
 #include <stdarg.h>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -27,6 +43,7 @@ public:
 
 public:
   UDPMcastServerSocket(Net& net) : 
+    ServerSocket(net),
     _socket(net.getIO()),
     _buffer(0),
     _bufferSize(65536),
@@ -76,12 +93,21 @@ public:
   }
 
   void join(std::string mcast) 
-       {
-         if (!openned) throw SocketException("Invalid state! The socket must be openned before!");
+  {
+    if (!openned) throw SocketException("Invalid state! The socket must be openned before!");
 
-         const boost::asio::ip::address address = boost::asio::ip::address::from_string(mcast);
-         _socket.set_option(boost::asio::ip::multicast::join_group(address));
-       }
+    std::string err = "";
+    const boost::asio::ip::address address = boost::asio::ip::address::from_string(mcast);
+    try
+    {
+      _socket.set_option(boost::asio::ip::multicast::join_group(address));
+    } catch(boost::system::system_error& e)
+    {
+      err = e.what();
+    }
+    if (err.length() > 0)
+      throw SocketException(err); 
+  }
 
   void bind(std::string ip, uint16_t p) 
        { 
@@ -108,7 +134,8 @@ public:
        }
 };
 
-ServerSocket::ServerSocket()
+ServerSocket::ServerSocket(Net& net):
+  Socket(net)
 {}
 
 ServerSocket::~ServerSocket()
@@ -249,6 +276,7 @@ protected:
 
 public:
   TCPClientSocket(Net& net):
+    ClientSocket(net),
     _socket(net.getIO()),
     _resolver(net.getIO()),
     _handler(0)
@@ -320,6 +348,7 @@ public:
 
 public:
   TCPServerSocket(Net& net):
+    ServerSocket(net),
     _net(net), 
     _acceptor(0),
     _handler(0),
@@ -422,6 +451,7 @@ private:
 
 public:
   UDPMcastClientSocket(Net& net):
+    ClientSocket(net),
     _socket(net.getIO(), _remoteEndPoint.protocol()),
     _openned(true)
   {}
@@ -472,7 +502,8 @@ public:
   }
 };
 
-ClientSocket::ClientSocket()
+ClientSocket::ClientSocket(Net& net):
+  Socket(net)
 {}
 
 ClientSocket::~ClientSocket()
@@ -614,7 +645,8 @@ ClientSocket::Create(Net& net, SocketOptions option, ...)
   return ret;
 }
 
-Socket::Socket()
+Socket::Socket(Net& net):
+  _net(net)
 {}
 
 Socket::~Socket()

@@ -15,34 +15,54 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET_NET__
-#define __SAI_NET_NET__
+#ifndef __SAI_NET_DATABUS__
+#define __SAI_NET_DATABUS__
 
-#include <boost/asio.hpp>
 #include <stdint.h>
+#include <string>
+#include <vector>
+#include <net/ChainFilter.h>
+#include <net/ProtocolDecoder.h>
+#include <net/DataBusChannel.h>
+#include <net/DataBusChannelImpl.h>
+#include <net/Net.h>
 
 namespace sai 
 { 
 namespace net 
 {
 
-typedef std::vector<std::string*>           StringList;
-typedef std::vector<std::string*>::iterator StringListIterator;
-typedef std::vector<uint32_t>           IntList;
-typedef std::vector<uint32_t>::iterator IntListIterator;
-
-class Net
+class DataBusImpl;
+class DataBusStateDb;
+class DataBus : public ProtocolDecoder
 {
 private:
-  boost::asio::io_service& _io;
+  DataBusStateDb* _stateDb;
+  ChainFilter   * _sendReceiveFilter;
+  DataBusChannel* _channel;
 
 public:
-  Net(boost::asio::io_service& io);
-  ~Net();
+  DataBus(Net&, DataBusChannel*);
+  ~DataBus();
 
-  boost::asio::io_service& getIO() { return _io; }
+  void listen(std::string name);
+  void activate();
+  void deactivate();
+  void send(std::string name, uint32_t id, std::string data);
+  void blockSender(std::string name);
 
-  std::string getIpFromName(std::string);
+  DataBusChannel * getChannel();
+};
+
+class DataBusFilter : public ChainFilter
+{
+public:
+  virtual bool filterEvent(DataDescriptor&, std::string&) = 0;
+  virtual void block(std::string) = 0;
+  virtual void block(uint32_t) = 0;
+  virtual void add(std::string) = 0;
+  virtual void add(uint32_t) = 0;
+  virtual void clear() = 0;
 };
 
 }

@@ -1,5 +1,5 @@
 //=============================================================================
-// Copyright (C) 2009 Athip Rooprayochsilp <athipr@gmail.com>
+// Copyright (C) 2008 Athip Rooprayochsilp <athipr@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,36 +15,36 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET_NET__
-#define __SAI_NET_NET__
 
-#include <boost/asio.hpp>
-#include <stdint.h>
+#ifndef __SAI_NET_TIMERTASK__
+#define __SAI_NET_TIMERTASK__
 
 namespace sai 
 { 
-namespace net 
+namespace net
 {
 
-typedef std::vector<std::string*>           StringList;
-typedef std::vector<std::string*>::iterator StringListIterator;
-typedef std::vector<uint32_t>           IntList;
-typedef std::vector<uint32_t>::iterator IntListIterator;
-
-class Net
+class Net;
+class TimerTaskImpl;
+class TimerTask
 {
 private:
-  boost::asio::io_service& _io;
+  TimerTaskImpl * _impl;
 
 public:
-  Net(boost::asio::io_service& io);
-  ~Net();
+  TimerTask(Net&);
+  virtual ~TimerTask();
 
-  boost::asio::io_service& getIO() { return _io; }
+  unsigned int getSecInterval();
+  unsigned int getMSecInterval();
+  void schedule(unsigned int sec, unsigned int msec);
+  void schedule();
+  void cancel();
 
-  std::string getIpFromName(std::string);
+  virtual void timerEvent() = 0;
 };
 
 }
 }
+
 #endif

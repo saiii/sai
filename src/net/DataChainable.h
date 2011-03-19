@@ -15,34 +15,39 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET_NET__
-#define __SAI_NET_NET__
+#ifndef __SAI_NET_DATACHAINABLE__
+#define __SAI_NET_DATACHAINABLE__
 
-#include <boost/asio.hpp>
 #include <stdint.h>
+#include <net/DataDispatchable.h>
+#include <net/DataHandler.h>
+#include <net/ChainFilter.h>
 
 namespace sai 
 { 
 namespace net 
 {
 
-typedef std::vector<std::string*>           StringList;
-typedef std::vector<std::string*>::iterator StringListIterator;
-typedef std::vector<uint32_t>           IntList;
-typedef std::vector<uint32_t>::iterator IntListIterator;
-
-class Net
+class DataChainable : public DataHandler,
+                      public DataDispatchable
 {
-private:
-  boost::asio::io_service& _io;
+protected:
+  ChainFilter * _filter;
+
+protected:
+  virtual uint32_t decode(DataDescriptor&, std::string&) = 0;
 
 public:
-  Net(boost::asio::io_service& io);
-  ~Net();
-
-  boost::asio::io_service& getIO() { return _io; }
-
-  std::string getIpFromName(std::string);
+  DataChainable();
+  virtual ~DataChainable();
+  void processDataEvent(DataDescriptor& desc, std::string& data)
+  {  
+    uint32_t id = decode(desc, data);
+    bool valid = true;
+    if (_filter) valid = _filter->filterEvent(desc, data);
+    if (valid)   dispatch(id, desc, data);
+  }
+  void setFilter(ChainFilter * f) { _filter = f; }
 };
 
 }

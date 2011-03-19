@@ -1,11 +1,30 @@
-// SAI [ 13 Oct 2009 ]
-#ifndef __SAI_NETEXCEPTION__
-#define __SAI_NETEXCEPTION__
+//=============================================================================
+// Copyright (C) 2009 Athip Rooprayochsilp <athipr@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//	        
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//=============================================================================
+
+#ifndef __SAI_NET_EXCEPTION__
+#define __SAI_NET_EXCEPTION__
 
 #include <string>
 #include <exception>
 
-namespace sai { namespace net {
+namespace sai 
+{ 
+namespace net 
+{
 
 class DataException : public std::exception
 {
@@ -29,5 +48,6 @@ public:
   virtual const char *what() const throw();
 };
 
-}}
+}
+}
 #endif
