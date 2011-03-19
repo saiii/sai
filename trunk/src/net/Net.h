@@ -35,10 +35,14 @@ class Net
 {
 private:
   boost::asio::io_service& _io;
+  static Net * _instance;
+  char         _id[17];
 
 public:
   Net(boost::asio::io_service& io);
   ~Net();
+  static Net * GetInstance();
+  char *       getSenderId() { return _id; }
 
   boost::asio::io_service& getIO() { return _io; }
 

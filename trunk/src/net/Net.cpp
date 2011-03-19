@@ -19,9 +19,19 @@
 
 using namespace sai::net;
 
+Net * Net::_instance = 0;
+
 Net::Net(boost::asio::io_service& io):
   _io(io)
 {
+  std::string ip = getIpFromName("localhost");
+  struct in_addr addr;
+  inet_pton(AF_INET, ip.c_str(), &addr);
+  uint32_t ipaddr = htonl(addr.s_addr);
+  uint32_t tim    = time(0);
+  sprintf(_id, "%x%x", ipaddr, tim);
+
+  _instance = this;
 }
 
 Net::~Net()
@@ -59,3 +69,10 @@ Net::getIpFromName(std::string nm)
 
   return ret;
 }
+
+Net * 
+Net::GetInstance()
+{
+  return _instance;
+}
+

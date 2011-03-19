@@ -25,12 +25,14 @@
 
 using namespace sai::net;
 
+std::string prompt;
+
 class ServerMsgPrinter : public DataHandler
 {
 public:
   void processDataEvent(DataDescriptor& desc, std::string& msg)
   {
-    printf("(server): %s\n", msg.c_str());
+    printf("(%s): %s\n", prompt.c_str(), msg.c_str());
   }
 };
 
@@ -84,11 +86,13 @@ int main(int argc, char * argv[])
   {
     channel.setSendMcast("224.1.1.1");
     channel.addRecvMcast("224.2.2.2");
+    prompt = "client";
   }
   else
   {
     channel.setSendMcast("224.2.2.2");
     channel.addRecvMcast("224.1.1.1");
+    prompt = "server";
   }
 
   DataBus bus(net, &channel);
@@ -103,6 +107,7 @@ int main(int argc, char * argv[])
   if (clientMode)
   {
     bus.send("Yo", 1, msg);
+    svc.run();
   }
   else
   {

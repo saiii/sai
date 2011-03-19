@@ -22,6 +22,7 @@
 #include <string.h>
 #endif
 #include <iostream>
+#include <net/Net.h>
 #include "ProtocolDecoder.h"
 
 using namespace sai::net;
@@ -99,6 +100,32 @@ ProtocolDecoder::VersionToken::decode(DataDescriptor& desc, std::string& data)
     default:
       return 0;
   }
+}
+
+uint32_t
+ProtocolDecoder::SenderToken::decode(DataDescriptor& desc, std::string& data)
+{
+  uint32_t data_size = data.size();
+  if (data_size < sizeof(desc.sender)) 
+  {
+    return 0;
+  }
+
+  const char * ptr = data.c_str();
+  memcpy(desc.sender, ptr, sizeof(desc.sender)); 
+
+  if (memcmp(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender)) != 0)
+  {
+    ptr       += sizeof(desc.sender);
+    data_size -= sizeof(desc.sender);
+    std::string tdata;
+    tdata.append(ptr, data_size);
+    data = tdata; 
+    return 1;
+  }
+  memset(desc.sender, 0, sizeof(desc.sender));
+
+  return 0;
 }
 
 uint32_t
@@ -243,7 +270,8 @@ ProtocolDecoder::ProtocolDecoder():
   _defaultDataHandler(0)
 {
   _magic.registerHandler(1, &_version);
-  _version.registerHandler(1, &_fromTo);
+  _version.registerHandler(1, &_sender);
+  _sender.registerHandler(1, &_fromTo);
   _fromTo.registerHandler(1, &_data);
 
   _defaultDataHandler = new DefaultDataHandler();
