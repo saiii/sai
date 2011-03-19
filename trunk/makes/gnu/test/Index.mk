@@ -22,10 +22,13 @@ TEST_SRC = MathMatrix.cpp \
            MathEigenSolver.cpp \
            AiMlKmeans.cpp \
            AiMlFuzzyCmeans.cpp \
-           MathUtils.cpp
+           MathUtils.cpp \
+           NetTcp.cpp
 
 TEST_INC = 
-SAI_LIB  = libSai.a
+SAI_LIB  = libSai.a 
+LIBS    += $(BOOST_LIB)
+LIBS    += -lpthread
 
 TEST_OBJ1= $(TEST_SRC:.cpp=.o)
 TEST_OBJ = $(addprefix test/, $(TEST_OBJ1))
@@ -34,7 +37,7 @@ TEST_DEP = $(TEST_OBJ:.o=.d)
 TEST_ASM = $(TEST_OBJ:.o=.asm)
 
 test/%: test/%.o $(SAI_LIB)
-	$(CC) -o $@ $(OPTS) $< libSai.a $(LIBS)
+	$(CC) -o $@ $(OPTS) $< libSai.a $(LIBS) $(BOOST_LIBS)
 
 test/%.o: $(SAI_ROOT)/test/%.cpp $(SAI_LIB)
 	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) -c $<

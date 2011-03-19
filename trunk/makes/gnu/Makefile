@@ -24,10 +24,6 @@ LIBS =
 SAI_INC  =
 SAI_OBJS =
 
-VERSION_MAJOR = 0
-VERSION_MINOR = 0
-VERSION_COUNT = 0
-
 SAI_ROOT = ../../src
 
 all: LIBS TEST
@@ -38,11 +34,11 @@ include utils/Index.mk
 include net/Index.mk
 include test/Index.mk
 
-LIBS: $(SAI_OBJS) libSai.a
+LIBS: $(SAI_OBJS) libSai.a libSai.so
 
 libSai.so: $(SAI_OBJS)
 	$(CC) -fPIC -shared -o $@ $(SAI_OBJS)
-	@ cp $@ $@.$(VERSION_MAJOR)$(VERSION_MINOR)$(VERSION_COUNT)
+	@ cp $@ $@.$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_COUNT)
 
 libSai.a: $(SAI_OBJS)
 	ar rs $@ $(SAI_OBJS)
