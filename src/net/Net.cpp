@@ -10,6 +10,10 @@ Net::Net(boost::asio::io_service& io):
 
 Net::~Net()
 {
+  // Just a dummy call
+  // we want to make sure that all applications used this module have version data in their binaries
+  extern std::string GetVersion(); 
+  GetVersion();
 }
 
 std::string 

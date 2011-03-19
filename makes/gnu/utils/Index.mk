@@ -19,7 +19,8 @@ UTILS_SRC = BinarySearch.cpp \
             BubbleSort.cpp \
             KDTreeSort.cpp \
             LinearSearch.cpp \
-            List.cpp
+            List.cpp \
+            Version.cpp
 
 UTILS_INC = \
           $(SAI_ROOT)/utils/BinarySearch.h \
