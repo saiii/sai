@@ -17,6 +17,7 @@
 
 #include "DataDispatchable.h"
 #include "DataHandler.h"
+#include "Net.h"
 #include "Exception.h"
 
 using namespace sai::net;

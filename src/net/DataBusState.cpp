@@ -198,6 +198,7 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
 
   sai::net::DataDescriptor desc;
   desc.version   = 1;
+  memcpy(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender));
   desc.from.ival = channel->getActualLocalAddressUInt32();
   desc.to.str    = name;
 

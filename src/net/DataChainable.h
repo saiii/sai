@@ -43,9 +43,12 @@ public:
   void processDataEvent(DataDescriptor& desc, std::string& data)
   {  
     uint32_t id = decode(desc, data);
-    bool valid = true;
-    if (_filter) valid = _filter->filterEvent(desc, data);
-    if (valid)   dispatch(id, desc, data);
+    if (id)
+    {
+      bool valid = true;
+      if (_filter) valid = _filter->filterEvent(desc, data);
+      if (valid)   dispatch(id, desc, data);
+    }
   }
   void setFilter(ChainFilter * f) { _filter = f; }
 };

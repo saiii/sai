@@ -41,6 +41,7 @@ class DataDescriptor
 {
 public:
   uint16_t version;
+  char     sender[16];
   Address  from;
   Address  to;
 

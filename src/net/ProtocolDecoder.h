@@ -39,6 +39,11 @@ protected:
     public: uint32_t decode(DataDescriptor&, std::string&);
   };
 
+  class SenderToken : public DataChainable
+  {
+    public: uint32_t decode(DataDescriptor&, std::string&);
+  };
+
   class FromToToken : public DataChainable
   {
     public: uint32_t decode(DataDescriptor&, std::string&);
@@ -57,6 +62,7 @@ protected:
 protected:
   MagicToken          _magic;
   VersionToken        _version;
+  SenderToken         _sender;
   FromToToken         _fromTo;
   Data                _data;
   DefaultDataHandler* _defaultDataHandler;
