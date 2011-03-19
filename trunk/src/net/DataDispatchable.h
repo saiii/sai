@@ -15,34 +15,37 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET_NET__
-#define __SAI_NET_NET__
+#ifndef __SAI_NET_DATADISPATCHABLE__
+#define __SAI_NET_DATADISPATCHABLE__
 
-#include <boost/asio.hpp>
 #include <stdint.h>
+#include <string>
+#include <map>
 
 namespace sai 
 { 
 namespace net 
 {
 
-typedef std::vector<std::string*>           StringList;
-typedef std::vector<std::string*>::iterator StringListIterator;
-typedef std::vector<uint32_t>           IntList;
-typedef std::vector<uint32_t>::iterator IntListIterator;
+class DataHandler;
+class DataDescriptor;
+typedef std::map<uint32_t, DataHandler*>           DispatchTable;
+typedef std::map<uint32_t, DataHandler*>::iterator DispatchTableIterator;
 
-class Net
+class DataDispatchable
 {
 private:
-  boost::asio::io_service& _io;
+  DispatchTable  _table;
+  DataHandler   *_defaultHandler;
+
+protected:
+  DataDispatchable();
+  void dispatch(uint32_t, DataDescriptor&, std::string);
 
 public:
-  Net(boost::asio::io_service& io);
-  ~Net();
-
-  boost::asio::io_service& getIO() { return _io; }
-
-  std::string getIpFromName(std::string);
+  virtual ~DataDispatchable();
+  bool registerHandler(uint32_t id, DataHandler * handler);
+  void setDefaultHandler(DataHandler * handler);
 };
 
 }

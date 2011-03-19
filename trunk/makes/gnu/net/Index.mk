@@ -17,7 +17,16 @@
 
 NET_SRC = Socket.cpp \
           Exception.cpp \
-          Net.cpp
+          Net.cpp \
+          DataBus.cpp \
+          DataDescriptor.cpp \
+          ProtocolDecoder.cpp \
+          ProtocolEncoder.cpp \
+          DataChainable.cpp \
+          DataDispatchable.cpp \
+          DataBusChannel.cpp \
+          DataBusState.cpp \
+          TimerTask.cpp
 
 NET_INC = \
           $(SAI_ROOT)/net/Socket.h \
