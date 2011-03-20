@@ -40,11 +40,6 @@ DataBusChannel::~DataBusChannel()
 void 
 DataBusChannel::setLocalAddress(std::string ip)
 {
-  if (ip.compare("0.0.0.0") == 0 || ip.compare("127.0.0.1") == 0)
-  {
-    ip = Net::GetInstance()->getLocalAddress();
-  }
-
   _localAddress       = ip;
   _localAddressUInt32 = 0;
 }

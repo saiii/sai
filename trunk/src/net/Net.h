@@ -62,6 +62,7 @@ private:
   char         _sender[17];
   uint32_t     _id;
   std::string  _hostAddress;
+  uint32_t     _hostAddressUInt32;
 
 private:
   void initialize();
@@ -77,6 +78,7 @@ public:
 
   std::string getIpFromName(std::string);
   std::string getLocalAddress() { return _hostAddress; }
+  uint32_t    getLocalAddressUInt32() { return _hostAddressUInt32; }
   std::string getLocalIpFromNic(std::string);
   std::string get1stLocalIp();
   uint32_t    getNumNic() { return _nicList.size(); }
