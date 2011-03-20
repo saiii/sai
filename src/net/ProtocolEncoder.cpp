@@ -84,6 +84,7 @@ _EncoderV1::encode(DataDescriptor& desc,
   ADD16(ret, 1);
   ADD16(ret, 0);
   ADDSTR16(ret, Net::GetInstance()->getSenderId());
+  ADD32(ret, desc.id);
  
   if (desc.from.str.length() == 0)
   { 

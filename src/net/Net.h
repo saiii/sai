@@ -26,6 +26,7 @@ namespace sai
 namespace net 
 {
 
+// SAI : TODO Change all std::vector to sai::utils::List
 typedef std::vector<std::string*>           StringList;
 typedef std::vector<std::string*>::iterator StringListIterator;
 typedef std::vector<uint32_t>           IntList;
@@ -36,17 +37,19 @@ class Net
 private:
   boost::asio::io_service& _io;
   static Net * _instance;
-  char         _id[17];
+  char         _sender[17];
+  uint32_t     _id;
 
 public:
   Net(boost::asio::io_service& io);
   ~Net();
   static Net * GetInstance();
-  char *       getSenderId() { return _id; }
+  char *       getSenderId() { return _sender; }
 
   boost::asio::io_service& getIO() { return _io; }
 
   std::string getIpFromName(std::string);
+  uint32_t    getMessageId();
 };
 
 }
