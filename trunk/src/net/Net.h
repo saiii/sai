@@ -32,13 +32,40 @@ typedef std::vector<std::string*>::iterator StringListIterator;
 typedef std::vector<uint32_t>           IntList;
 typedef std::vector<uint32_t>::iterator IntListIterator;
 
+class Net;
+class Nic
+{
+friend class Net;
+private:
+  std::string _name;
+  std::string _ip;
+
+private:
+  Nic();
+
+public:
+  ~Nic();
+
+  const char * name() { return _name.c_str(); }
+  const char * ip()   { return _ip.c_str();   }
+};
+
+typedef std::vector<Nic*>           NicList;
+typedef std::vector<Nic*>::iterator NicListIterator;
+
 class Net
 {
 private:
   boost::asio::io_service& _io;
+  NicList      _nicList;
   static Net * _instance;
   char         _sender[17];
   uint32_t     _id;
+  std::string  _hostAddress;
+
+private:
+  void initialize();
+  void getHostAddress();
 
 public:
   Net(boost::asio::io_service& io);
@@ -49,6 +76,11 @@ public:
   boost::asio::io_service& getIO() { return _io; }
 
   std::string getIpFromName(std::string);
+  std::string getLocalAddress() { return _hostAddress; }
+  std::string getLocalIpFromNic(std::string);
+  std::string get1stLocalIp();
+  uint32_t    getNumNic() { return _nicList.size(); }
+
   uint32_t    getMessageId();
 };
 

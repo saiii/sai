@@ -34,8 +34,6 @@ friend class DataBus;
 protected:
   std::string _localAddress;
   uint32_t    _localAddressUInt32;
-  std::string _actualLocalAddress;
-  uint32_t    _actualLocalAddressUInt32;
   uint16_t    _directPort;
 
 public:
@@ -48,8 +46,6 @@ public:
   virtual uint16_t    getDirectPort();
   virtual std::string getLocalAddress();
   virtual uint32_t    getLocalAddressUInt32();
-  virtual std::string getActualLocalAddress();
-  virtual uint32_t    getActualLocalAddressUInt32();
 };
 
 class McastDataBusChannelImpl;
