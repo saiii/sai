@@ -23,7 +23,8 @@ Net * Net::_instance = 0;
 
 Net::Net(boost::asio::io_service& io):
   _io(io),
-  _id(0)
+  _id(0),
+  _hostAddressUInt32(0)
 {
   initialize();
   getHostAddress();
@@ -31,9 +32,9 @@ Net::Net(boost::asio::io_service& io):
   std::string ip = getLocalAddress();
   struct in_addr addr;
   inet_pton(AF_INET, ip.c_str(), &addr);
-  uint32_t ipaddr = htonl(addr.s_addr);
-  uint32_t tim    = time(0);
-  sprintf(_sender, "%x%x", ipaddr, tim);
+  _hostAddressUInt32 = htonl(addr.s_addr);
+  uint32_t tim       = time(0);
+  sprintf(_sender, "%x%x", _hostAddressUInt32, tim);
 
   _instance = this;
 }
