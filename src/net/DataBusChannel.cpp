@@ -31,7 +31,6 @@ using namespace sai::net;
 
 DataBusChannel::DataBusChannel():
   _localAddressUInt32(0),
-  _actualLocalAddressUInt32(0),
   _directPort(0)
 {}
 
@@ -41,6 +40,11 @@ DataBusChannel::~DataBusChannel()
 void 
 DataBusChannel::setLocalAddress(std::string ip)
 {
+  if (ip.compare("0.0.0.0") == 0 || ip.compare("127.0.0.1") == 0)
+  {
+    ip = Net::GetInstance()->getLocalAddress();
+  }
+
   _localAddress       = ip;
   _localAddressUInt32 = 0;
 }
@@ -80,29 +84,6 @@ DataBusChannel::getLocalAddressUInt32()
   }
 }
 
-std::string 
-DataBusChannel::getActualLocalAddress()
-{
-  return _actualLocalAddress;
-}
-
-uint32_t 
-DataBusChannel::getActualLocalAddressUInt32()
-{
-  if (_actualLocalAddressUInt32 == 0)
-  {
-    struct in_addr addr;
-    inet_pton(AF_INET, _actualLocalAddress.c_str(), &addr);
-
-    _actualLocalAddressUInt32 = htonl(addr.s_addr);
-    return _actualLocalAddressUInt32;
-  }
-  else
-  {
-    return _actualLocalAddressUInt32;
-  }
-}
-
 McastDataBusChannel::McastDataBusChannel():
   _impl(0)
 {
@@ -124,8 +105,6 @@ McastDataBusChannel::copyFrom(DataBusChannel* o)
   _directPort         = other->_directPort;
   _localAddressUInt32 = other->_localAddressUInt32;
   _localAddress       = other->_localAddress;
-  _actualLocalAddressUInt32 = other->_actualLocalAddressUInt32;
-  _actualLocalAddress       = other->_actualLocalAddress;
 
   StringListIterator iter;
   for (iter  = other->_impl->recvMcastList.begin();

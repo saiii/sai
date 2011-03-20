@@ -58,15 +58,6 @@ public:
 }
 }
 
-void getLocalAddress(boost::asio::io_service& ioService, std::string& ip)
-{
-  boost::asio::ip::tcp::resolver resolver(ioService);
-  boost::asio::ip::tcp::resolver::query query(boost::asio::ip::host_name(), "");
-  boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(query);
-  boost::asio::ip::tcp::endpoint endpoint = *it;
-  ip = endpoint.address().to_string();
-}
-
 DataBus::DataBus(Net& net, DataBusChannel* chnl):
   _stateDb(0),
   _sendReceiveFilter(0)
@@ -85,11 +76,9 @@ DataBus::DataBus(Net& net, DataBusChannel* chnl):
 
   if (_channel->_localAddress.length() == 0)
   {
-    getLocalAddress(net.getIO(), _channel->_localAddress);
+    _channel->_localAddress = Net::GetInstance()->getLocalAddress();
     _channel->_localAddressUInt32 = 0;
   }
-
-  getLocalAddress(net.getIO(), _channel->_actualLocalAddress);
 }
 
 DataBus::~DataBus()

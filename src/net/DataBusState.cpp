@@ -200,7 +200,7 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
   desc.version   = 1;
   memcpy(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender));
   desc.id        = Net::GetInstance()->getMessageId();
-  desc.from.ival = channel->getActualLocalAddressUInt32();
+  desc.from.ival = channel->getLocalAddressUInt32();
   desc.to.str    = name;
 
   std::string wireData;
