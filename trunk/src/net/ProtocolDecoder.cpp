@@ -129,6 +129,28 @@ ProtocolDecoder::SenderToken::decode(DataDescriptor& desc, std::string& data)
 }
 
 uint32_t
+ProtocolDecoder::IdToken::decode(DataDescriptor& desc, std::string& data)
+{
+  uint32_t id = 0;
+  uint32_t data_size = data.size();
+  if (data_size < sizeof(desc.id)) 
+  {
+    return 0;
+  }
+
+  const char * ptr = data.c_str();
+  memcpy(&id, ptr, sizeof(desc.id)); 
+  desc.id = ntohl(id);
+
+  ptr       += sizeof(desc.id);
+  data_size -= sizeof(desc.id);
+  std::string tdata;
+  tdata.append(ptr, data_size);
+  data = tdata; 
+  return 1;
+}
+
+uint32_t
 ProtocolDecoder::FromToToken::decode(DataDescriptor& desc, std::string& data)
 {
   const uint16_t NAME = 0x0001;
@@ -271,7 +293,8 @@ ProtocolDecoder::ProtocolDecoder():
 {
   _magic.registerHandler(1, &_version);
   _version.registerHandler(1, &_sender);
-  _sender.registerHandler(1, &_fromTo);
+  _sender.registerHandler(1, &_id);
+  _id.registerHandler(1, &_fromTo);
   _fromTo.registerHandler(1, &_data);
 
   _defaultDataHandler = new DefaultDataHandler();

@@ -22,14 +22,15 @@ using namespace sai::net;
 Net * Net::_instance = 0;
 
 Net::Net(boost::asio::io_service& io):
-  _io(io)
+  _io(io),
+  _id(0)
 {
   std::string ip = getIpFromName("localhost");
   struct in_addr addr;
   inet_pton(AF_INET, ip.c_str(), &addr);
   uint32_t ipaddr = htonl(addr.s_addr);
   uint32_t tim    = time(0);
-  sprintf(_id, "%x%x", ipaddr, tim);
+  sprintf(_sender, "%x%x", ipaddr, tim);
 
   _instance = this;
 }
@@ -74,5 +75,17 @@ Net *
 Net::GetInstance()
 {
   return _instance;
+}
+
+uint32_t 
+Net::getMessageId()
+{
+  // don't want to make it overflow and goes back to 0, so just reset 
+  // it at some particular point
+  if (++_id > 0xFFFFFFF0) 
+  {
+    _id = 1;
+  }
+  return _id;
 }
 
