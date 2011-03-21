@@ -64,6 +64,7 @@ DataBus::DataBus():
   _stateDb(0),
   _sendReceiveFilter(0)
 {
+  activateChecker();
 }
 
 DataBus::~DataBus()
@@ -71,6 +72,7 @@ DataBus::~DataBus()
   delete _channel;
   delete _sendReceiveFilter;
   delete _stateDb;
+  delete DataOrderingManager::GetInstance();
 }
 
 DataBus * DataBus::GetInstance()
@@ -115,6 +117,9 @@ DataBus::listen(std::string name)
 void 
 DataBus::activate()
 {
+  DataOrderingManager* order = new DataOrderingManager(this);
+  DataOrderingManager::_instance = order;
+  order->initialize();
   _stateDb->getState()->activate();
 }
 

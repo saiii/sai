@@ -128,6 +128,7 @@ NilMcastDataBusState::activate()
   catch (SocketException se)
   {
     std::cerr << "Error" << std::endl;
+    std::cerr << se.what() << std::endl;
     next->deactivate();
     //return;
   }
