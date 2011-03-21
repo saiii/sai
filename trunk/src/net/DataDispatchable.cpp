@@ -24,9 +24,9 @@
 using namespace sai::net;
 
 DataDispatchable::DataDispatchable():
-  _defaultHandler(0)
+  _defaultHandler(0),
+  _useChecker(false)
 {
-  _order = new DataOrderingManager(this);
 }
 
 void 
@@ -42,7 +42,7 @@ DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data, 
   // put it in the buffer
   // when the buffer is ready then it's time to put them back to the 
   // normal flow (back here again)
-  if (checkIdNeeded && !_order->check(desc, data))
+  if (_useChecker && checkIdNeeded && !DataOrderingManager::GetInstance()->check(desc, data))
   {
     return;
   }
@@ -67,7 +67,6 @@ DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data, 
 
 DataDispatchable::~DataDispatchable()
 {
-  delete _order;
   _table.clear();
 }
 
@@ -77,8 +76,8 @@ DataDispatchable::registerHandler(uint32_t id, DataHandler * handler)
   const bool NEW_ENTRY = true;
   const bool DUPLICATED = false;
 
-  DispatchTableIterator iter;
-  if ((iter = _table.find(id)) != _table.end())
+  DispatchTableIterator iter = _table.find(id);
+  if (iter != _table.end())
   {
     return DUPLICATED;
   }
