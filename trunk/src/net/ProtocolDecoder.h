@@ -80,6 +80,7 @@ public:
   void processDataEvent(DataDescriptor&, std::string&);
   bool registerHandler(uint32_t id, DataHandler * handler);
   void setDefaultHandler(DataHandler * handler);
+  void activateChecker() { _data.activateChecker(); }
 };
 
 }
