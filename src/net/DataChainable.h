@@ -47,7 +47,7 @@ public:
     {
       bool valid = true;
       if (_filter) valid = _filter->filterEvent(desc, data);
-      if (valid)   dispatch(id, desc, data, true);
+      if (valid)   dispatch(id, desc, data);
     }
   }
   void setFilter(ChainFilter * f) { _filter = f; }

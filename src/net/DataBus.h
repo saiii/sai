@@ -36,6 +36,7 @@ class DataBusImpl;
 class DataBusStateDb;
 class DataBus : public ProtocolDecoder
 {
+friend class SenderProfile;
 friend class DataOrderingManager;
 private:
   static DataBus* _instance;

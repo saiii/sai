@@ -30,7 +30,7 @@ DataDispatchable::DataDispatchable():
 }
 
 void 
-DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data, bool checkIdNeeded)
+DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data)
 {
   // check id
   // if it is skipped then
@@ -42,7 +42,7 @@ DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data, 
   // put it in the buffer
   // when the buffer is ready then it's time to put them back to the 
   // normal flow (back here again)
-  if (_useChecker && checkIdNeeded && !DataOrderingManager::GetInstance()->check(desc, data))
+  if (_useChecker && !DataOrderingManager::GetInstance()->check(desc, data))
   {
     return;
   }
