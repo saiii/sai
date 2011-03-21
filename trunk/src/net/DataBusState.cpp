@@ -207,6 +207,14 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
 }
 
 void 
+ActiveMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data) 
+{
+  std::string wireData;
+  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
+  _clientSocket->send(wireData.c_str(), wireData.size());
+}
+
+void 
 ActiveMcastDataBusState::blockSender(std::string name) 
 {
   _db->_filter->block(name);

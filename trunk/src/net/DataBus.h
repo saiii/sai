@@ -36,14 +36,21 @@ class DataBusImpl;
 class DataBusStateDb;
 class DataBus : public ProtocolDecoder
 {
+friend class DataOrderingManager;
 private:
+  static DataBus* _instance;
   DataBusStateDb* _stateDb;
   ChainFilter   * _sendReceiveFilter;
   DataBusChannel* _channel;
 
+private:
+  DataBus();
+  void send(std::string name, uint32_t id, DataDescriptor& desc, std::string data);
+
 public:
-  DataBus(Net&, DataBusChannel*);
+  static DataBus * GetInstance();
   ~DataBus();
+  void setChannel(DataBusChannel*);
 
   void listen(std::string name);
   void activate();

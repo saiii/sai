@@ -42,6 +42,7 @@ public:
   virtual void activate() {}
   virtual void deactivate() {}
   virtual void send(std::string name, uint32_t id, std::string data) {}
+  virtual void send(std::string name, uint32_t id, DataDescriptor&, std::string data) {}
   virtual void blockSender(std::string name) {}
 };
 
@@ -72,6 +73,7 @@ public:
   ~ActiveMcastDataBusState();
 
   void send(std::string name, uint32_t id, std::string data);
+  void send(std::string name, uint32_t id, DataDescriptor&, std::string data);
   void blockSender(std::string name);
   void deactivate();
 

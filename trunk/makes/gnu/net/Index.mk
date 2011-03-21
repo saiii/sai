@@ -26,7 +26,8 @@ NET_SRC = Socket.cpp \
           DataDispatchable.cpp \
           DataBusChannel.cpp \
           DataBusState.cpp \
-          TimerTask.cpp
+          TimerTask.cpp \
+          DataOrderingManager.cpp
 
 NET_INC = \
           $(SAI_ROOT)/net/Socket.h \
