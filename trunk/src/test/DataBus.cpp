@@ -80,7 +80,14 @@ int main(int argc, char * argv[])
   Net net(svc);
 
   McastDataBusChannel channel;
-  channel.setPort(1500);
+  if (getenv("SAI_TEST_PORT"))
+  {
+    channel.setPort(atoi(getenv("SAI_TEST_PORT")));
+  }
+  else
+  {
+    channel.setPort(1500);
+  }
   channel.setLocalAddress("0.0.0.0");
   if (clientMode)
   {

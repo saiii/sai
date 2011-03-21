@@ -76,8 +76,12 @@ public:
     {
       DataBus::GetInstance()->send("Yo", 1, msg[count]);
       count++;
-      schedule();
     }
+    else
+    {  
+      printf("done...\n");
+    }
+    schedule();
   }
 };
 
@@ -87,7 +91,14 @@ int main(int argc, char * argv[])
   Net net(svc);
 
   McastDataBusChannel channel;
-  channel.setPort(1500);
+  if (getenv("SAI_TEST_PORT"))
+  {
+    channel.setPort(atoi(getenv("SAI_TEST_PORT")));
+  }
+  else
+  {
+    channel.setPort(1500);
+  }
   channel.setLocalAddress("0.0.0.0");
   channel.setSendMcast("224.1.1.1");
   channel.addRecvMcast("224.2.2.2");
@@ -102,7 +113,7 @@ int main(int argc, char * argv[])
   bus->activate();
 
   Sender* sender = new Sender();
-  sender->schedule(2, 0); 
+  sender->schedule(5, 0); 
 
   svc.run();
 
