@@ -58,10 +58,35 @@ public:
 }
 }
 
-DataBus::DataBus(Net& net, DataBusChannel* chnl):
+DataBus* DataBus::_instance = 0;
+
+DataBus::DataBus():
   _stateDb(0),
   _sendReceiveFilter(0)
 {
+}
+
+DataBus::~DataBus()
+{
+  delete _channel;
+  delete _sendReceiveFilter;
+  delete _stateDb;
+}
+
+DataBus * DataBus::GetInstance()
+{
+  if (_instance == 0)
+  {
+    _instance = new DataBus();
+  }
+  return _instance;
+}
+
+void 
+DataBus::setChannel(DataBusChannel* chnl)
+{
+  Net * net = Net::GetInstance();
+
   if (dynamic_cast<McastDataBusChannel*>(chnl))
   {
     _channel = new McastDataBusChannel();
@@ -71,7 +96,7 @@ DataBus::DataBus(Net& net, DataBusChannel* chnl):
   _SendReceiveFilter * filter = new _SendReceiveFilter();
   _sendReceiveFilter = filter;
 
-  _stateDb = new DataBusStateDb(net, this, this, filter);
+  _stateDb = new DataBusStateDb(*net, this, this, filter);
   _fromTo.setFilter(_sendReceiveFilter);
 
   if (_channel->_localAddress.length() == 0)
@@ -79,13 +104,6 @@ DataBus::DataBus(Net& net, DataBusChannel* chnl):
     _channel->_localAddress = Net::GetInstance()->getLocalAddress();
     _channel->_localAddressUInt32 = 0;
   }
-}
-
-DataBus::~DataBus()
-{
-  delete _channel;
-  delete _sendReceiveFilter;
-  delete _stateDb;
 }
 
 void 
@@ -110,6 +128,12 @@ void
 DataBus::send(std::string name, uint32_t id, std::string data)
 {
   _stateDb->getState()->send(name, id, data);
+}
+
+void 
+DataBus::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data)
+{
+  _stateDb->getState()->send(name, id, desc, data);
 }
 
 void 

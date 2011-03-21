@@ -105,10 +105,11 @@ TimerTaskImpl::schedule()
 //=============================================================================
 using namespace sai::net;
 
-TimerTask::TimerTask(Net& net):
+TimerTask::TimerTask():
 	_impl(0)
 {
-	_impl = new TimerTaskImpl(net, this);
+  Net * net = Net::GetInstance();
+  _impl = new TimerTaskImpl(*net, this);
 }
 
 TimerTask::~TimerTask()

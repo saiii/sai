@@ -32,7 +32,7 @@ private:
   TimerTaskImpl * _impl;
 
 public:
-  TimerTask(Net&);
+  TimerTask();
   virtual ~TimerTask();
 
   unsigned int getSecInterval();

@@ -95,18 +95,19 @@ int main(int argc, char * argv[])
     prompt = "server";
   }
 
-  DataBus bus(net, &channel);
+  DataBus *bus = DataBus::GetInstance();
+  bus->setChannel(&channel);
 
   ServerMsgPrinter printer;
-  bus.registerHandler(1, &printer); 
+  bus->registerHandler(1, &printer); 
 
-  bus.listen("Yo");
-  bus.activate();
+  bus->listen("Yo");
+  bus->activate();
 
   
   if (clientMode)
   {
-    bus.send("Yo", 1, msg);
+    bus->send("Yo", 1, msg);
     svc.run();
   }
   else

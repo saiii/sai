@@ -32,15 +32,18 @@ class DataDescriptor;
 typedef std::map<uint32_t, DataHandler*>           DispatchTable;
 typedef std::map<uint32_t, DataHandler*>::iterator DispatchTableIterator;
 
+class DataOrderingManager;
 class DataDispatchable
 {
+friend class DataOrderingManager;
 private:
-  DispatchTable  _table;
-  DataHandler   *_defaultHandler;
+  DataOrderingManager *_order;
+  DispatchTable        _table;
+  DataHandler         *_defaultHandler;
 
 protected:
   DataDispatchable();
-  void dispatch(uint32_t, DataDescriptor&, std::string);
+  void dispatch(uint32_t, DataDescriptor&, std::string, bool checkIdNeeded);
 
 public:
   virtual ~DataDispatchable();
