@@ -28,6 +28,7 @@
 #include "Net.h"
 #include "DataBus.h"
 #include "DataBusState.h"
+#include "DataOrderingManager.h"
 #include "Socket.h"
 
 using namespace sai::net;
@@ -117,7 +118,7 @@ DataBus::listen(std::string name)
 void 
 DataBus::activate()
 {
-  DataOrderingManager* order = new DataOrderingManager(this);
+  DataOrderingManager* order = new DataOrderingManager(&_data);
   DataOrderingManager::_instance = order;
   order->initialize();
   _stateDb->getState()->activate();

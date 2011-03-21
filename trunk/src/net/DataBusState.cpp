@@ -22,6 +22,7 @@
 #include <algorithm>
 #include "DataBusState.h"
 #include "ProtocolEncoder.h"
+#include "DataOrderingManager.h"
 #include "Exception.h"
 
 using namespace sai::net;
@@ -201,6 +202,9 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
   desc.id        = Net::GetInstance()->getMessageId();
   desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
   desc.to.str    = name;
+
+  DataOrderingManager * mgr = DataOrderingManager::GetInstance();
+  mgr->addOutgoingData(desc, data);
 
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 

@@ -32,30 +32,55 @@ namespace sai
 namespace net
 {
 
-typedef enum
-{
-  SENT,            // Used by sender
-  PENDING_REQUEST, // User by receiver, it is a to be requested data
-  REQUESTED,       // User by receiver, we are waiting for this piece of data
-  READY            // User by receiver, this data is ready but we 
-                   // still need to wait the previous packets
-}DataState;
-
-class DataOrderingManager;
 class DataBuffer
 {
+friend class SenderProfile;
 friend class DataOrderingManager;
 private:
-  uint32_t       _time; // it is a real time for sender, but it is used as a counter for receiver
-  DataState      _state;
+  time_t         _time; 
   DataDescriptor _desc;
   std::string    _data;
 };
 
-typedef std::map<uint32_t, DataBuffer*>           BufferTable;
-typedef std::map<uint32_t, DataBuffer*>::iterator BufferTableIterator;
-typedef std::vector<DataBuffer*>                  BufferList;
-typedef std::vector<DataBuffer*>::iterator        BufferListIterator;
+typedef std::map<uint32_t, DataBuffer*>              BufferTable;
+typedef std::map<uint32_t, DataBuffer*>::iterator    BufferTableIterator;
+typedef std::vector<DataBuffer*>                     BufferList;
+typedef std::vector<DataBuffer*>::iterator           BufferListIterator;
+typedef std::vector<uint32_t>                        IntList;
+typedef std::vector<uint32_t>::iterator              IntListIterator;
+
+class SenderProfile : public TimerTask
+{
+friend class DataOrderingManager;
+private:
+  bool           _flushMode;
+  uint32_t       _sender;
+  time_t         _time;
+  DataDescriptor _desc;
+
+  uint32_t       _expectedId;
+  uint32_t       _lastId;
+
+  BufferTable        _dataTable;
+  IntList            _intList;
+  DataDispatchable*  _dispatcher;
+
+private:
+  SenderProfile(DataDispatchable*);
+  ~SenderProfile();
+  bool hasMessage(uint32_t);
+  void saveMessage(uint32_t);
+  void saveMessage(DataDescriptor&, std::string);
+  void flushMessage();
+  void releaseMessage();
+  void requestMissingMessages(uint32_t, uint32_t);
+
+public:
+  void timerEvent();
+};
+
+typedef std::map<std::string, SenderProfile*>           SenderTable;
+typedef std::map<std::string, SenderProfile*>::iterator SenderTableIterator;
 
 class DataOrderingManager;
 class DataOrderingHandler
@@ -78,28 +103,27 @@ public:
 
 class DataOrderingManager : public TimerTask
 {
+friend class DataBus;
 private:
-  DataDispatchable* _dispatcher;
-  BufferTable       _outgoingTable;
-  BufferList        _outgoingList;
-  BufferTable       _incomingTable;
-  BufferList        _incomingList;
-
-  uint32_t          _expectedId;
-  uint32_t          _lastId;
+  static DataOrderingManager* _instance;
+  DataDispatchable*           _dispatcher;
+  BufferTable                 _outgoingTable;
+  BufferList                  _outgoingList;
+  SenderTable                 _senderTable;
 
   DataRequestHandler  _requestHandler;
   DataResponseHandler _responseHandler;
 
-public:
+private:
   DataOrderingManager(DataDispatchable*);
+
+public:
+  static DataOrderingManager* GetInstance() { return _instance; }
   ~DataOrderingManager();
 
   void initialize();
 
   void addOutgoingData(DataDescriptor&, std::string);
-  void addPendingRequest(DataDescriptor&);
-  void addIncomingData(DataDescriptor&, std::string);
 
   bool check(DataDescriptor&, std::string);
 
