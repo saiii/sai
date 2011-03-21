@@ -24,7 +24,8 @@ TEST_SRC = MathMatrix.cpp \
            AiMlFuzzyCmeans.cpp \
            MathUtils.cpp \
            NetTcp.cpp \
-           DataBus.cpp
+           DataBus.cpp \
+           DataBusOrder.cpp
 
 TEST_INC = 
 SAI_LIB  = libSai.a 
