@@ -37,9 +37,9 @@ class DataDispatchable
 {
 friend class DataOrderingManager;
 private:
-  DataOrderingManager *_order;
   DispatchTable        _table;
   DataHandler         *_defaultHandler;
+  bool                 _useChecker;
 
 protected:
   DataDispatchable();
@@ -49,6 +49,8 @@ public:
   virtual ~DataDispatchable();
   bool registerHandler(uint32_t id, DataHandler * handler);
   void setDefaultHandler(DataHandler * handler);
+ 
+  void activateChecker() { _useChecker = true; }
 };
 
 }
