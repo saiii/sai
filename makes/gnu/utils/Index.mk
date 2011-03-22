@@ -20,7 +20,8 @@ UTILS_SRC = BinarySearch.cpp \
             KDTreeSort.cpp \
             LinearSearch.cpp \
             List.cpp \
-            Version.cpp
+            Version.cpp \
+            Crypto.cpp
 
 UTILS_INC = \
           $(SAI_ROOT)/utils/BinarySearch.h \
@@ -39,6 +40,8 @@ UTILS_ASM = $(UTILS_OBJ:.o=.asm)
 
 SAI_OBJS  += $(UTILS_OBJ)
 SAI_INC   += $(UTILS_INC)
+
+INC += -I$(CRYPTOPP_INC)
 
 utils/%.o: $(SAI_ROOT)/utils/%.cpp
 	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) -c $<
