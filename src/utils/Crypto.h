@@ -33,7 +33,7 @@ public:
 };
 
 typedef enum {
-AES256 = 1
+  AES256 = 1
 }AlgoType;
 
 class CryptoManager
