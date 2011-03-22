@@ -56,7 +56,7 @@ typedef std::vector<Nic*>::iterator NicListIterator;
 class Net
 {
 private:
-  boost::asio::io_service& _io;
+  boost::asio::io_service _io;
   NicList      _nicList;
   static Net * _instance;
   char         _sender[17];
@@ -65,11 +65,11 @@ private:
   uint32_t     _hostAddressUInt32;
 
 private:
+  Net();
   void initialize();
   void getHostAddress();
 
 public:
-  Net(boost::asio::io_service& io);
   ~Net();
   static Net * GetInstance();
   char *       getSenderId() { return _sender; }
@@ -84,6 +84,7 @@ public:
   uint32_t    getNumNic() { return _nicList.size(); }
 
   uint32_t    getMessageId();
+  void        mainLoop();
 };
 
 }

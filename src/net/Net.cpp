@@ -21,8 +21,7 @@ using namespace sai::net;
 
 Net * Net::_instance = 0;
 
-Net::Net(boost::asio::io_service& io):
-  _io(io),
+Net::Net():
   _id(0),
   _hostAddressUInt32(0)
 {
@@ -35,8 +34,6 @@ Net::Net(boost::asio::io_service& io):
   _hostAddressUInt32 = htonl(addr.s_addr);
   uint32_t tim       = time(0);
   sprintf(_sender, "%x%x", _hostAddressUInt32, tim);
-
-  _instance = this;
 }
 
 Net::~Net()
@@ -231,6 +228,10 @@ Net::getIpFromName(std::string nm)
 Net * 
 Net::GetInstance()
 {
+  if (_instance == 0)
+  {
+    _instance = new Net();
+  }
   return _instance;
 }
 
@@ -270,6 +271,12 @@ Net::get1stLocalIp()
 {
   Nic * nic = _nicList.front();
   return nic->_ip;
+}
+
+void 
+Net::mainLoop()
+{
+  _io.run();
 }
 
 Nic::Nic()
