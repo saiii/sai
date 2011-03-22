@@ -115,15 +115,20 @@ DataOrderingManager::check(DataDescriptor& desc, std::string data)
 {
   const bool DISCARD_DATA = false;
   const bool ACCEPT_DATA  = true;
+
   // Is this a known sender?
-  SenderTableIterator iter = _senderTable.find(desc.sender);
+  char txt[32] = {0};
+  memset(txt, 0, sizeof(txt));
+  memcpy(txt, desc.sender, sizeof(desc.sender));
+  uint64_t desc_sender = strtoul(txt, 0, 16); 
+  SenderTableIterator iter = _senderTable.find(desc_sender);
   if (iter == _senderTable.end())
   {
     // No, this is a new sender
     // Create sender profile
     SenderProfile * sender = new SenderProfile(_dispatcher);
     memcpy(&sender->_desc, &desc, sizeof(desc));
-    _senderTable.insert(std::make_pair(desc.sender, sender));
+    _senderTable.insert(std::make_pair(desc_sender, sender));
 
     // Set expected message id from the first message we received
     sender->_expectedId = desc.id + 1;
@@ -214,7 +219,11 @@ DataOrderingManager::processDataRequest (DataDescriptor& desc, std::string& msg)
 void 
 DataOrderingManager::processDataResponse(DataDescriptor& desc, std::string& msg)
 {
-  SenderTableIterator iter = _senderTable.find(desc.sender);
+  char txt[32] = {0};
+  memset(txt, 0, sizeof(txt));
+  memcpy(txt, desc.sender, sizeof(desc.sender));
+  uint64_t desc_sender = strtoul(txt, 0, 16);
+  SenderTableIterator iter = _senderTable.find(desc_sender);
   if (iter != _senderTable.end())
   {
     SenderProfile * sender = iter->second;
@@ -389,8 +398,8 @@ SenderProfile::timerEvent()
       }
 
       DataBuffer * buffer = iter->second;
-      _dispatcher->dispatch(buffer->_desc.id, buffer->_desc, buffer->_data);
       _dataTable.erase(iter);
+      _dispatcher->dispatch(buffer->_desc.id, buffer->_desc, buffer->_data);
       delete buffer;
     }
     else
@@ -409,8 +418,8 @@ SenderProfile::timerEvent()
       if (iter != _dataTable.end())
       {
         DataBuffer * buffer = iter->second;
-        _dispatcher->dispatch(buffer->_desc.id, buffer->_desc, buffer->_data);
         _dataTable.erase(iter);
+        _dispatcher->dispatch(buffer->_desc.id, buffer->_desc, buffer->_data);
         delete buffer;
       }
     }

@@ -144,20 +144,8 @@ void
 NilMcastDataBusState::deactivate() 
 {
   _db->_filter->clear();
-
-  DataBusChannel * channel = _db->_bus->getChannel();
-  std::string localAddress = channel->getLocalAddress();
-  if (localAddress.length() > 0) // For point-to-point 
-  {
-    struct in_addr addr;
-    inet_pton(AF_INET, localAddress.c_str(), &addr);
-    unsigned long int a = htonl(addr.s_addr);
-    if (a > 0)
-    {
-      _db->_filter->add(a);
-      _db->_filter->add(localAddress);
-    }
-  }
+  _db->_filter->add(Net::GetInstance()->getLocalAddressUInt32());
+  _db->_filter->add(Net::GetInstance()->getLocalAddress());
   _db->_filter->add("*"); // For broadcast
 }
 
@@ -208,7 +196,7 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
 
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
-  _clientSocket->send(wireData.c_str(), wireData.size());
+  _clientSocket->send(wireData.data(), wireData.size());
 }
 
 void 
@@ -216,7 +204,7 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor& des
 {
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
-  _clientSocket->send(wireData.c_str(), wireData.size());
+  _clientSocket->send(wireData.data(), wireData.size());
 }
 
 void 
