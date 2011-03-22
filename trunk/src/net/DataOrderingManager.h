@@ -79,8 +79,8 @@ public:
   void timerEvent();
 };
 
-typedef std::map<std::string, SenderProfile*>           SenderTable;
-typedef std::map<std::string, SenderProfile*>::iterator SenderTableIterator;
+typedef std::map<uint64_t, SenderProfile*>           SenderTable;
+typedef std::map<uint64_t, SenderProfile*>::iterator SenderTableIterator;
 
 class DataOrderingManager;
 class DataOrderingHandler
