@@ -401,7 +401,7 @@ SenderProfile::timerEvent()
 
       DataBuffer * buffer = iter->second;
       _dataTable.erase(iter);
-      _dispatcher->dispatch(buffer->_desc.id, buffer->_desc, buffer->_data);
+      _dispatcher->dispatch(buffer->_desc.opcode, buffer->_desc, buffer->_data);
       delete buffer;
     }
     else
@@ -421,7 +421,7 @@ SenderProfile::timerEvent()
       {
         DataBuffer * buffer = iter->second;
         _dataTable.erase(iter);
-        _dispatcher->dispatch(buffer->_desc.id, buffer->_desc, buffer->_data);
+        _dispatcher->dispatch(buffer->_desc.opcode, buffer->_desc, buffer->_data);
         delete buffer;
       }
     }

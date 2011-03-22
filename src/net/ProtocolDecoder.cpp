@@ -273,6 +273,7 @@ ProtocolDecoder::Data::decode(DataDescriptor& desc, std::string& data)
   ptr       += sizeof(id);
   data_size -= sizeof(id);
   id = ntohl(id);
+  desc.opcode = id;
 
   std::string tdata;
   tdata.append(ptr, data_size);
