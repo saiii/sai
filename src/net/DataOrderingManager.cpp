@@ -201,8 +201,10 @@ DataOrderingManager::processDataRequest (DataDescriptor& desc, std::string& msg)
 
   do 
   {
+    dc.id = from;
+
     BufferTableIterator iter;
-    if ((iter = _outgoingTable.find(desc.id)) == _outgoingTable.end()) 
+    if ((iter = _outgoingTable.find(from)) == _outgoingTable.end()) 
     {
       std::string msg = ":(";
       DataBus::GetInstance()->send(SAI_DOMAIN, SAI_REP_OPCODE, dc, msg);
