@@ -46,6 +46,7 @@ public:
   Address  from;
   Address  to;
 
+  uint32_t opcode;
 public:
   void print();
 };
