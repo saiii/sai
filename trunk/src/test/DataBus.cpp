@@ -76,9 +76,6 @@ int main(int argc, char * argv[])
       return 0;
   }
 
-  boost::asio::io_service svc;
-  Net net(svc);
-
   McastDataBusChannel channel;
   if (getenv("SAI_TEST_PORT"))
   {
@@ -115,12 +112,8 @@ int main(int argc, char * argv[])
   if (clientMode)
   {
     bus->send("Yo", 1, msg);
-    svc.run();
   }
-  else
-  {
-    svc.run();
-  }
+  Net::GetInstance()->mainLoop();
 
   return 0;
 }

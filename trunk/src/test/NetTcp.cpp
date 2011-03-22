@@ -36,9 +36,8 @@ public:
 int receiver(int argc, char *argv[])
 {
   boost::asio::io_service io_service;
-  Net net(io_service);
   Printer printer;
-  ServerSocket * socket = ServerSocket::Create(net,
+  ServerSocket * socket = ServerSocket::Create(*Net::GetInstance(),
                             SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
                             SAI_SOCKET_B_REUSE_ADDR, SAI_SOCKET_OPT_TRUE,
                             SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
@@ -55,7 +54,7 @@ int receiver(int argc, char *argv[])
   socket->open();
   socket->join("224.1.1.1");
   socket->listen();
-  io_service.run();
+  Net::GetInstance()->mainLoop();
   delete socket;
   return 0;
 }
@@ -63,9 +62,8 @@ int receiver(int argc, char *argv[])
 int sender(int argc, char * argv[])
 {
   boost::asio::io_service io_service;
-  Net net(io_service);
   ClientSocket * socket = ClientSocket::Create(
-                            net, 
+                            *Net::GetInstance(), 
                             SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
                             SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
                             SAI_SOCKET_EOA);
@@ -75,7 +73,7 @@ int sender(int argc, char * argv[])
   char msg [] = "hello, world";
   socket->send(msg, sizeof(msg));
 
-  io_service.run();
+  Net::GetInstance()->mainLoop();
   delete socket;
   return 0;
 }
