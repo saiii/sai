@@ -115,10 +115,10 @@ private:
   DataResponseHandler _responseHandler;
 
 private:
-  DataOrderingManager(DataDispatchable*);
+  //DataOrderingManager(DataDispatchable*);
 
 public:
-  static DataOrderingManager* GetInstance() { return _instance; }
+  //static DataOrderingManager* GetInstance() { return _instance; }
   ~DataOrderingManager();
 
   void initialize();

@@ -28,12 +28,12 @@ using namespace sai::net;
 
 DataOrderingManager  *DataOrderingManager::_instance = 0;
 
-DataOrderingManager::DataOrderingManager(DataDispatchable* disp):
-  _dispatcher(disp)
-{
-  _requestHandler.manager  = this;
-  _responseHandler.manager = this;
-}
+//DataOrderingManager::DataOrderingManager(DataDispatchable* disp):
+//  _dispatcher(disp)
+//{
+//  _requestHandler.manager  = this;
+//  _responseHandler.manager = this;
+//}
 
 void 
 DataOrderingManager::initialize()

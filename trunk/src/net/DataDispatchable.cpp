@@ -42,10 +42,10 @@ DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data)
   // put it in the buffer
   // when the buffer is ready then it's time to put them back to the 
   // normal flow (back here again)
-  if (_useChecker && !DataOrderingManager::GetInstance()->check(desc, data))
-  {
-    return;
-  }
+  //if (_useChecker && !DataOrderingManager::GetInstance()->check(desc, data))
+  //{
+  //  return;
+  //}
 
   DispatchTableIterator iter;
   if ((iter = _table.find(id)) != _table.end())
