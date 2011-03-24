@@ -32,7 +32,7 @@ class DataDescriptor;
 typedef std::map<uint32_t, DataHandler*>           DispatchTable;
 typedef std::map<uint32_t, DataHandler*>::iterator DispatchTableIterator;
 
-class DataOrderingManager;
+//class DataOrderingManager;
 class DataDispatchable
 {
 friend class SenderProfile;

@@ -28,7 +28,7 @@
 #include "Net.h"
 #include "DataBus.h"
 #include "DataBusState.h"
-#include "DataOrderingManager.h"
+//#include "DataOrderingManager.h"
 #include "Socket.h"
 
 using namespace sai::net;
@@ -73,7 +73,7 @@ DataBus::~DataBus()
   delete _channel;
   delete _sendReceiveFilter;
   delete _stateDb;
-  delete DataOrderingManager::GetInstance();
+  //delete DataOrderingManager::GetInstance();
 }
 
 DataBus * DataBus::GetInstance()
@@ -118,9 +118,9 @@ DataBus::listen(std::string name)
 void 
 DataBus::activate()
 {
-  DataOrderingManager* order = new DataOrderingManager(&_data);
-  DataOrderingManager::_instance = order;
-  order->initialize();
+  //DataOrderingManager* order = new DataOrderingManager(&_data);
+  //DataOrderingManager::_instance = order;
+  //order->initialize();
   _stateDb->getState()->activate();
 }
 
