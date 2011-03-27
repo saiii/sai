@@ -26,14 +26,6 @@ Net::Net():
   _hostAddressUInt32(0)
 {
   initialize();
-  getHostAddress();
-
-  std::string ip = getLocalAddress();
-  struct in_addr addr;
-  inet_pton(AF_INET, ip.c_str(), &addr);
-  _hostAddressUInt32 = htonl(addr.s_addr);
-  uint32_t tim       = time(0);
-  sprintf(_sender, "%x%x", _hostAddressUInt32, tim);
 }
 
 Net::~Net()
@@ -159,6 +151,15 @@ Net::initialize()
   free(ifr);
   close(socketfd);
 #endif
+
+  getHostAddress();
+
+  std::string ip = getLocalAddress();
+  struct in_addr addr;
+  inet_pton(AF_INET, ip.c_str(), &addr);
+  _hostAddressUInt32 = htonl(addr.s_addr);
+  uint32_t tim       = time(0);
+  sprintf(_sender, "%x%x", _hostAddressUInt32, tim);
 }
 
 void 

@@ -237,6 +237,7 @@ DataOrderingManager::processDataResponse(DataDescriptor& desc, std::string& msg)
     }
     else
     {
+      printf("receive recovery %u\n", desc.id);
       sender->saveMessage(desc.id);
       sender->saveMessage(desc, msg);
       sender->releaseMessage();
@@ -402,6 +403,7 @@ SenderProfile::timerEvent()
       DataBuffer * buffer = iter->second;
       _dataTable.erase(iter);
       _dispatcher->dispatch(buffer->_desc.opcode, buffer->_desc, buffer->_data);
+      printf("dispatch to %u\n", buffer->_desc.opcode);
       delete buffer;
     }
     else

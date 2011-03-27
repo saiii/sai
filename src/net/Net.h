@@ -66,7 +66,6 @@ private:
 
 private:
   Net();
-  void initialize();
   void getHostAddress();
 
 public:
@@ -76,6 +75,7 @@ public:
 
   boost::asio::io_service& getIO() { return _io; }
 
+  void        initialize();
   std::string getIpFromName(std::string);
   std::string getLocalAddress() { return _hostAddress; }
   uint32_t    getLocalAddressUInt32() { return _hostAddressUInt32; }
