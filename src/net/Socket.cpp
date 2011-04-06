@@ -435,9 +435,9 @@ public:
       _acceptor->cancel();
       _acceptor->close();
       delete _acceptor;
+      _acceptor = 0;
     } catch(boost::system::system_error &e)
     {}
-    _acceptor = 0;
   }
 };
 
