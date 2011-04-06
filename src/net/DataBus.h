@@ -46,7 +46,7 @@ private:
 
 private:
   DataBus();
-  void send(std::string name, uint32_t id, DataDescriptor& desc, std::string data);
+  bool send(std::string name, uint32_t id, DataDescriptor& desc, std::string data);
 
 public:
   static DataBus * GetInstance();
@@ -56,7 +56,7 @@ public:
   void listen(std::string name);
   void activate();
   void deactivate();
-  void send(std::string name, uint32_t id, std::string data);
+  bool send(std::string name, uint32_t id, std::string data);
   void blockSender(std::string name);
 
   DataBusChannel * getChannel();

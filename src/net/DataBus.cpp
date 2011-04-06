@@ -130,16 +130,16 @@ DataBus::deactivate()
   _stateDb->getState()->deactivate();
 }
 
-void 
+bool
 DataBus::send(std::string name, uint32_t id, std::string data)
 {
-  _stateDb->getState()->send(name, id, data);
+  return _stateDb->getState()->send(name, id, data);
 }
 
-void 
+bool
 DataBus::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data)
 {
-  _stateDb->getState()->send(name, id, desc, data);
+  return _stateDb->getState()->send(name, id, desc, data);
 }
 
 void 
