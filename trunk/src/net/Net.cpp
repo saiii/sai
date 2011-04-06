@@ -284,6 +284,12 @@ Net::mainLoop()
   _io.run();
 }
 
+void 
+Net::shutdown()
+{
+  _io.stop();
+}
+
 Nic::Nic()
 {}
 

@@ -85,6 +85,7 @@ public:
 
   uint32_t    getMessageId();
   void        mainLoop();
+  void        shutdown();
 };
 
 }
