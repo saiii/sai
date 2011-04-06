@@ -19,8 +19,9 @@
 #include <winsock2.h>
 #else
 #include <netinet/in.h>
-#include <string.h>
+#include <syslog.h>
 #endif
+#include <string.h>
 #include <iostream>
 #include <net/Net.h>
 #include "ProtocolDecoder.h"
@@ -286,7 +287,13 @@ ProtocolDecoder::DefaultDataHandler::processDataEvent(DataDescriptor& desc, std:
 {
   std::string frmString;
   desc.from.toString(frmString, true);
+#ifdef _WIN32
   std::cerr << "(DefaultDataHandler) Receive unknown opcode from " << frmString << std::endl;
+#else
+  openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+  syslog(LOG_WARNING, "(DefaultDataHandler) Receive unknown opcode from %s", frmString.c_str());
+  closelog();
+#endif
 }
 
 ProtocolDecoder::ProtocolDecoder():

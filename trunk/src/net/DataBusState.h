@@ -41,8 +41,8 @@ public:
   virtual void listen(std::string name) {}
   virtual void activate() {}
   virtual void deactivate() {}
-  virtual void send(std::string name, uint32_t id, std::string data) {}
-  virtual void send(std::string name, uint32_t id, DataDescriptor&, std::string data) {}
+  virtual bool send(std::string name, uint32_t id, std::string data) { return false; }
+  virtual bool send(std::string name, uint32_t id, DataDescriptor&, std::string data) { return false; }
   virtual void blockSender(std::string name) {}
 };
 
@@ -56,6 +56,8 @@ public:
   void blockSender(std::string name);
   void activate();
   void deactivate();
+  bool send(std::string name, uint32_t id, std::string data);
+  bool send(std::string name, uint32_t id, DataDescriptor&, std::string data);
 };
 
 class ActiveMcastDataBusState : public DataBusState,
@@ -72,8 +74,8 @@ public:
   ActiveMcastDataBusState(DataBusStateDb*, ProtocolDecoder *);
   ~ActiveMcastDataBusState();
 
-  void send(std::string name, uint32_t id, std::string data);
-  void send(std::string name, uint32_t id, DataDescriptor&, std::string data);
+  bool send(std::string name, uint32_t id, std::string data);
+  bool send(std::string name, uint32_t id, DataDescriptor&, std::string data);
   void blockSender(std::string name);
   void deactivate();
 
