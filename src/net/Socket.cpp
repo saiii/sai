@@ -15,6 +15,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <syslog.h>
+#endif
+
 #include <stdarg.h>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -75,7 +81,15 @@ public:
       _socket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
       _socket.close();
     } catch(boost::system::system_error &e)
-    {}
+    {
+#ifdef _WIN32
+#else
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "Failed to close a UDPMcastServerSocket");
+    syslog(LOG_ERR, e.what());
+    closelog();
+#endif
+    }
   }
 
   void listen()  
@@ -259,7 +273,15 @@ protected:
 
           if (_client->_handler) _client->_handler->processConnectionClosedEvent();
         }catch(boost::system::system_error& e)
-        {}
+        {
+#ifdef _WIN32
+#else
+          openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+          syslog(LOG_ERR, "Failed to close a TCPClientSocket");
+          syslog(LOG_ERR, e.what());
+          closelog();
+#endif
+        }
       }
   };
 protected:
@@ -437,7 +459,15 @@ public:
       delete _acceptor;
       _acceptor = 0;
     } catch(boost::system::system_error &e)
-    {}
+    {
+#ifdef _WIN32
+#else
+      openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+      syslog(LOG_ERR, "Failed to close a TCPServerSocket");
+      syslog(LOG_ERR, e.what());
+      closelog();
+#endif
+    }
   }
 };
 
@@ -473,7 +503,15 @@ public:
       _socket.shutdown(boost::asio::socket_base::shutdown_both);
       _socket.close();
     }catch(boost::system::system_error& e)
-    {}
+    {
+#ifdef _WIN32
+#else
+      openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+      syslog(LOG_ERR, "Failed to close a UDPMcastClientSocket");
+      syslog(LOG_ERR, e.what());
+      closelog();
+#endif
+    }
   }
 
   void connect(std::string ip, uint16_t port) 
