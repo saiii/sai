@@ -170,9 +170,8 @@ Net::getHostAddress()
   if (getNumNic() > 1)
   {
     std::string guess [] = {
-      "eth0",  "wlan0", 
-      "eth1",  "eth2",  "eth3",  "eth4", 
-      "wlan1", "wlan2", "wlan3", "wlan4", 
+      "eth0",  "eth1",  "eth2",  "eth3",  "eth4", 
+      "wlan0", "wlan1", "wlan2", "wlan3", "wlan4", 
       "dmfe0", "hme0"};
     for (uint16_t i = 0; i < 4; i += 1)
     {
