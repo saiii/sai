@@ -86,7 +86,7 @@ public:
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
     syslog(LOG_ERR, "Failed to close a UDPMcastServerSocket");
-    syslog(LOG_ERR, e.what());
+    syslog(LOG_ERR, "%s", e.what());
     closelog();
 #endif
     }
@@ -278,7 +278,7 @@ protected:
 #else
           openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
           syslog(LOG_ERR, "Failed to close a TCPClientSocket");
-          syslog(LOG_ERR, e.what());
+          syslog(LOG_ERR, "%s", e.what());
           closelog();
 #endif
         }
@@ -464,7 +464,7 @@ public:
 #else
       openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
       syslog(LOG_ERR, "Failed to close a TCPServerSocket");
-      syslog(LOG_ERR, e.what());
+      syslog(LOG_ERR, "%s", e.what());
       closelog();
 #endif
     }
@@ -508,7 +508,7 @@ public:
 #else
       openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
       syslog(LOG_ERR, "Failed to close a UDPMcastClientSocket");
-      syslog(LOG_ERR, e.what());
+      syslog(LOG_ERR, "%s", e.what());
       closelog();
 #endif
     }
