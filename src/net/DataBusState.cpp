@@ -175,6 +175,12 @@ NilMcastDataBusState::activate()
 bool
 NilMcastDataBusState::send(std::string name, uint32_t id, std::string data)
 {
+  if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
+      Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
+  {
+    Net::GetInstance()->initialize();
+  }
+
   activate();
   if (_db->_state != this)
   {
@@ -189,6 +195,12 @@ NilMcastDataBusState::send(std::string name, uint32_t id, std::string data)
 bool
 NilMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor&, std::string data)
 {
+  if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
+      Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
+  {
+    Net::GetInstance()->initialize();
+  }
+
   activate();
   if (_db->_state != this)
   {
