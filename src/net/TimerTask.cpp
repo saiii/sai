@@ -61,6 +61,7 @@ TimerTaskImpl::~TimerTaskImpl()
 void 
 TimerTaskImpl::cancel()
 {
+ 	_task = 0;
 	_timer.cancel();
 }
 
@@ -68,7 +69,8 @@ void
 TimerTaskImpl::timerEvent(const boost::system::error_code& error)
 {
 	_pending = true;
-	_task->timerEvent();
+
+        if (_task) _task->timerEvent();
 
 	if (!error && !_pending)
 	{
