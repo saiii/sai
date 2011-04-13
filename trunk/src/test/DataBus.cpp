@@ -54,7 +54,7 @@ int main(int argc, char * argv[])
       }
       else
       {
-        fprintf(stderr, "Invalid argument!!!\n");
+        printf("Invalid argument!!!\n");
         return 1;
       }
       break;
@@ -66,17 +66,18 @@ int main(int argc, char * argv[])
       }
       else
       {
-        fprintf(stderr, "Invalid argument!!!\n");
+        printf("Invalid argument!!!\n");
         return 1;
       }
       break;
     default:
-      fprintf(stderr, "Invalid argument!!!\n");
-      fprintf(stderr, "Usage: %s <-server|-client <data>>\n", argv[0]);
-      return 0;
+      printf("Invalid argument!!!\n");
+      printf("Usage: %s <-server|-client <data>>\n", argv[0]);
+	  return 0;
   }
 
   McastDataBusChannel channel;
+#ifndef _WIN32
   if (getenv("SAI_TEST_PORT"))
   {
     channel.setPort(atoi(getenv("SAI_TEST_PORT")));
@@ -85,6 +86,9 @@ int main(int argc, char * argv[])
   {
     channel.setPort(1500);
   }
+#else
+  channel.setPort(1500);
+#endif
   channel.setLocalAddress("0.0.0.0");
   if (clientMode)
   {
