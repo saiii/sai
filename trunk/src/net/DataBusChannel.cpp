@@ -17,7 +17,6 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
-#include <inet_pton.h>
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -67,10 +66,16 @@ DataBusChannel::getLocalAddressUInt32()
 {
   if (_localAddressUInt32 == 0)
   {
-    struct in_addr addr;
+    
+#ifdef _WIN32
+	extern uint32_t inetPton(std::string ip);
+	_localAddressUInt32 = inetPton(_localAddress);
+#else
+	struct in_addr addr;
     inet_pton(AF_INET, _localAddress.c_str(), &addr);
-
-    _localAddressUInt32 = htonl(addr.s_addr);
+	_localAddressUInt32 = htonl(addr.s_addr);
+#endif
+    
     return _localAddressUInt32;
   }
   else
@@ -124,10 +129,15 @@ McastDataBusChannel::setPort(uint16_t port)
 
 bool IsMcastAddress(std::string mcast)
 {
+  uint32_t a = 0;
+#ifdef _WIN32
+  extern uint32_t inetPton(std::string ip);
+  a = inetPton(mcast);
+#else
   struct in_addr addr;
   inet_pton(AF_INET, mcast.c_str(), &addr);
-
-  uint32_t a = htonl(addr.s_addr);
+  a = htonl(addr.s_addr);
+#endif
   a >>= 24;
  
   if (a >= 224 && a <= 239)

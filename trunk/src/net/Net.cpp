@@ -15,6 +15,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#ifdef _WIN32
+#include <Ws2tcpip.h>
+#endif
 #include "Net.h"
 
 using namespace sai::net;
@@ -42,6 +45,19 @@ Net::~Net()
   extern std::string GetVersion(); 
   GetVersion();
 }
+
+#ifdef _WIN32
+uint32_t inetPton(std::string ip)
+{
+  wchar_t p[16];
+  size_t converted;
+  mbstowcs_s(&converted, p, ip.length(), ip.c_str(), _TRUNCATE);
+
+  SOCKADDR_IN s;
+  WSAStringToAddress(p, AF_INET, 0, (LPSOCKADDR)&s, (LPINT)sizeof(struct sockaddr_storage));
+  return s.sin_addr.S_un.S_addr; // TODO : To be verified
+}
+#endif
 
 void 
 Net::initialize()
@@ -154,11 +170,15 @@ Net::initialize()
 
   getHostAddress();
 
-  std::string ip = getLocalAddress();
+  std::string ip = getLocalAddress();  
+#ifdef _WIN32
+  _hostAddressUInt32 = inetPton(ip);
+#else
   struct in_addr addr;
   inet_pton(AF_INET, ip.c_str(), &addr);
   _hostAddressUInt32 = htonl(addr.s_addr);
-  uint32_t tim       = time(0);
+#endif  
+  time_t tim = time(0);
   sprintf(_sender, "%x%x", _hostAddressUInt32, tim);
 }
 
