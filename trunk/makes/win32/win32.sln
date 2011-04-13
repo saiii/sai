@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32", "win32.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32-dll", "..\win32-dll\win32-dll.vcxproj", "{DFF4A71E-36D1-4033-8702-A6F28E4B0789}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test.DataBus", "..\Test.DataBus\Test.DataBus.vcxproj", "{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -41,6 +43,18 @@ Global
 		{DFF4A71E-36D1-4033-8702-A6F28E4B0789}.Release|Win32.ActiveCfg = Release|Win32
 		{DFF4A71E-36D1-4033-8702-A6F28E4B0789}.Release|Win32.Build.0 = Release|Win32
 		{DFF4A71E-36D1-4033-8702-A6F28E4B0789}.Release|x64.ActiveCfg = Release|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.Debug|Win32.Build.0 = Debug|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.Debug|x64.ActiveCfg = Debug|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.DLL-Import Debug|Win32.ActiveCfg = Debug|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.DLL-Import Debug|Win32.Build.0 = Debug|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.DLL-Import Debug|x64.ActiveCfg = Debug|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.DLL-Import Release|Win32.ActiveCfg = Release|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.DLL-Import Release|Win32.Build.0 = Release|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.DLL-Import Release|x64.ActiveCfg = Release|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.Release|Win32.ActiveCfg = Release|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.Release|Win32.Build.0 = Release|Win32
+		{E5E4BA3A-15C2-43A3-BFF2-B40DB13206C9}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
