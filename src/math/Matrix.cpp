@@ -226,7 +226,9 @@ Matrix::get(matrixsize_t row, matrixsize_t col)
 void 
 Matrix::print(std::ostream& os)
 {
+#ifndef _WIN32
   std::_Ios_Fmtflags flgs = os.flags();
+#endif
   os.setf(std::ios_base::right);
   os.setf(std::ios_base::fixed);
   os << "[" << std::endl;
@@ -245,7 +247,9 @@ Matrix::print(std::ostream& os)
     os << std::endl;
   }
   os << "]" << std::endl;
+#ifndef _WIN32
   os.setf(flgs);
+#endif
 }
 
 EigenSolver* 

@@ -79,7 +79,7 @@ DataOrderingManager::timerEvent()
 
   if (_outgoingList.size() > 0)
   {
-    uint32_t now = time(0);
+    time_t now = time(0);
     DataBuffer * buffer = _outgoingList.front();
     if ((now - buffer->_time) >= MAX_WAITING_TIME)
     {

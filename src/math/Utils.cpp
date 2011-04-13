@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#include <stdint.h>
 #include <cstdlib>
 #include <ctime>
 #include <math/Utils.h>
@@ -32,7 +33,7 @@ Utils::RandomInt(matrixsize_t lower, matrixsize_t upper)
 void 
 Utils::RandomSeed()
 {
-  srand(time(0));
+  srand((uint32_t)time(0));
 }
 
 void 

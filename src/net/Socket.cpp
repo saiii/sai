@@ -15,9 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifdef _WIN32
-#include <windows.h>
-#else
+#ifndef _WIN32
 #include <syslog.h>
 #endif
 
@@ -77,10 +75,12 @@ public:
     openned = false;
     try 
     {
+#ifndef _WIN32
       _socket.cancel();
+#endif
       _socket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
       _socket.close();
-    } catch(boost::system::system_error &e)
+    } catch(boost::system::system_error& e)
     {
 #ifdef _WIN32
 #else
@@ -266,7 +266,9 @@ protected:
       {
         try
         {
+#ifndef _WIN32
           _client->_socket.cancel();
+#endif
           _client->_socket.shutdown(boost::asio::socket_base::shutdown_both);
           _client->_socket.close();
           _client->_state = _client->_nil;
@@ -458,7 +460,7 @@ public:
       _acceptor->close();
       delete _acceptor;
       _acceptor = 0;
-    } catch(boost::system::system_error &e)
+    } catch(boost::system::system_error& e)
     {
 #ifdef _WIN32
 #else
@@ -499,7 +501,9 @@ public:
     _openned = false;
     try
     {
+#ifndef _WIN32
       _socket.cancel();
+#endif
       _socket.shutdown(boost::asio::socket_base::shutdown_both);
       _socket.close();
     }catch(boost::system::system_error& e)
