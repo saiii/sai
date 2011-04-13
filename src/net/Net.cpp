@@ -49,13 +49,28 @@ Net::~Net()
 #ifdef _WIN32
 uint32_t inetPton(std::string ip)
 {
-  wchar_t p[16];
-  size_t converted;
-  mbstowcs_s(&converted, p, ip.length(), ip.c_str(), _TRUNCATE);
+  typedef union
+  {
+    uint8_t part[4];
+	uint32_t i;
+  }MyIp;
 
-  SOCKADDR_IN s;
-  WSAStringToAddress(p, AF_INET, 0, (LPSOCKADDR)&s, (LPINT)sizeof(struct sockaddr_storage));
-  return s.sin_addr.S_un.S_addr; // TODO : To be verified
+  char * ptr = (char*) ip.c_str();
+  char * part[4] = {ptr, 0, 0, 0};
+  char * dot = 0;
+  dot = strchr(ptr, '.');
+  part[1] = ptr = dot + 1; *dot = 0;
+  dot = strchr(ptr, '.');
+  part[2] = ptr = dot + 1; *dot = 0;
+  dot = strchr(ptr, '.');
+  part[3] = ptr = dot + 1; *dot = 0;
+
+  MyIp myIp;
+  myIp.part[0] = atoi(part[0]);
+  myIp.part[1] = atoi(part[1]);
+  myIp.part[2] = atoi(part[2]);
+  myIp.part[3] = atoi(part[3]);
+  return htonl(myIp.i);
 }
 #endif
 
