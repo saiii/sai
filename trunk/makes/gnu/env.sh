@@ -8,6 +8,9 @@ MJR=`grep VERSION_MAJOR ../../src/utils/Version.cpp | grep define | cut -d' ' -f
 MNR=`grep VERSION_MINOR ../../src/utils/Version.cpp | grep define | cut -d' ' -f 3 | cut -d\" -f 2`
 CNT=`grep VERSION_COUNT ../../src/utils/Version.cpp | grep define | cut -d' ' -f 3 | cut -d\" -f 2`
 
+echo export VERSION_MAJOR=$MJR
+echo export VERSION_MINOR=$MNR
+echo export VERSION_COUNT=$CNT
 export VERSION_MAJOR=$MJR
 export VERSION_MINOR=$MNR
 export VERSION_COUNT=$CNT

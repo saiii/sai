@@ -18,6 +18,8 @@
 #ifndef _WIN32
 #include <syslog.h>
 #endif
+#include <sstream>
+#include <cstring>
 #include <iostream>
 #include <algorithm>
 #include "DataBusState.h"

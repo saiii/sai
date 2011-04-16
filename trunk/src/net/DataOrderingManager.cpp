@@ -17,6 +17,10 @@
 
 #include <time.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <arpa/inet.h>
+#include <algorithm>
 #include <net/DataBus.h>
 #include "DataOrderingManager.h"
 

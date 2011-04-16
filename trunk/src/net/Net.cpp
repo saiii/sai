@@ -18,16 +18,33 @@
 #ifdef _WIN32
 #include <Ws2tcpip.h>
 #endif
+#include <boost/asio.hpp>
 #include "Net.h"
+
+namespace sai { namespace net {
+class NetImpl
+{
+public:
+  boost::asio::io_service io;
+
+public:
+  NetImpl() {}
+  ~NetImpl(){}
+
+  boost::asio::io_service* getIO() { return &io; }
+};
+}}
 
 using namespace sai::net;
 
 Net * Net::_instance = 0;
 
 Net::Net():
+  _impl(0),
   _id(0),
   _hostAddressUInt32(0)
 {
+  _impl = new NetImpl();
   initialize();
 }
 
@@ -39,6 +56,8 @@ Net::~Net()
     _nicList.erase(_nicList.begin());
     delete nic;
   }
+
+  delete _impl;
 
   // Just a dummy call
   // we want to make sure that all applications used this module have version data in their binaries
@@ -242,13 +261,13 @@ Net::getIpFromName(std::string nm)
   static std::string ret; // Not a thread-safe var
   ret.clear();
 
-  boost::asio::ip::tcp::resolver resolver(_io);
+  boost::asio::ip::tcp::resolver resolver(_impl->io);
   boost::asio::ip::tcp::resolver::query query(nm.c_str(), "http");
   boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
   boost::asio::ip::tcp::resolver::iterator end;
 
 
-  boost::asio::ip::tcp::socket socket(_io);
+  boost::asio::ip::tcp::socket socket(_impl->io);
   boost::system::error_code error = boost::asio::error::host_not_found;
   while (error && iter != end)
   {
@@ -315,13 +334,19 @@ Net::get1stLocalIp()
 void 
 Net::mainLoop()
 {
-  _io.run();
+  _impl->io.run();
 }
 
 void 
 Net::shutdown()
 {
-  _io.stop();
+  _impl->io.stop();
+}
+
+void* 
+Net::getIO()
+{
+  return (void*)_impl->getIO();
 }
 
 Nic::Nic()
