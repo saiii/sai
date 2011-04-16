@@ -48,7 +48,7 @@ public:
 public:
   UDPMcastServerSocket(Net& net) : 
     ServerSocket(net),
-    _socket(net.getIO()),
+    _socket(*((boost::asio::io_service*)net.getIO())),
     _buffer(0),
     _bufferSize(65536),
     _handler(0),
@@ -301,8 +301,8 @@ protected:
 public:
   TCPClientSocket(Net& net):
     ClientSocket(net),
-    _socket(net.getIO()),
-    _resolver(net.getIO()),
+    _socket(*((boost::asio::io_service*)net.getIO())),
+    _resolver(*((boost::asio::io_service*)net.getIO())),
     _handler(0)
   {
     _nil   = new _NilState(this);
@@ -448,7 +448,8 @@ public:
 
   void open()
   {
-    _acceptor = new boost::asio::ip::tcp::acceptor(_net.getIO(), _endpoint);
+    _acceptor = new boost::asio::ip::tcp::acceptor(
+      *((boost::asio::io_service*)_net.getIO()), _endpoint);
     _acceptor->set_option(boost::asio::ip::tcp::socket::reuse_address(reuseAddr));
   }
 
@@ -484,7 +485,7 @@ private:
 public:
   UDPMcastClientSocket(Net& net):
     ClientSocket(net),
-    _socket(net.getIO(), _remoteEndPoint.protocol()),
+    _socket(*((boost::asio::io_service*)net.getIO()), _remoteEndPoint.protocol()),
     _openned(true)
   {}
 

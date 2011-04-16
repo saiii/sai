@@ -46,7 +46,7 @@ public:
 };
 
 TimerTaskImpl::TimerTaskImpl(Net& net, TimerTask * task):
-	_timer(net.getIO()),
+	_timer(*((boost::asio::io_service*)net.getIO())),
 	_task(task),
 	_interval(0),
 	_pending(false)

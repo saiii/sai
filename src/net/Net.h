@@ -18,8 +18,9 @@
 #ifndef __SAI_NET_NET__
 #define __SAI_NET_NET__
 
-#include <boost/asio.hpp>
 #include <stdint.h>
+#include <string>
+#include <vector>
 
 namespace sai 
 { 
@@ -53,10 +54,11 @@ public:
 typedef std::vector<Nic*>           NicList;
 typedef std::vector<Nic*>::iterator NicListIterator;
 
+class NetImpl;
 class Net
 {
 private:
-  boost::asio::io_service _io;
+  NetImpl*     _impl;
   NicList      _nicList;
   static Net * _instance;
   char         _sender[17];
@@ -73,8 +75,6 @@ public:
   static Net * GetInstance();
   char *       getSenderId() { return _sender; }
 
-  boost::asio::io_service& getIO() { return _io; }
-
   void        initialize();
   std::string getIpFromName(std::string);
   std::string getLocalAddress() { return _hostAddress; }
@@ -86,6 +86,7 @@ public:
   uint32_t    getMessageId();
   void        mainLoop();
   void        shutdown();
+  void*       getIO();
 };
 
 }
