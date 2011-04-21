@@ -21,7 +21,8 @@ UTILS_SRC = BinarySearch.cpp \
             LinearSearch.cpp \
             List.cpp \
             Version.cpp \
-            Crypto.cpp
+            Crypto.cpp \
+            XmlReader.cpp
 
 UTILS_INC = \
           $(SAI_ROOT)/utils/BinarySearch.h \
@@ -31,7 +32,8 @@ UTILS_INC = \
           $(SAI_ROOT)/utils/List.h \
           $(SAI_ROOT)/utils/Searcher.h \
           $(SAI_ROOT)/utils/Sorter.h \
-          $(SAI_ROOT)/utils/Types.h
+          $(SAI_ROOT)/utils/Types.h \
+          $(SAI_ROOT)/utils/XmlReader.h
 
 UTILS_OBJ1= $(UTILS_SRC:.cpp=.o)
 UTILS_OBJ = $(addprefix utils/, $(UTILS_OBJ1))
@@ -42,6 +44,7 @@ SAI_OBJS  += $(UTILS_OBJ)
 SAI_INC   += $(UTILS_INC)
 
 INC += -I$(CRYPTOPP_INC)
+INC += -I$(XERCES_INC)
 
 utils/%.o: $(SAI_ROOT)/utils/%.cpp
 	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) -c $<

@@ -116,6 +116,7 @@
     <ClCompile Include="..\..\src\utils\BinarySearch.cpp" />
     <ClCompile Include="..\..\src\utils\BubbleSort.cpp" />
     <ClCompile Include="..\..\src\utils\Crypto.cpp" />
+    <ClCompile Include="..\..\src\utils\XmlReader.cpp" />
     <ClCompile Include="..\..\src\utils\KDTreeSort.cpp" />
     <ClCompile Include="..\..\src\utils\LinearSearch.cpp" />
     <ClCompile Include="..\..\src\utils\List.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="..\..\src\utils\BinarySearch.h" />
     <ClInclude Include="..\..\src\utils\BubbleSort.h" />
     <ClInclude Include="..\..\src\utils\Crypto.h" />
+    <ClInclude Include="..\..\src\utils\XmlReader.h" />
     <ClInclude Include="..\..\src\utils\KDTreeSort.h" />
     <ClInclude Include="..\..\src\utils\LinearSearch.h" />
     <ClInclude Include="..\..\src\utils\List.h" />
