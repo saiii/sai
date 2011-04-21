@@ -298,6 +298,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\utils\XmlReader.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\utils\KDTreeSort.cpp"
 					>
 				</File>
@@ -461,6 +465,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\utils\Crypto.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\utils\XmlReader.h"
 					>
 				</File>
 				<File

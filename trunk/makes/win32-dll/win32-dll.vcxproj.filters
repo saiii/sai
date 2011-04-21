@@ -119,6 +119,9 @@
     <ClCompile Include="..\..\src\utils\Crypto.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\utils\XmlReader.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\utils\KDTreeSort.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
@@ -221,6 +224,9 @@
       <Filter>Header Files\utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\utils\Crypto.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\XmlReader.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\utils\KDTreeSort.h">
