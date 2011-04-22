@@ -50,7 +50,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>D:\Programming\C++\cryptopp561;D:\Programming\C++\boost_1_46_1;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programming\C++\Ext\cryptopp561\include;D:\Programming\C++\Ext\boost_1_46_1;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\include;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WIN32DLL_EXPORTS;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -61,18 +61,18 @@
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)libsai.dll</OutputFile>
-      <AdditionalLibraryDirectories>D:\Programming\C++\boost_1_46_1\stage\lib;D:\Programming\C++\cryptopp561\Win32\Output\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Programming\C++\Ext\boost_1_46_1\stage\lib;D:\Programming\C++\Ext\cryptopp561\lib\static\Debug;%(AdditionalLibraryDirectories);D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\lib;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>cryptlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cryptlib.lib;xerces-c_static_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>D:\Programming\C++\cryptopp561;D:\Programming\C++\boost_1_46_1;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programming\C++\Ext\cryptopp561\include;D:\Programming\C++\Ext\boost_1_46_1;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\include;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WIN32DLL_EXPORTS;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -81,13 +81,13 @@
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)libsai.dll</OutputFile>
-      <AdditionalLibraryDirectories>D:\Programming\C++\boost_1_46_1\stage\lib;D:\Programming\C++\cryptopp561\Win32\Output\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Programming\C++\Ext\boost_1_46_1\stage\lib;D:\Programming\C++\Ext\cryptopp561\lib\static\Release;%(AdditionalLibraryDirectories);D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>cryptlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cryptlib.lib;xerces-c_3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
