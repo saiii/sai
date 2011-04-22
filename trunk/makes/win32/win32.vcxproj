@@ -48,7 +48,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>D:\Programming\C++\cryptopp561;D:\Programming\C++\boost_1_46_1;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programming\C++\Ext\cryptopp561\include;D:\Programming\C++\Ext\boost_1_46_1;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\include;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -65,7 +65,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>D:\Programming\C++\cryptopp561;D:\Programming\C++\boost_1_46_1;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programming\C++\Ext\cryptopp561\include;D:\Programming\C++\Ext\boost_1_46_1;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\include;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

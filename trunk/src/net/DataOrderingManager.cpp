@@ -19,7 +19,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef _WIN32
+#include <Windows.h>
+#else
 #include <arpa/inet.h>
+#endif
 #include <algorithm>
 #include <net/DataBus.h>
 #include "DataOrderingManager.h"
