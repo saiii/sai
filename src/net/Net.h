@@ -69,6 +69,7 @@ private:
 private:
   Net();
   void getHostAddress();
+  void sortNicList(NicList& list);
 
 public:
   ~Net();

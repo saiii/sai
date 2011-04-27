@@ -99,6 +99,13 @@ Net::initialize()
   const int MAX_INTERFACE_CARDS = 10;
   const int MAX_STRING_LEN = 1024;
 
+  while (_nicList.size() > 0)
+  {
+    Nic * nic = _nicList.front();
+    _nicList.erase(_nicList.begin());
+    delete nic;
+  }
+
 #ifdef _WIN32
   int socketfd = 0;
   socketfd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
@@ -216,18 +223,75 @@ Net::initialize()
   sprintf(_sender, "%x%x", _hostAddressUInt32, tim);
 }
 
+void
+Net::sortNicList(NicList& list)
+{
+  Nic ** nic = new Nic*[list.size()];
+
+  NicListIterator iter;
+  int i = 0;
+  int size = list.size();
+  for (iter = list.begin(); iter != list.end(); iter++, i++)
+  {
+    nic[i] = *iter;
+  }
+
+  list.clear();
+
+  std::string priority [] = {"eth0", "eth1", "eth2", "eth3", "wlan0", "wlan1", "wlan2", "wlan3"};
+  for (int j = 0; j < 8; j += 1)
+  {
+    for (i = 0; i < size; i += 1)
+    {
+      if (priority[j].length() > 0 && nic[i] && priority[j].compare(nic[i]->_name) == 0)
+      {
+        list.push_back(nic[i]);
+        nic[i] = 0;
+        priority[j].clear();
+      }
+    }
+  }
+
+  for (i = 0; i < size; i += 1)
+  {
+    if (nic[i])
+    {
+      list.push_back(nic[i]);
+    }
+  }
+
+  delete nic;
+}
+
 void 
 Net::getHostAddress()
 {
+  sortNicList(_nicList);
+
   std::string ip;
 
-  if (getNumNic() > 1)
+  if (_nicList.size() > 0)
+  {
+    NicListIterator iter;
+    for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
+    {
+      Nic * nic = *iter;
+      ip = getLocalIpFromNic(nic->_name);
+      if (ip.length() > 0 && ip.compare("127.0.0.1") != 0) 
+      {
+        break;
+      }
+      ip = "";
+    }
+  }
+
+  if (ip.length() == 0 && getNumNic() > 1)
   {
     std::string guess [] = {
       "eth0",  "eth1",  "eth2",  "eth3",  "eth4", 
       "wlan0", "wlan1", "wlan2", "wlan3", "wlan4", 
       "dmfe0", "hme0"};
-    for (uint16_t i = 0; i < 4; i += 1)
+    for (uint16_t i = 0; i < 12; i += 1)
     {
       ip = getLocalIpFromNic(guess[i]);
       if (ip.length() > 0) 
