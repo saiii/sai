@@ -15,6 +15,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 #include <cstdio>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -80,13 +83,43 @@ XmlReader::parseFile(std::string xmlFile)
 
   std::string xmlData;
 
+#ifdef _WIN32
+  TCHAR fName[1024];
+  for (unsigned int index = 0; index < xmlFile.length(); index += 1)
+  {
+    fName[index]   = (TCHAR) xmlFile.at(index);
+    fName[index+1] = 0;
+  }
+
+  HANDLE hFile = CreateFile(fName, 
+                   GENERIC_READ, 
+                   FILE_SHARE_READ, 
+                   NULL, 
+                   OPEN_EXISTING, 
+                   FILE_ATTRIBUTE_NORMAL,
+                   NULL);
+  if (hFile == INVALID_HANDLE_VALUE)
+  {
+    return;
+  }
+#else
   FILE * fp = fopen(xmlFile.c_str(), "r");
   if (fp == NULL)
   {
     return;
   }
+#endif
 
   char buffer[1024];
+#ifdef _WIN32
+  DWORD bytes = 0;
+  do
+  {
+    ReadFile(hFile, buffer, sizeof(buffer), &bytes, NULL);
+    xmlData.append(buffer, bytes);
+  }while(bytes >= sizeof(buffer));
+  CloseHandle(hFile);
+#else
   size_t bytes = 0;
   do
   {
@@ -94,6 +127,7 @@ XmlReader::parseFile(std::string xmlFile)
     xmlData.append(buffer, bytes);
   }while(bytes >= sizeof(buffer));
   fclose(fp);
+#endif
 
   parseMem(xmlData);
 }
