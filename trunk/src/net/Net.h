@@ -65,6 +65,7 @@ private:
   uint32_t     _id;
   std::string  _hostAddress;
   uint32_t     _hostAddressUInt32;
+  std::string  _preferredAddress;
 
 private:
   Net();
@@ -75,6 +76,7 @@ public:
   ~Net();
   static Net * GetInstance();
   char *       getSenderId() { return _sender; }
+  void         setPreferredAddress(const char * addr) { _preferredAddress = addr; }
 
   void        initialize();
   std::string getIpFromName(std::string);
