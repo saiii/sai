@@ -19,6 +19,7 @@
 #include <Ws2tcpip.h>
 #endif
 #include <boost/asio.hpp>
+#include <boost/regex.hpp>
 #include "Net.h"
 
 namespace sai { namespace net {
@@ -45,6 +46,7 @@ Net::Net():
   _hostAddressUInt32(0)
 {
   _impl = new NetImpl();
+  _preferredAddress = "*";
   initialize();
 }
 
@@ -99,6 +101,14 @@ Net::initialize()
   const int MAX_INTERFACE_CARDS = 10;
   const int MAX_STRING_LEN = 1024;
 
+  boost::basic_regex<char> *e = 0;
+  if (_preferredAddress.compare("*") != 0)
+  {
+	e = new boost::basic_regex<char>(_preferredAddress.c_str());
+  }
+
+  std::string selectedAddress = "";
+
   while (_nicList.size() > 0)
   {
     Nic * nic = _nicList.front();
@@ -111,6 +121,7 @@ Net::initialize()
   socketfd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
   if (socketfd < 0)
   {
+    delete e;
     return;
   }
 
@@ -120,6 +131,7 @@ Net::initialize()
   if ((WSAIoctl(socketfd, SIO_GET_INTERFACE_LIST, 0, 0, &interfaceInfo, sizeof(interfaceInfo), &bytes, 0, 0)) != 0)
   {
     closesocket(socketfd);
+	delete e;
     return;
   }
 
@@ -129,12 +141,22 @@ Net::initialize()
   char *interfaceName = new char[MAX_STRING_LEN];
   for (unsigned long i = 0; i < num; i += 1)
   {
+    if (!(interfaceInfo[i].iiFlags & IFF_UP) || !(interfaceInfo[i].iiFlags & IFF_MULTICAST))
+	{
+      continue;
+	}
+
     memset(interfaceAddr, 0, MAX_STRING_LEN);
     memset(interfaceName, 0, MAX_STRING_LEN);
 
     sockaddr_in *addr;
     addr = (sockaddr_in *) &(interfaceInfo[i].iiAddress);
     sprintf_s(interfaceAddr, MAX_STRING_LEN, "%s", inet_ntoa(addr->sin_addr));
+
+	if (selectedAddress.length() == 0 && e && boost::regex_match(interfaceAddr, *e))
+	{
+      selectedAddress = interfaceAddr;
+	}
 
     Nic * nic = new Nic();
     nic->_name = interfaceName;
@@ -154,6 +176,7 @@ Net::initialize()
   socketfd = socket(AF_INET, SOCK_STREAM, 0);
   if (socketfd < 0)
   {
+    delete e;
     return;
   }
 
@@ -168,6 +191,7 @@ Net::initialize()
   {
     free(ifr);
     close(socketfd);
+	delete e;
     return;
   }
 
@@ -196,6 +220,11 @@ Net::initialize()
       continue;
     }
 
+	if (selectedAddress.length() == 0 && boost::regex_match(interfaceAddr, *e))
+	{
+      selectedAddress = interfaceAddr;
+	}
+
     Nic * nic = new Nic();
     nic->_name = interfaceName;
     nic->_ip   = interfaceAddr;
@@ -209,7 +238,14 @@ Net::initialize()
   close(socketfd);
 #endif
 
-  getHostAddress();
+  if (selectedAddress.length() > 0)
+  {
+    _hostAddress = selectedAddress;
+  }
+  else
+  {
+    getHostAddress();
+  }
 
   std::string ip = getLocalAddress();  
 #ifdef _WIN32
@@ -221,6 +257,8 @@ Net::initialize()
 #endif  
   time_t tim = time(0);
   sprintf(_sender, "%x%x", _hostAddressUInt32, tim);
+
+  delete e;
 }
 
 void
