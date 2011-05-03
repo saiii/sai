@@ -110,6 +110,23 @@ public:
   {
     if (!openned) throw SocketException("Invalid state! The socket must be openned before!");
 
+#if 0
+   struct ip_mreq imreq;
+   memset(&imreq, 0, sizeof(struct ip_mreq));
+
+   imreq.imr_multiaddr.s_addr = inet_addr(mcast.c_str());
+   imreq.imr_interface.s_addr = inet_addr("192.168.1.3"); 
+   //imreq.imr_interface.s_addr = inet_addr(_endpoint.address().to_string().c_str()); 
+   //imreq.imr_interface.s_addr = INADDR_ANY; 
+
+   int ret = setsockopt(_socket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const void *)&imreq, sizeof(struct ip_mreq));
+   if (ret != 0)
+   {
+     fprintf(stderr, "error\n");
+   }
+   return;
+#endif
+
     std::string err = "";
     const boost::asio::ip::address address = boost::asio::ip::address::from_string(mcast);
     try
