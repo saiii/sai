@@ -66,7 +66,22 @@ public:
   {
     _socket.open(_endpoint.protocol());
     _socket.set_option(boost::asio::ip::udp::socket::reuse_address(reuseAddr));
+#if 0
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+	addr.sin_port = htons(_endpoint.port());
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	//addr.sin_addr.s_addr = _endpoint.address().to_string().compare("0.0.0.0") == 0 ? htonl(INADDR_ANY) : inet_addr(_endpoint.address().to_string().c_str());
+
+	if (::bind(_socket.native(),(struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+	   _socket.close();
+      return;
+    }
+#else
     _socket.bind(_endpoint);
+#endif
     openned = true;
   }
 
@@ -110,22 +125,21 @@ public:
   {
     if (!openned) throw SocketException("Invalid state! The socket must be openned before!");
 
-#if 0
+#if 1
    struct ip_mreq imreq;
    memset(&imreq, 0, sizeof(struct ip_mreq));
 
    imreq.imr_multiaddr.s_addr = inet_addr(mcast.c_str());
-   imreq.imr_interface.s_addr = inet_addr("192.168.1.3"); 
-   //imreq.imr_interface.s_addr = inet_addr(_endpoint.address().to_string().c_str()); 
+   imreq.imr_interface.s_addr = inet_addr(_endpoint.address().to_string().c_str()); 
    //imreq.imr_interface.s_addr = INADDR_ANY; 
 
-   int ret = setsockopt(_socket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const void *)&imreq, sizeof(struct ip_mreq));
+   int ret = setsockopt(_socket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&imreq, sizeof(struct ip_mreq));
    if (ret != 0)
    {
-     fprintf(stderr, "error\n");
+	 std::string err = "Unable to join the specified multicast group";
+     throw SocketException(err);
    }
-   return;
-#endif
+#else
 
     std::string err = "";
     const boost::asio::ip::address address = boost::asio::ip::address::from_string(mcast);
@@ -138,11 +152,11 @@ public:
     }
     if (err.length() > 0)
       throw SocketException(err); 
+#endif
   }
 
   void bind(std::string ip, uint16_t p) 
        { 
-         // FIXME : Why the IP address must always be 0.0.0.0???
          const boost::asio::ip::address address = boost::asio::ip::address::from_string(ip);
          _endpoint.address(address);
          _endpoint.port(p);
@@ -504,7 +518,12 @@ public:
     ClientSocket(net),
     _socket(*((boost::asio::io_service*)net.getIO()), _remoteEndPoint.protocol()),
     _openned(true)
-  {}
+  {
+    boost::asio::ip::udp::endpoint endp;
+	const boost::asio::ip::address address = boost::asio::ip::address::from_string(Net::GetInstance()->getLocalAddress());
+    endp.address(address);
+    _socket.bind(endp);
+  }
 
   ~UDPMcastClientSocket()
   {}
