@@ -286,7 +286,7 @@ void
 ProtocolDecoder::DefaultDataHandler::processDataEvent(DataDescriptor& desc, std::string&)
 {
   std::string frmString;
-  desc.from.toString(frmString, true);
+  desc.from.toString(frmString, Address::LOG_MSG_SINGLE_LINE);
 #ifdef _WIN32
   std::cerr << "(DefaultDataHandler) Receive unknown opcode from " << frmString << std::endl;
 #else

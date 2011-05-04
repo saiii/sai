@@ -70,7 +70,7 @@ ProtocolEncoder::encode(DataDescriptor& desc,
 #define ADD32(str,val) { uint32_t v = htonl(val); str.append((char*)&v, sizeof(v)); }
 #define ADD16(str,val) { uint16_t v = htons(val); str.append((char*)&v, sizeof(v)); }
 #define ADDSTR16(str,val)  { str.append(val, 16); }
-#define ADDSTR256(str,val) { char v[256]; memset(v, 0, sizeof(v)); memcpy(v, val.c_str(), val.length() > sizeof(v) ? : sizeof(v) : val.length()); str.append(v, sizeof(v)); }
+#define ADDSTR256(str,val) { char v[256]; memset(v, 0, sizeof(v)); memcpy(v, val.c_str(), val.length() > sizeof(v) ? sizeof(v) : val.length()); str.append(v, sizeof(v)); }
 
 void 
 _EncoderV1::encode(DataDescriptor& desc, 

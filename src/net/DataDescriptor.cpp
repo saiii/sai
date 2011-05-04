@@ -58,31 +58,51 @@ void IP2String(uint32_t ip, char *output)
 }
 
 void 
-Address::toString(std::string& ret, bool singleLineOutput)
+Address::toString(std::string& ret, OutputType type)
 {
   ret.clear();
-  if (singleLineOutput)
+  switch (type)
   {
-    ret.append("Address { ");
-    if (str.length() > 0)
-    {
-      ret.append(str);
-    }
-    else
-    {
-      char buf[64];
-      IP2String(ival, buf);
-      ret.append(buf);
-    }
-    ret.append(" }");
-  }
-  else
-  {
-    char buf[1024];
-    ret.append("Address {\n");
-    sprintf(buf, "0x%x\n", ival);
-    ret.append("\tival = "); ret.append(buf);
-    ret.append("\t str = "); ret.append(str); ret.append("\n");
-    ret.append("}\n");
+    case LOG_MSG_SINGLE_LINE:
+      {
+        ret.append("Address { ");
+        if (str.length() > 0)
+        {
+          ret.append(str);
+        }
+        else
+        {
+          char buf[64];
+          IP2String(ival, buf);
+          ret.append(buf);
+        }
+        ret.append(" }");
+      }
+      break;
+    case LOG_MSG_MULTIPLE_LINE:
+      {
+        char buf[1024];
+        ret.append("Address {\n");
+        sprintf(buf, "0x%x\n", ival);
+        ret.append("\tival = "); ret.append(buf);
+        ret.append("\t str = "); ret.append(str); ret.append("\n");
+        ret.append("}\n");
+      }
+      break;
+    case RAW_MSG:
+    default:
+      {
+        if (str.length() > 0)
+        {
+          ret.append(str);
+        }
+        else
+        {
+          char buf[64];
+          IP2String(ival, buf);
+          ret.append(buf);
+        }
+      }
+      break;
   }
 }

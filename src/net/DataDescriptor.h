@@ -33,8 +33,16 @@ public:
   std::string str;
 
 public:
+  typedef enum
+  {
+    LOG_MSG_SINGLE_LINE   = 0,
+    LOG_MSG_MULTIPLE_LINE = 1,
+    RAW_MSG               = 2
+  }OutputType;
+
+public:
   Address();
-  void toString(std::string&, bool singleLineOutput = false);
+  void toString(std::string&, OutputType type = LOG_MSG_MULTIPLE_LINE);
 };
 
 class DataDescriptor
