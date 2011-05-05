@@ -252,3 +252,38 @@ XmlReader::moveTo(std::string tag)
   _impl->startNode = elem;
 }
 
+std::string& 
+XmlReader::EncodeSpecialCharacter(std::string& from)
+{
+  std::string n;
+  for (uint32_t i = 0; i < from.length(); i += 1)
+  {
+    switch (from.at(i))
+    {
+      case '&':
+        n.append("&amp");
+        break;
+      case '<':
+        n.append("&lt");
+        break;
+      case '>':
+        n.append("&gt");
+        break;
+      case '"':
+        n.append("&quot");
+        break;
+      case '\'':
+        n.append("&#39");
+        break;
+      default:
+        {
+          char tmp[2] = {from.at(i), 0};
+          n.append(tmp);
+        }
+        break;
+    }
+  }
+
+  from = n;
+  return from;
+}

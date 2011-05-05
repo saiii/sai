@@ -39,6 +39,8 @@ public:
   void parseMem(std::string xmlMessage);
   void moveTo(std::string tag);
   std::string get(std::string tag, std::string attribute);
+
+  static std::string& EncodeSpecialCharacter(std::string& from);
 };
 
 
