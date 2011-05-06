@@ -107,7 +107,7 @@ Net::initialize()
     e = new boost::basic_regex<char>(_preferredAddress.c_str());
   }
 
-  std::string selectedAddress = "";
+  Nic * selectedNic = 0;
 
   while (_nicList.size() > 0)
   {
@@ -138,6 +138,7 @@ Net::initialize()
   unsigned long num = bytes / sizeof(INTERFACE_INFO);
 
   char *interfaceAddr = new char[MAX_STRING_LEN];
+  char *interfaceBcast= new char[MAX_STRING_LEN];
   char *interfaceName = new char[MAX_STRING_LEN];
   for (unsigned long i = 0; i < num; i += 1)
   {
@@ -147,25 +148,30 @@ Net::initialize()
     }
 
     memset(interfaceAddr, 0, MAX_STRING_LEN);
+    memset(interfaceBcast,0, MAX_STRING_LEN);
     memset(interfaceName, 0, MAX_STRING_LEN);
 
-    sockaddr_in *addr;
-    addr = (sockaddr_in *) &(interfaceInfo[i].iiAddress);
+    sockaddr_in *addr, *bcast;
+    addr  = (sockaddr_in *) &(interfaceInfo[i].iiAddress);
+    bcast = (sockaddr_in *) &(interfaceInfo[i].iiBroadcastAddress);
     sprintf_s(interfaceAddr, MAX_STRING_LEN, "%s", inet_ntoa(addr->sin_addr));
-
-    if (selectedAddress.length() == 0 && e && boost::regex_match(interfaceAddr, *e))
-    {
-      selectedAddress = interfaceAddr;
-    }
+    sprintf_s(interfaceBcast,MAX_STRING_LEN, "%s", inet_ntoa(bcast->sin_addr));
 
     Nic * nic = new Nic();
     nic->_name = interfaceName;
     nic->_ip   = interfaceAddr;
+    nic->_bcast= interfaceBcast;
     _nicList.push_back(nic);
+
+    if (selectedNic == 0 && e && boost::regex_match(interfaceAddr, *e))
+    {
+      selectedNic = nic;
+    }
   }
 
   delete [] interfaceName;
   delete [] interfaceAddr;
+  delete [] interfaceBcast;
 
   closesocket(socketfd);
 #else
@@ -198,12 +204,14 @@ Net::initialize()
   num = ifc.ifc_len / sizeof(struct ifreq);
 
   char *interfaceAddr = new char[MAX_STRING_LEN];
+  char *interfaceBcast= new char[MAX_STRING_LEN];
   char *interfaceName = new char[MAX_STRING_LEN];
 
   for (int i = 0; i < num; i += 1)
   {
     struct ifreq req;
     memset(interfaceAddr, 0, MAX_STRING_LEN);
+    memset(interfaceBcast,0, MAX_STRING_LEN);
     memset(interfaceName, 0, MAX_STRING_LEN);
 
     sprintf(interfaceName, "%s", ifc.ifc_req[i].ifr_name);
@@ -220,27 +228,41 @@ Net::initialize()
       continue;
     }
 
-    if (selectedAddress.length() == 0 && e && boost::regex_match(interfaceAddr, *e))
+    if (ioctl(socketfd, SIOCGIFBRDADDR, &req) < 0)
     {
-      selectedAddress = interfaceAddr;
+      continue;
+    }
+
+    struct sockaddr_in * sbcast = (struct sockaddr_in*)&(req.ifr_broadaddr);
+    if (inet_ntop(AF_INET, &(sbcast->sin_addr), interfaceBcast, MAX_STRING_LEN) == NULL)
+    {
+      continue;
     }
 
     Nic * nic = new Nic();
     nic->_name = interfaceName;
     nic->_ip   = interfaceAddr;
+    nic->_bcast= interfaceBcast;
     _nicList.push_back(nic);
+
+    if (selectedNic == 0 && e && boost::regex_match(interfaceAddr, *e))
+    {
+      selectedNic = nic;
+    }
   }
 
   delete [] interfaceName;
+  delete [] interfaceBcast;
   delete [] interfaceAddr;
 
   free(ifr);
   close(socketfd);
 #endif
 
-  if (selectedAddress.length() > 0)
+  if (selectedNic)
   {
-    _hostAddress = selectedAddress;
+    _hostAddress      = selectedNic->_ip;
+    _hostBcastAddress = selectedNic->_bcast;
   }
   else
   {
@@ -307,6 +329,7 @@ Net::getHostAddress()
   sortNicList(_nicList);
 
   std::string ip;
+  std::string bcast;
 
   if (_nicList.size() > 0)
   {
@@ -314,12 +337,14 @@ Net::getHostAddress()
     for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
     {
       Nic * nic = *iter;
-      ip = getLocalIpFromNic(nic->_name);
+      ip    = nic->_ip;
+      bcast = nic->_bcast;
       if (ip.length() > 0 && ip.compare("127.0.0.1") != 0) 
       {
         break;
       }
-      ip = "";
+      ip    = "";
+      bcast = "";
     }
   }
 
@@ -332,6 +357,7 @@ Net::getHostAddress()
     for (uint16_t i = 0; i < 12; i += 1)
     {
       ip = getLocalIpFromNic(guess[i]);
+      // TODO : dealing with bcast
       if (ip.length() > 0) 
       {
         break;
@@ -342,19 +368,23 @@ Net::getHostAddress()
   if (ip.length() == 0 && getNumNic() >= 0)
   {
     ip = get1stLocalIp();
+    // TODO : dealing with bcast
   }
   
   if (ip.length() == 0)
   {
     ip = getIpFromName("localhost");
+    // TODO : dealing with bcast
   }
 
   if (ip.length() == 0)
   {
     ip = "127.0.0.1";
+    // TODO : dealing with bcast
   }
 
-  _hostAddress = ip;
+  _hostAddress      = ip;
+  _hostBcastAddress = bcast;
 }
 
 std::string 

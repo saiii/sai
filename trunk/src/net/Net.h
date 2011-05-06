@@ -40,6 +40,7 @@ friend class Net;
 private:
   std::string _name;
   std::string _ip;
+  std::string _bcast;
 
 private:
   Nic();
@@ -49,6 +50,7 @@ public:
 
   const char * name() { return _name.c_str(); }
   const char * ip()   { return _ip.c_str();   }
+  const char * bcast(){ return _bcast.c_str();}
 };
 
 typedef std::vector<Nic*>           NicList;
@@ -64,6 +66,7 @@ private:
   char         _sender[17];
   uint32_t     _id;
   std::string  _hostAddress;
+  std::string  _hostBcastAddress;
   uint32_t     _hostAddressUInt32;
   std::string  _preferredAddress;
 
@@ -81,6 +84,7 @@ public:
   void        initialize();
   std::string getIpFromName(std::string);
   std::string getLocalAddress() { return _hostAddress; }
+  std::string getLocalBroadcastAddress() { return _hostBcastAddress; }
   uint32_t    getLocalAddressUInt32() { return _hostAddressUInt32; }
   std::string getLocalIpFromNic(std::string);
   std::string get1stLocalIp();
