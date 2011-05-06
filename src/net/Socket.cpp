@@ -520,7 +520,7 @@ public:
     _openned(true)
   {
     boost::asio::ip::udp::endpoint endp;
-	const boost::asio::ip::address address = boost::asio::ip::address::from_string(Net::GetInstance()->getLocalAddress());
+    const boost::asio::ip::address address = boost::asio::ip::address::from_string(Net::GetInstance()->getLocalAddress());
     endp.address(address);
     _socket.bind(endp);
   }
@@ -573,6 +573,84 @@ public:
   {
     _socket.async_send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint,
       boost::bind(&UDPMcastClientSocket::processDataSentEvent, this,
+      boost::asio::placeholders::error));
+  }
+
+  void processDataSentEvent(const boost::system::error_code& error)
+  {
+  }
+};
+
+class UDPBcastClientSocket : public ClientSocket
+{
+private:
+  boost::asio::ip::udp::endpoint  _remoteEndPoint;
+  boost::asio::ip::udp::socket    _socket;
+  bool                            _openned;
+
+public:
+  UDPBcastClientSocket(Net& net):
+    ClientSocket(net),
+    _socket(*((boost::asio::io_service*)net.getIO()), _remoteEndPoint.protocol()),
+    _openned(true)
+  {
+    boost::asio::ip::udp::endpoint endp;
+    const boost::asio::ip::address address = boost::asio::ip::address::from_string(Net::GetInstance()->getLocalAddress());
+    endp.address(address);
+
+    boost::asio::socket_base::broadcast option(true);
+    _socket.set_option(option);
+    _socket.bind(endp);
+  }
+
+  ~UDPBcastClientSocket()
+  {}
+
+  void open() 
+  {
+    _openned = true;
+  }
+
+  void close()
+  {
+    _openned = false;
+    try
+    {
+#ifndef _WIN32
+      _socket.cancel();
+#endif
+      _socket.shutdown(boost::asio::socket_base::shutdown_both);
+      _socket.close();
+    }catch(boost::system::system_error& e)
+    {
+#ifdef _WIN32
+#else
+      openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+      syslog(LOG_ERR, "Failed to close a UDPBcastClientSocket");
+      syslog(LOG_ERR, "%s", e.what());
+      closelog();
+#endif
+    }
+  }
+
+  void connect(std::string ip, uint16_t port) 
+  {
+    const boost::asio::ip::address address = boost::asio::ip::address::from_string(ip);
+    _remoteEndPoint.address(address);
+    _remoteEndPoint.port(port);
+  }
+
+  void send(const char *data, uint32_t size) 
+  {
+    _socket.async_send_to(boost::asio::buffer(data, size), _remoteEndPoint,
+      boost::bind(&UDPBcastClientSocket::processDataSentEvent, this,
+      boost::asio::placeholders::error));
+  }
+
+  void send(const std::string data) 
+  {
+    _socket.async_send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint,
+      boost::bind(&UDPBcastClientSocket::processDataSentEvent, this,
       boost::asio::placeholders::error));
   }
 
@@ -668,6 +746,7 @@ ClientSocket::Create(Net& net, SocketOptions option, ...)
   std::string txt;
   int protocol  = SAI_SOCKET_OPT_UDP;
   int useIpMulticast = SAI_SOCKET_OPT_FALSE;
+  int broadcast = SAI_SOCKET_OPT_FALSE;
   ClientSocket * ret = 0;
 
   va_list pa;
@@ -681,6 +760,9 @@ ClientSocket::Create(Net& net, SocketOptions option, ...)
         break;
       case SAI_SOCKET_B_USEIP_MULTICAST:
         useIpMulticast = va_arg(pa, int);
+        break;
+      case SAI_SOCKET_B_BROADCAST:
+        broadcast = va_arg(pa, int);
         break;
       default:
         txt = "Invalid option for ServerSocket!";
@@ -697,6 +779,10 @@ ClientSocket::Create(Net& net, SocketOptions option, ...)
         if (useIpMulticast)
         { 
           ret = new UDPMcastClientSocket(net);
+        }
+        else if (broadcast)
+        {
+          ret = new UDPBcastClientSocket(net);
         }
         else
         {
