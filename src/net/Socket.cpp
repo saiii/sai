@@ -66,7 +66,7 @@ public:
   {
     _socket.open(_endpoint.protocol());
     _socket.set_option(boost::asio::ip::udp::socket::reuse_address(reuseAddr));
-#if 0
+#if 1
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
