@@ -18,6 +18,7 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+#include <stdint.h>
 #include <cstdio>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
