@@ -32,7 +32,7 @@ private:
 
 public:
   // Note: MAC address must only be hex. No '-' or ':'
-  static void execute(std::string mac); 
+  static void Execute(std::string mac); 
   ~WakeOnLan();
 };
 

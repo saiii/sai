@@ -79,7 +79,7 @@ WakeOnLan::WakeOnLan()
 }
 
 void 
-WakeOnLan::execute(std::string mac)
+WakeOnLan::Execute(std::string mac)
 {
   WakeOnLanImpl(Net::GetInstance()->getLocalBroadcastAddress(), mac, 9);
 }
