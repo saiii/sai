@@ -57,7 +57,9 @@ class WakeOnLanImpl
     unsigned char uMac [6];
     for (uint16_t i = 0; i < 6; i += 1)
     {
-      sscanf(nMac[i], "%x", &uMac[i]);
+      unsigned int val;
+      sscanf(nMac[i], "%x", &val);
+	  uMac[i] = (unsigned char) val;
     }
 
     for (uint16_t i = 0; i < 16; i += 1)
