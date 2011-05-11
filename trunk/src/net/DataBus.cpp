@@ -301,9 +301,15 @@ _SendReceiveFilter::add(uint32_t addr)
 void 
 _SendReceiveFilter::clear()
 {
+  while (_listenListString.size() > 0)
+  {
+    std::string *str = _listenListString.front();
+    _listenListString.erase(_listenListString.begin());
+    delete str;
+  }
+
   _blockSenderListString.clear();
   _blockSenderListInt.clear();
-  _listenListString.clear();
   _listenListInt.clear();
 }
 

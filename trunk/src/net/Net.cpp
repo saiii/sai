@@ -320,7 +320,7 @@ Net::sortNicList(NicList& list)
     }
   }
 
-  delete nic;
+  delete [] nic;
 }
 
 void 
