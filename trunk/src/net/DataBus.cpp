@@ -91,13 +91,25 @@ DataBus::setChannel(DataBusChannel* chnl)
 
   if (dynamic_cast<McastDataBusChannel*>(chnl))
   {
+    if (_channel)
+    {
+      delete _channel;
+    }
     _channel = new McastDataBusChannel();
   }
   _channel->copyFrom(chnl);
 
   _SendReceiveFilter * filter = new _SendReceiveFilter();
+  if (_sendReceiveFilter)
+  {
+    delete _sendReceiveFilter;
+  }
   _sendReceiveFilter = filter;
 
+  if (_stateDb)
+  {
+    delete _stateDb;
+  }
   _stateDb = new DataBusStateDb(*net, this, this, filter);
   _fromTo.setFilter(_sendReceiveFilter);
 
@@ -127,6 +139,9 @@ void
 DataBus::deactivate()
 {
   _stateDb->getState()->deactivate();
+  delete _channel;
+  delete _sendReceiveFilter;
+  delete _stateDb;
 }
 
 bool

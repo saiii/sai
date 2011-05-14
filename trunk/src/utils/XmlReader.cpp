@@ -262,19 +262,19 @@ XmlReader::EncodeSpecialCharacter(std::string& from)
     switch (from.at(i))
     {
       case '&':
-        n.append("&amp");
+        n.append("&amp;");
         break;
       case '<':
-        n.append("&lt");
+        n.append("&lt;");
         break;
       case '>':
-        n.append("&gt");
+        n.append("&gt;");
         break;
       case '"':
-        n.append("&quot");
+        n.append("&quot;");
         break;
       case '\'':
-        n.append("&#39");
+        n.append("&#39;");
         break;
       default:
         {
