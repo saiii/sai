@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DFF4A71E-36D1-4033-8702-A6F28E4B0789}</ProjectGuid>
+    <RootNamespace>win32dll</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\Export\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\Export\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>D:\Programming\C++\Ext\cryptopp561\include;D:\Programming\C++\Ext\boost_1_46_1;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\include;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WIN32DLL_EXPORTS;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)libsai.dll</OutputFile>
+      <AdditionalLibraryDirectories>D:\Programming\C++\Ext\boost_1_46_1\stage\lib;D:\Programming\C++\Ext\cryptopp561\lib\static\Debug;%(AdditionalLibraryDirectories);D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\lib;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\lib</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>cryptlib.lib;xerces-c_static_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>D:\Programming\C++\Ext\cryptopp561\include;D:\Programming\C++\Ext\boost_1_46_1;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\include;D:\Programming\C++\sai\src;D:\Programming\C++\sai\makes\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WIN32DLL_EXPORTS;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)libsai.dll</OutputFile>
+      <AdditionalLibraryDirectories>D:\Programming\C++\Ext\boost_1_46_1\stage\lib;D:\Programming\C++\Ext\cryptopp561\lib\static\Release;%(AdditionalLibraryDirectories);D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-10.0\lib</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>cryptlib.lib;xerces-c_3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\ai\ml\clustering\FuzzyCmeans.cpp" />
+    <ClCompile Include="..\..\src\ai\ml\clustering\Kmeans.cpp" />
+    <ClCompile Include="..\..\src\ai\ml\clustering\Partition.cpp" />
+    <ClCompile Include="..\..\src\math\Distance.cpp" />
+    <ClCompile Include="..\..\src\math\EigenSolver.cpp" />
+    <ClCompile Include="..\..\src\math\Matrix.cpp" />
+    <ClCompile Include="..\..\src\math\Utils.cpp" />
+    <ClCompile Include="..\..\src\math\Vector.cpp" />
+    <ClCompile Include="..\..\src\net\DataBus.cpp" />
+    <ClCompile Include="..\..\src\net\DataBusChannel.cpp" />
+    <ClCompile Include="..\..\src\net\DataBusState.cpp" />
+    <ClCompile Include="..\..\src\net\DataChainable.cpp" />
+    <ClCompile Include="..\..\src\net\DataDescriptor.cpp" />
+    <ClCompile Include="..\..\src\net\DataDispatchable.cpp" />
+    <ClCompile Include="..\..\src\net\DataOrderingManager.cpp" />
+    <ClCompile Include="..\..\src\net\Exception.cpp" />
+    <ClCompile Include="..\..\src\net\Net.cpp" />
+    <ClCompile Include="..\..\src\net\ProtocolDecoder.cpp" />
+    <ClCompile Include="..\..\src\net\ProtocolEncoder.cpp" />
+    <ClCompile Include="..\..\src\net\Socket.cpp" />
+    <ClCompile Include="..\..\src\net\TimerTask.cpp" />
+    <ClCompile Include="..\..\src\utils\BinarySearch.cpp" />
+    <ClCompile Include="..\..\src\utils\BubbleSort.cpp" />
+    <ClCompile Include="..\..\src\utils\Crypto.cpp" />
+    <ClCompile Include="..\..\src\utils\XmlReader.cpp" />
+    <ClCompile Include="..\..\src\utils\KDTreeSort.cpp" />
+    <ClCompile Include="..\..\src\utils\LinearSearch.cpp" />
+    <ClCompile Include="..\..\src\utils\List.cpp" />
+    <ClCompile Include="..\..\src\utils\Version.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\ai\Types.h" />
+    <ClInclude Include="..\..\src\ai\ml\Configuration.h" />
+    <ClInclude Include="..\..\src\ai\ml\clustering\FuzzyCmeans.h" />
+    <ClInclude Include="..\..\src\ai\ml\clustering\Kmeans.h" />
+    <ClInclude Include="..\..\src\ai\ml\clustering\Partition.h" />
+    <ClInclude Include="..\..\src\math\Distance.h" />
+    <ClInclude Include="..\..\src\math\EigenSolver.h" />
+    <ClInclude Include="..\..\src\math\Matrix.h" />
+    <ClInclude Include="..\..\src\math\Types.h" />
+    <ClInclude Include="..\..\src\math\Utils.h" />
+    <ClInclude Include="..\..\src\math\Vector.h" />
+    <ClInclude Include="..\..\src\net\ChainFilter.h" />
+    <ClInclude Include="..\..\src\net\DataBus.h" />
+    <ClInclude Include="..\..\src\net\DataBusChannel.h" />
+    <ClInclude Include="..\..\src\net\DataBusChannelImpl.h" />
+    <ClInclude Include="..\..\src\net\DataBusState.h" />
+    <ClInclude Include="..\..\src\net\DataChainable.h" />
+    <ClInclude Include="..\..\src\net\DataDescriptor.h" />
+    <ClInclude Include="..\..\src\net\DataDispatchable.h" />
+    <ClInclude Include="..\..\src\net\DataHandler.h" />
+    <ClInclude Include="..\..\src\net\DataOrderingManager.h" />
+    <ClInclude Include="..\..\src\net\Exception.h" />
+    <ClInclude Include="..\..\src\net\Net.h" />
+    <ClInclude Include="..\..\src\net\ProtocolDecoder.h" />
+    <ClInclude Include="..\..\src\net\ProtocolEncoder.h" />
+    <ClInclude Include="..\..\src\net\Socket.h" />
+    <ClInclude Include="..\..\src\net\TimerTask.h" />
+    <ClInclude Include="..\..\src\utils\BinarySearch.h" />
+    <ClInclude Include="..\..\src\utils\BubbleSort.h" />
+    <ClInclude Include="..\..\src\utils\Crypto.h" />
+    <ClInclude Include="..\..\src\utils\XmlReader.h" />
+    <ClInclude Include="..\..\src\utils\KDTreeSort.h" />
+    <ClInclude Include="..\..\src\utils\LinearSearch.h" />
+    <ClInclude Include="..\..\src\utils\List.h" />
+    <ClInclude Include="..\..\src\utils\Searcher.h" />
+    <ClInclude Include="..\..\src\utils\Sorter.h" />
+    <ClInclude Include="..\..\src\utils\Types.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
