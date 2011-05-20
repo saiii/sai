@@ -87,8 +87,8 @@ public:
   std::string getLocalBroadcastAddress() { return _hostBcastAddress; }
   uint32_t    getLocalAddressUInt32() { return _hostAddressUInt32; }
   std::string getLocalIpFromNic(std::string);
-  std::string get1stLocalIp();
   uint32_t    getNumNic() { return _nicList.size(); }
+  std::string getNicList(std::string& ret);
 
   uint32_t    getMessageId();
   void        mainLoop();

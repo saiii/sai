@@ -22,6 +22,7 @@ UTILS_SRC = BinarySearch.cpp \
             List.cpp \
             Version.cpp \
             Crypto.cpp \
+            Logger.cpp \
             XmlReader.cpp
 
 UTILS_INC = \

@@ -23,6 +23,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
+#include <utils/Logger.h>
 #include "Exception.h"
 #include "Socket.h"
 #include "Net.h"
@@ -70,14 +71,21 @@ public:
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-	addr.sin_port = htons(_endpoint.port());
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	//addr.sin_addr.s_addr = _endpoint.address().to_string().compare("0.0.0.0") == 0 ? htonl(INADDR_ANY) : inet_addr(_endpoint.address().to_string().c_str());
+    addr.sin_port = htons(_endpoint.port());
+    //addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_addr.s_addr = _endpoint.address().to_string().compare("0.0.0.0") == 0 ? 
+                           htonl(INADDR_ANY) : inet_addr(_endpoint.address().to_string().c_str());
 
-	if (::bind(_socket.native(),(struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (::bind(_socket.native(),(struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-	   _socket.close();
+      _socket.close();
       return;
+    }
+
+    if (sai::utils::Logger::GetInstance())
+    {
+      sai::utils::Logger::GetInstance()->print(
+        sai::utils::Logger::SAILVL_DEBUG, "UDPMcastServerSocket bind %s\n", _endpoint.address().to_string().c_str());
     }
 #else
     _socket.bind(_endpoint);
@@ -95,8 +103,18 @@ public:
 #endif
       _socket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
       _socket.close();
+      if (sai::utils::Logger::GetInstance())
+      {
+        sai::utils::Logger::GetInstance()->print(
+          sai::utils::Logger::SAILVL_DEBUG, "UDPMcastServerSocket closed\n");
+      }
     } catch(boost::system::system_error& e)
     {
+      if (sai::utils::Logger::GetInstance())
+      {
+        sai::utils::Logger::GetInstance()->print(
+          sai::utils::Logger::SAILVL_ERROR, "UDPMcastServerSocket failed to close\n");
+      }
 #ifdef _WIN32
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -126,19 +144,26 @@ public:
     if (!openned) throw SocketException("Invalid state! The socket must be openned before!");
 
 #if 1
-   struct ip_mreq imreq;
-   memset(&imreq, 0, sizeof(struct ip_mreq));
+    struct ip_mreq imreq;
+    memset(&imreq, 0, sizeof(struct ip_mreq));
 
-   imreq.imr_multiaddr.s_addr = inet_addr(mcast.c_str());
-   imreq.imr_interface.s_addr = inet_addr(_endpoint.address().to_string().c_str()); 
-   //imreq.imr_interface.s_addr = INADDR_ANY; 
+    imreq.imr_multiaddr.s_addr = inet_addr(mcast.c_str());
+    imreq.imr_interface.s_addr = inet_addr(_endpoint.address().to_string().c_str()); 
+    //imreq.imr_interface.s_addr = INADDR_ANY; 
 
-   int ret = setsockopt(_socket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&imreq, sizeof(struct ip_mreq));
-   if (ret != 0)
-   {
-	 std::string err = "Unable to join the specified multicast group";
-     throw SocketException(err);
-   }
+    int ret = setsockopt(_socket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&imreq, sizeof(struct ip_mreq));
+    if (ret != 0)
+    {
+      std::string err = "Unable to join the specified multicast group";
+      throw SocketException(err);
+    }	 
+
+    if (sai::utils::Logger::GetInstance())
+    {
+      sai::utils::Logger::GetInstance()->print(
+        sai::utils::Logger::SAILVL_INFO, "UDPMcastServerSocket joins mcast group (%s) on the (%s)\n",
+        mcast.c_str(), _endpoint.address().to_string().c_str());
+    }
 #else
 
     std::string err = "";
@@ -156,27 +181,27 @@ public:
   }
 
   void bind(std::string ip, uint16_t p) 
-       { 
-         const boost::asio::ip::address address = boost::asio::ip::address::from_string(ip);
-         _endpoint.address(address);
-         _endpoint.port(p);
-       }
+  { 
+    const boost::asio::ip::address address = boost::asio::ip::address::from_string(ip);
+    _endpoint.address(address);
+    _endpoint.port(p);
+  }
 
   void setEventHandler(SocketEventHandler *handler) 
-       {
-         _handler = handler;
-       }
+  {
+    _handler = handler;
+  }
 
   void processDataEvent(const boost::system::error_code& error, size_t bytes_recvd)
-       {
-         if (error) 
-         {
-           return;
-         }
+  {
+    if (error) 
+    {
+      return;
+    }
 
-         _handler->processDataEvent(_buffer, bytes_recvd);
-         listen();
-       }
+    _handler->processDataEvent(_buffer, bytes_recvd);
+    listen();
+  }
 };
 
 ServerSocket::ServerSocket(Net& net):
@@ -523,6 +548,12 @@ public:
     const boost::asio::ip::address address = boost::asio::ip::address::from_string(Net::GetInstance()->getLocalAddress());
     endp.address(address);
     _socket.bind(endp);
+
+    if (sai::utils::Logger::GetInstance())
+    {
+      sai::utils::Logger::GetInstance()->print(
+        sai::utils::Logger::SAILVL_DEBUG, "UDPMcastClientSocket bind %s\n", Net::GetInstance()->getLocalAddress().c_str());
+    }
   }
 
   ~UDPMcastClientSocket()
@@ -543,8 +574,18 @@ public:
 #endif
       _socket.shutdown(boost::asio::socket_base::shutdown_both);
       _socket.close();
+      if (sai::utils::Logger::GetInstance())
+      {
+        sai::utils::Logger::GetInstance()->print(
+          sai::utils::Logger::SAILVL_DEBUG, "UDPMcastClientSocket closed\n");
+      }
     }catch(boost::system::system_error& e)
     {
+      if (sai::utils::Logger::GetInstance())
+      {
+        sai::utils::Logger::GetInstance()->print(
+          sai::utils::Logger::SAILVL_ERROR, "UDPMcastClientSocket failed to close\n");
+      }
 #ifdef _WIN32
 #else
       openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);

@@ -20,6 +20,7 @@
 #endif
 #include <boost/asio.hpp>
 #include <boost/regex.hpp>
+#include <utils/Logger.h>
 #include "Net.h"
 
 namespace sai { namespace net {
@@ -163,9 +164,22 @@ Net::initialize()
     nic->_bcast= interfaceBcast;
     _nicList.push_back(nic);
 
+    if (sai::utils::Logger::GetInstance())
+    {
+      sai::utils::Logger::GetInstance()->print(
+        sai::utils::Logger::SAILVL_INFO, "Detect a new iface card ('%s', '%s', '%s')\n",
+        interfaceName, interfaceAddr, interfaceBcast);
+    }
+
     if (selectedNic == 0 && e && boost::regex_match(interfaceAddr, *e))
     {
       selectedNic = nic;
+
+      if (sai::utils::Logger::GetInstance())
+      {
+        sai::utils::Logger::GetInstance()->print(
+          sai::utils::Logger::SAILVL_INFO, "'%s' is selected as a default iface card\n", interfaceAddr);
+      }
     }
   }
 
@@ -245,8 +259,21 @@ Net::initialize()
     nic->_bcast= interfaceBcast;
     _nicList.push_back(nic);
 
+    if (sai::utils::Logger::GetInstance())
+    {
+      sai::utils::Logger::GetInstance()->print(
+        sai::utils::Logger::SAILVL_INFO, "Detect a new iface card ('%s', '%s', '%s')\n",
+        interfaceName, interfaceAddr, interfaceBcast);
+    }
+
     if (selectedNic == 0 && e && boost::regex_match(interfaceAddr, *e))
     {
+      if (sai::utils::Logger::GetInstance())
+      {
+        sai::utils::Logger::GetInstance()->print(
+          sai::utils::Logger::SAILVL_INFO, "'%s' is selected as a default iface card\n", interfaceAddr);
+      }
+
       selectedNic = nic;
     }
   }
@@ -367,7 +394,7 @@ Net::getHostAddress()
 
   if (ip.length() == 0 && getNumNic() >= 0)
   {
-    ip = get1stLocalIp();
+    ip = (_nicList.front())->_ip;
     // TODO : dealing with bcast
   }
   
@@ -457,10 +484,29 @@ Net::getLocalIpFromNic(std::string name)
 }
 
 std::string 
-Net::get1stLocalIp()
+Net::getNicList(std::string& ret)
 {
-  Nic * nic = _nicList.front();
-  return nic->_ip;
+  ret.clear();
+
+  NicListIterator iter;
+  for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
+  {
+    Nic * nic = *iter;
+    if (nic->_ip.compare(getLocalAddress()) == 0)
+    {
+      ret.append("selected,");
+    }
+    ret.append(nic->_ip);
+    ret.append(",");
+    ret.append(nic->_bcast);
+
+    if ((iter + 1) != _nicList.end())
+    {
+      ret.append("!");
+    }
+  }
+
+  return ret;
 }
 
 void 
