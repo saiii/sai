@@ -62,7 +62,8 @@ DataBus* DataBus::_instance = 0;
 
 DataBus::DataBus():
   _stateDb(0),
-  _sendReceiveFilter(0)
+  _sendReceiveFilter(0),
+  _channel(0)
 {
   activateChecker();
 }
