@@ -21,7 +21,7 @@
 #define VERSION_MAJOR_STR "0"
 #define VERSION_MINOR_STR "0"
 #define VERSION_COUNT_STR "1"
-#define VERSION_SUFFI_STR "a"
+#define VERSION_SUFFI_STR "b"
 
 static std::string _version  = "(libSai) Version " VERSION_MAJOR_STR "." VERSION_MINOR_STR "." VERSION_COUNT_STR VERSION_SUFFI_STR;
 
