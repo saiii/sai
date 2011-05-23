@@ -106,3 +106,17 @@ Address::toString(std::string& ret, OutputType type)
       break;
   }
 }
+
+void 
+DataDescriptor::Copy(DataDescriptor& dest, DataDescriptor& src)
+{
+  dest.version   = src.version;
+  memcpy(dest.sender, src.sender, 16);
+  dest.id        = src.id;
+  dest.from.ival = src.from.ival;
+  dest.from.str  = src.from.str;
+  dest.to.ival   = src.to.ival;
+  dest.to.str    = src.to.str;
+  dest.opcode    = src.opcode;
+}
+
