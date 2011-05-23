@@ -55,8 +55,10 @@ public:
   Address  to;
 
   uint32_t opcode;
+
 public:
   void print();
+  static void Copy(DataDescriptor& dest, DataDescriptor& src);
 };
 
 }
