@@ -46,7 +46,7 @@ private:
 
 private:
   DataBus();
-  bool send(std::string name, uint32_t id, DataDescriptor& desc, std::string data);
+  bool send(std::string name, uint32_t id, std::string data, bool save);
 
 public:
   static DataBus * GetInstance();

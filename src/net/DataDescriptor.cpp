@@ -15,9 +15,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#include <stdio.h>
+#include <cstring>
 #include <string>
 #include <iostream>
-#include <stdio.h>
 #include "DataDescriptor.h"
 
 using namespace sai::net;

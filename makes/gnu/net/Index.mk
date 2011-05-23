@@ -27,6 +27,7 @@ NET_SRC = Socket.cpp \
           DataBusChannel.cpp \
           DataBusState.cpp \
           TimerTask.cpp \
+          DataOrderingQueue.cpp \
           DataOrderingManager.cpp \
           WakeOnLan.cpp
 

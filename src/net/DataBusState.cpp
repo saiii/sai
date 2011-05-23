@@ -24,7 +24,7 @@
 #include <algorithm>
 #include "DataBusState.h"
 #include "ProtocolEncoder.h"
-//#include "DataOrderingManager.h"
+#include "DataOrderingManager.h"
 #include "Exception.h"
 
 using namespace sai::net;
@@ -153,8 +153,8 @@ NilMcastDataBusState::activate()
     std::cerr << se.what() << std::endl;
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-    syslog(LOG_ERR, localErrMsg.c_str());
-    syslog(LOG_ERR, se.what());
+    syslog(LOG_ERR, "%s\n", localErrMsg.c_str());
+    syslog(LOG_ERR, "%s\n", se.what());
     closelog();
 #endif
     next->deactivate();
@@ -165,7 +165,7 @@ NilMcastDataBusState::activate()
     std::cerr << localErrMsg << std::endl;
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-    syslog(LOG_ERR, localErrMsg.c_str());
+    syslog(LOG_ERR, "%s\n", localErrMsg.c_str());
     closelog();
 #endif
     next->deactivate();
@@ -173,7 +173,7 @@ NilMcastDataBusState::activate()
 }
 
 bool
-NilMcastDataBusState::send(std::string name, uint32_t id, std::string data)
+NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, bool save)
 {
   if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
       Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
@@ -184,27 +184,7 @@ NilMcastDataBusState::send(std::string name, uint32_t id, std::string data)
   activate();
   if (_db->_state != this)
   {
-    return _db->getState()->send(name, id, data);
-  }
-  else
-  {
-    return false;
-  }
-}
-
-bool
-NilMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor&, std::string data)
-{
-  if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
-      Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
-  {
-    Net::GetInstance()->initialize();
-  }
-
-  activate();
-  if (_db->_state != this)
-  {
-    return _db->getState()->send(name, id, data);
+    return _db->getState()->send(name, id, data, save);
   }
   else
   {
@@ -254,7 +234,7 @@ ActiveMcastDataBusState::~ActiveMcastDataBusState()
 }
 
 bool
-ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data) 
+ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data, bool save) 
 {
   sai::net::DataDescriptor desc;
   desc.version   = 1;
@@ -263,18 +243,12 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
   desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
   desc.to.str    = name;
 
-  //DataOrderingManager * mgr = DataOrderingManager::GetInstance();
-  //mgr->addOutgoingData(desc, data);
+  if (save)
+  {
+    DataOrderingManager * mgr = DataOrderingManager::GetInstance();
+    mgr->save(id, data.data(), data.size());
+  }
 
-  std::string wireData;
-  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
-  _clientSocket->send(wireData.data(), wireData.size());
-  return true;
-}
-
-bool
-ActiveMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data) 
-{
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
   _clientSocket->send(wireData.data(), wireData.size());
