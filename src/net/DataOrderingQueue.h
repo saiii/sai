@@ -34,6 +34,7 @@ class TempPacket
 public:
   time_t      t;
   uint32_t    pktId;
+  uint32_t    opcode;
   std::string data;
 
 public:
@@ -64,6 +65,17 @@ public:
   ~InputPacket();
 };
 
+class MissingPacket : public TempPacket
+{
+public:
+  std::string name;
+  uint32_t    reqs;
+
+public:
+  MissingPacket();
+  ~MissingPacket();
+};
+
 typedef std::map<uint32_t, TempPacket*>           PacketTable;
 typedef std::map<uint32_t, TempPacket*>::iterator PacketTableIterator;
 typedef std::vector<TempPacket*>                  PacketList;
@@ -82,9 +94,11 @@ public:
   void add(uint32_t id, TempPacket*);
   void removeAt(uint32_t index);
   void remove(TempPacket* packet);
+  TempPacket* popAndPutLast();
   TempPacket* at(uint32_t index);
   TempPacket* get(uint32_t id);
   uint32_t size();
+  void clear();
 };
 
 }

@@ -28,6 +28,7 @@ namespace net
 
 class ProtocolDecoder : public DataHandler
 {
+friend class DataOrderingManager;
 protected:
   class MagicToken : public DataChainable
   {
@@ -56,7 +57,10 @@ protected:
 
   class Data : public DataChainable
   {
-    public: uint32_t decode(DataDescriptor&, std::string&);
+    public: 
+      uint32_t decode(DataDescriptor&, std::string&);
+      void setReplay() { _replay = true; }
+      void clrReplay() { _replay = false;}
   };
 
   class DefaultDataHandler : public DataHandler

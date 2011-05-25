@@ -27,7 +27,7 @@
 #include "Net.h"
 #include "DataBus.h"
 #include "DataBusState.h"
-//#include "DataOrderingManager.h"
+#include "DataOrderingManager.h"
 #include "Socket.h"
 
 using namespace sai::net;
@@ -53,6 +53,7 @@ public:
   void add(std::string);
   void add(uint32_t);
   void clear();
+  bool isPointToPoint(std::string);
 };
 
 }
@@ -73,7 +74,7 @@ DataBus::~DataBus()
   delete _channel;
   delete _sendReceiveFilter;
   delete _stateDb;
-  //delete DataOrderingManager::GetInstance();
+  delete DataOrderingManager::GetInstance();
 }
 
 DataBus * DataBus::GetInstance()
@@ -130,9 +131,7 @@ DataBus::listen(std::string name)
 void 
 DataBus::activate()
 {
-  //DataOrderingManager* order = new DataOrderingManager(&_data);
-  //DataOrderingManager::_instance = order;
-  //order->initialize();
+  DataOrderingManager::GetInstance()->initialize();
   _stateDb->getState()->activate();
 }
 
@@ -148,13 +147,13 @@ DataBus::deactivate()
 bool
 DataBus::send(std::string name, uint32_t id, std::string data)
 {
-  return send(name, id, data, true);
+  return send(name, id, data, 0);
 }
 
 bool
-DataBus::send(std::string name, uint32_t id, std::string data, bool save)
+DataBus::send(std::string name, uint32_t id, std::string data, uint32_t pktId)
 {
-  return _stateDb->getState()->send(name, id, data, save);
+  return _stateDb->getState()->send(name, id, data, pktId);
 }
 
 void 
@@ -345,5 +344,11 @@ _SendReceiveFilter::~_SendReceiveFilter()
     _listenListString.erase(_listenListString.begin());
     delete str;
   }
+}
+
+bool
+_SendReceiveFilter::isPointToPoint(std::string name)
+{
+  return false;
 }
 

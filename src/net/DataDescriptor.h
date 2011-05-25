@@ -43,6 +43,7 @@ public:
 public:
   Address();
   void toString(std::string&, OutputType type = LOG_MSG_MULTIPLE_LINE);
+  void toUInt(uint32_t&);
 };
 
 class DataDescriptor

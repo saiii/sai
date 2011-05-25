@@ -46,7 +46,8 @@ private:
 
 private:
   DataBus();
-  bool send(std::string name, uint32_t id, std::string data, bool save);
+  bool send(std::string name, uint32_t id, std::string data, uint32_t pktId);
+  ProtocolDecoder::Data * getDataDecoder() { return &_data; }
 
 public:
   static DataBus * GetInstance();
@@ -71,6 +72,7 @@ public:
   virtual void add(std::string) = 0;
   virtual void add(uint32_t) = 0;
   virtual void clear() = 0;
+  virtual bool isPointToPoint(std::string) = 0;
 };
 
 }

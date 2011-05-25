@@ -15,6 +15,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#ifdef _WIN32
+#include <Ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#endif
+
 #include <stdio.h>
 #include <cstring>
 #include <string>
@@ -105,6 +111,26 @@ Address::toString(std::string& ret, OutputType type)
         }
       }
       break;
+  }
+}
+
+void 
+Address::toUInt(uint32_t& ret)
+{
+  if (ival == 0)
+  {
+#ifdef _WIN32
+    extern uint32_t inetPton(std::string ip);
+    ret = inetPton(ip);
+#else
+    struct in_addr addr;
+    inet_pton(AF_INET, str.c_str(), &addr);
+    ret = htonl(addr.s_addr);
+#endif
+  }
+  else
+  {
+    ret = ival;
   }
 }
 

@@ -35,11 +35,14 @@ typedef std::map<uint32_t, DataHandler*>::iterator DispatchTableIterator;
 //class DataOrderingManager;
 class DataDispatchable
 {
-friend class SenderProfile;
+friend class DataOrderingManager;
 private:
   DispatchTable        _table;
   DataHandler         *_defaultHandler;
   bool                 _useChecker;
+
+protected:
+  bool                 _replay;
 
 protected:
   DataDispatchable();

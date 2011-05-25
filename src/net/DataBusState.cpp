@@ -173,7 +173,7 @@ NilMcastDataBusState::activate()
 }
 
 bool
-NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, bool save)
+NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, uint32_t pktId)
 {
   if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
       Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
@@ -184,7 +184,7 @@ NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, bool
   activate();
   if (_db->_state != this)
   {
-    return _db->getState()->send(name, id, data, save);
+    return _db->getState()->send(name, id, data, pktId);
   }
   else
   {
@@ -234,20 +234,29 @@ ActiveMcastDataBusState::~ActiveMcastDataBusState()
 }
 
 bool
-ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data, bool save) 
+ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data, uint32_t pktId) 
 {
   sai::net::DataDescriptor desc;
   desc.version   = 1;
   memcpy(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender));
-  desc.id        = Net::GetInstance()->getMessageId();
+  desc.id        = pktId == 0 ? Net::GetInstance()->getMessageId() : pktId;
   desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
   desc.to.str    = name;
 
-  if (save)
+  if (pktId == 0)
   {
     DataOrderingManager * mgr = DataOrderingManager::GetInstance();
-    mgr->save(id, data.data(), data.size());
+    mgr->save(desc.id, id, data.data(), data.size());
   }
+
+#if 0
+  static bool firstEight = true;
+  if (desc.id == 8 && firstEight)
+  { // simulate a loss of packet
+    firstEight = false;
+    return true;
+  }
+#endif
 
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
