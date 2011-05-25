@@ -71,6 +71,18 @@ DataQueue::remove(TempPacket* packet)
 }
 
 TempPacket* 
+DataQueue::popAndPutLast()
+{
+  if (_list.size() == 0) return 0;
+
+  TempPacket* packet = _list.at(0);
+  _list.erase(_list.begin());
+  _list.push_back(packet);
+  
+  return packet;
+}
+
+TempPacket* 
 DataQueue::at(uint32_t index)
 {
   return _list.at(index);
@@ -93,6 +105,21 @@ uint32_t
 DataQueue::size()
 {
   return _list.size();
+}
+
+void
+DataQueue::clear()
+{
+  PacketTableIterator iter;
+  while (_table.size() > 0)
+  {
+    iter = _table.begin();
+    TempPacket* packet = iter->second;
+    _table.erase(iter);
+    delete packet;
+  }
+
+  _list.clear();
 }
 
 TempPacket::TempPacket():
@@ -121,6 +148,14 @@ InputPacket::InputPacket():
 }
 
 InputPacket::~InputPacket()
+{
+}
+
+MissingPacket::MissingPacket()
+{
+}
+
+MissingPacket::~MissingPacket()
 {
 }
 

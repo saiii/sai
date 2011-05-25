@@ -25,27 +25,21 @@ using namespace sai::net;
 
 DataDispatchable::DataDispatchable():
   _defaultHandler(0),
-  _useChecker(false)
+  _useChecker(false),
+  _replay(false)
 {
 }
 
 void 
 DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data)
 {
-  // check id
-  // if it is skipped then
-  // put the current message in a temporary buffer
-  // generate a list of to be requested chunk
-  // start requesting the first one
-  // whenever, we got a message which is contained in the pending request
-  // remove the the pending request for that particular id
-  // put it in the buffer
-  // when the buffer is ready then it's time to put them back to the 
-  // normal flow (back here again)
-  //if (_useChecker && !DataOrderingManager::GetInstance()->check(desc, data))
-  //{
-  //  return;
-  //}
+  if (_useChecker && !_replay)
+  {
+    if (DataOrderingManager::REL != DataOrderingManager::GetInstance()->receive(id, desc, data))
+    {
+      return;
+    }
+  }
 
   DispatchTableIterator iter;
   if ((iter = _table.find(id)) != _table.end())

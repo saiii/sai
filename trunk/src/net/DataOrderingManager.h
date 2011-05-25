@@ -33,28 +33,38 @@ namespace sai
 namespace net
 {
 
-typedef std::vector<uint32_t>           MissingList;
-typedef std::vector<uint32_t>::iterator MissingListIterator;
-
-class SenderProfile
+class SenderProfile : public TimerTask
 {
 public:
   time_t       t;
   uint32_t     expectedId;
   uint32_t     name;
   DataQueue    inQueue;
-  MissingList  missingList;
+  DataQueue    missingQueue;
+  std::string  sender;
 
 public:
   SenderProfile();
   ~SenderProfile();
+  void addMissingList(std::string name, uint32_t from, uint32_t to);
+
+  void timerEvent();
 };
 
-typedef std::map<uint32_t, SenderProfile*>           SenderTable;
-typedef std::map<uint32_t, SenderProfile*>::iterator SenderTableIterator;
+typedef std::map<std::string, SenderProfile*>           SenderTable;
+typedef std::map<std::string, SenderProfile*>::iterator SenderTableIterator;
 
 class DataOrderingManager : public TimerTask
 {
+public:
+  typedef enum
+  {
+    REL   = 0,
+    SAV   = 1,
+    ACT1  = 2,
+    DIS   = 3
+  }Action;
+
 private:
   class MsgRepeater : public TimerTask
   {
@@ -69,7 +79,6 @@ private:
 private:
   static DataOrderingManager* _instance;
   DataHandler *               _req;
-  DataHandler *               _resp;
   DataQueue                   _outQueue;
   PacketList                  _outgoingList;
   MsgRepeater                 _repeater;
@@ -79,6 +88,9 @@ private:
   DataOrderingManager();
   void request(uint32_t id, std::string from);
 
+  SenderProfile * checkSender(DataDescriptor& desc);
+  inline uint32_t calcExpectedId(uint32_t cur);
+
 public:
   static DataOrderingManager* GetInstance();
   ~DataOrderingManager();
@@ -87,13 +99,24 @@ public:
   void timerEvent(); 
 
   void processReqtEvent(DataDescriptor& desc, std::string& data);
-  void processRespEvent(DataDescriptor& desc, std::string& data);
 
-  void save(uint32_t id, const char * data, uint32_t sz);
-  void send(std::string to, uint32_t id, std::string data, bool save);
+  void save(uint32_t id, uint32_t opcode, const char * data, uint32_t sz);
+  void send(std::string to, uint32_t opcode, std::string data, uint32_t pktId);
 
-  bool receive(uint32_t from, uint32_t opcode, DataDescriptor& desc, std::string data);
+  Action receive(uint32_t opcode, DataDescriptor& desc, std::string data);
 };
+
+inline
+uint32_t 
+DataOrderingManager::calcExpectedId(uint32_t cur)
+{
+  cur += 1;
+  if (cur > 0xFFFFFFF0)
+  {
+    cur = 0;
+  }
+  return cur;
+}
 
 }
 }
