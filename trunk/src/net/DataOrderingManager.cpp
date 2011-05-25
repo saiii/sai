@@ -245,12 +245,55 @@ SenderProfile::timerEvent()
 
   if (++packet->reqs > 10)
   {
+    expectedId = packet->pktId + 1;
+    if (expectedId > 0xFFFFFFF0)
+    {
+      expectedId = 1;
+    }
+    releaseMessage();
     missingQueue.remove(packet);
   }
 
   if (missingQueue.size() > 0)
   {
     schedule(0, 200);
+  }
+}
+
+void 
+SenderProfile::releaseMessage()
+{
+  // ACT#2
+  // This can be enhanced by adding timer to prevent the long time processing loop
+  uint32_t rFrom = expectedId;
+  bool found = true;
+  do 
+  {
+    if (inQueue.size() == 0) break;
+    InputPacket * pkt = dynamic_cast<InputPacket*>(inQueue.get(rFrom));
+    if (!pkt)
+    {
+      found = false;
+    }
+    else
+    {
+      DataBus::GetInstance()->getDataDecoder()->setReplay();
+      DataBus::GetInstance()->getDataDecoder()->dispatch(pkt->opcode, pkt->desc, pkt->data);
+      DataBus::GetInstance()->getDataDecoder()->clrReplay();
+      inQueue.remove(pkt);
+
+      rFrom += 1;
+      if (rFrom > 0xFFFFFFF0)
+      {
+        rFrom = 1;
+      }
+    }
+  }while (found);
+  expectedId = rFrom;
+
+  if (inQueue.size() == 0 && missingQueue.size() > 0)
+  {
+    missingQueue.clear();
   }
 }
 

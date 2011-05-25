@@ -250,10 +250,10 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data, u
   }
 
 #if 0
-  static bool firstEight = true;
-  if (desc.id == 8 && firstEight)
+  //static bool firstEight = true;
+  if (desc.id == 8 /*&& firstEight*/)
   { // simulate a loss of packet
-    firstEight = false;
+    //firstEight = false;
     return true;
   }
 #endif

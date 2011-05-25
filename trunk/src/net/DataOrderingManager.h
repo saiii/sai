@@ -47,6 +47,7 @@ public:
   SenderProfile();
   ~SenderProfile();
   void addMissingList(std::string name, uint32_t from, uint32_t to);
+  void releaseMessage();
 
   void timerEvent();
 };
