@@ -36,18 +36,28 @@ namespace net
 class SenderProfile : public TimerTask
 {
 public:
+  typedef struct 
+  {
+    SenderProfile * profile;
+
+    uint32_t     expectedId;
+    uint32_t     name;
+    DataQueue    inQueue;
+    DataQueue    missingQueue;
+
+    void addMissingList(std::string name, uint32_t from, uint32_t to);
+    void releaseMessage();
+  }Group;
+  typedef std::map<uint32_t, Group*>           GroupTable;
+  typedef std::map<uint32_t, Group*>::iterator GroupTableIterator;
+
   time_t       t;
-  uint32_t     expectedId;
-  uint32_t     name;
-  DataQueue    inQueue;
-  DataQueue    missingQueue;
+  GroupTable   table;
   std::string  sender;
 
 public:
   SenderProfile();
   ~SenderProfile();
-  void addMissingList(std::string name, uint32_t from, uint32_t to);
-  void releaseMessage();
 
   void timerEvent();
 };
@@ -101,10 +111,10 @@ public:
 
   void processReqtEvent(DataDescriptor& desc, std::string& data);
 
-  void save(uint32_t id, uint32_t opcode, const char * data, uint32_t sz);
-  void send(std::string to, uint32_t opcode, std::string data, uint32_t pktId);
+  void save(DataDescriptor& desc, const char * data, uint32_t sz);
+  void send(std::string to, uint32_t opcode, std::string data, int32_t pktId, int32_t grpId);
 
-  Action receive(uint32_t opcode, DataDescriptor& desc, std::string data);
+  Action receive(DataDescriptor& desc, std::string data);
 };
 
 inline

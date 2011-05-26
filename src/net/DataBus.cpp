@@ -23,6 +23,8 @@
 #include <arpa/inet.h>
 #endif
 
+#include <vector>
+#include <string>
 #include <boost/asio.hpp>
 #include "Net.h"
 #include "DataBus.h"
@@ -36,6 +38,38 @@ namespace sai
 { 
 namespace net 
 {
+
+class P2pName
+{
+public:
+  std::string name;
+  uint32_t    id;
+
+public:
+  P2pName():id(0) {}
+  ~P2pName() {}
+};
+
+typedef std::vector<P2pName*>           P2pNameList;
+typedef std::vector<P2pName*>::iterator P2pNameListIterator;
+
+class DataBusImpl
+{
+public:
+  P2pNameList list;
+
+public:
+  DataBusImpl() {}
+  ~DataBusImpl()
+  {
+    while (list.size() > 0)
+    {
+      P2pName * name = list.front();
+      list.erase(list.begin());
+      delete name;
+    }
+  }
+};
 
 class _SendReceiveFilter : public DataBusFilter
 {
@@ -53,7 +87,6 @@ public:
   void add(std::string);
   void add(uint32_t);
   void clear();
-  bool isPointToPoint(std::string);
 };
 
 }
@@ -62,10 +95,13 @@ public:
 DataBus* DataBus::_instance = 0;
 
 DataBus::DataBus():
+  _impl(0),
   _stateDb(0),
   _sendReceiveFilter(0),
-  _channel(0)
+  _channel(0),
+  _version(2)
 {
+  _impl = new DataBusImpl();
   activateChecker();
 }
 
@@ -75,6 +111,7 @@ DataBus::~DataBus()
   delete _sendReceiveFilter;
   delete _stateDb;
   delete DataOrderingManager::GetInstance();
+  delete _impl;
 }
 
 DataBus * DataBus::GetInstance()
@@ -144,16 +181,50 @@ DataBus::deactivate()
   delete _stateDb;
 }
 
-bool
-DataBus::send(std::string name, uint32_t id, std::string data)
+uint32_t 
+DataBus::getPointToPointId(std::string name)
 {
-  return send(name, id, data, 0);
+  P2pNameListIterator iter;
+  for(iter  = _impl->list.begin();
+      iter != _impl->list.end();
+      iter ++)
+  {
+    P2pName * pName = *iter;
+    if (pName->name.compare(name) == 0)
+    {
+      return pName->id;
+    }
+  }
+
+  P2pName * nm = new P2pName();
+  nm->name = name;
+  nm->id   = _impl->list.size() + 1;
+  _impl->list.push_back(nm);
+  return nm->id;
 }
 
 bool
-DataBus::send(std::string name, uint32_t id, std::string data, uint32_t pktId)
+DataBus::send(std::string name, uint32_t id, std::string data)
+{
+  return _stateDb->getState()->send(name, id, data, 0);
+}
+
+bool
+DataBus::send(std::string name, uint32_t id, std::string data, int32_t pktId)
 {
   return _stateDb->getState()->send(name, id, data, pktId);
+}
+
+bool 
+DataBus::sendPointToPoint(std::string destination, uint32_t id, std::string data)
+{
+  return _stateDb->getState()->sendPointToPoint(destination, id, data, 0, -1);
+}
+
+bool 
+DataBus::sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t pktId, int32_t grpId)
+{
+  return _stateDb->getState()->sendPointToPoint(destination, id, data, pktId, grpId);
 }
 
 void 
@@ -344,11 +415,5 @@ _SendReceiveFilter::~_SendReceiveFilter()
     _listenListString.erase(_listenListString.begin());
     delete str;
   }
-}
-
-bool
-_SendReceiveFilter::isPointToPoint(std::string name)
-{
-  return false;
 }
 

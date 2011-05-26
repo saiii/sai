@@ -31,18 +31,18 @@ DataDispatchable::DataDispatchable():
 }
 
 void 
-DataDispatchable::dispatch(uint32_t id, DataDescriptor& desc, std::string data)
+DataDispatchable::dispatch(uint32_t opcode, DataDescriptor& desc, std::string data)
 {
   if (_useChecker && !_replay)
   {
-    if (DataOrderingManager::REL != DataOrderingManager::GetInstance()->receive(id, desc, data))
+    if (DataOrderingManager::REL != DataOrderingManager::GetInstance()->receive(desc, data))
     {
       return;
     }
   }
 
   DispatchTableIterator iter;
-  if ((iter = _table.find(id)) != _table.end())
+  if ((iter = _table.find(opcode)) != _table.end())
   {
     DataHandler * handler = iter->second;
     handler->processDataEvent(desc, data);
@@ -65,18 +65,18 @@ DataDispatchable::~DataDispatchable()
 }
 
 bool 
-DataDispatchable::registerHandler(uint32_t id, DataHandler * handler)
+DataDispatchable::registerHandler(uint32_t opcode, DataHandler * handler)
 {
   const bool NEW_ENTRY = true;
   const bool DUPLICATED = false;
 
-  DispatchTableIterator iter = _table.find(id);
+  DispatchTableIterator iter = _table.find(opcode);
   if (iter != _table.end())
   {
     return DUPLICATED;
   }
 
-  _table.insert(std::make_pair(id, handler));
+  _table.insert(std::make_pair(opcode, handler));
   return NEW_ENTRY;
 }
 

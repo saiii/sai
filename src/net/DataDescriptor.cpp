@@ -139,7 +139,7 @@ DataDescriptor::Copy(DataDescriptor& dest, DataDescriptor& src)
 {
   dest.version   = src.version;
   memcpy(dest.sender, src.sender, 16);
-  dest.id        = src.id;
+  dest.seqNo     = src.seqNo;
   dest.from.ival = src.from.ival;
   dest.from.str  = src.from.str;
   dest.to.ival   = src.to.ival;

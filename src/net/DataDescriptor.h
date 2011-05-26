@@ -51,7 +51,8 @@ class DataDescriptor
 public:
   uint16_t version;
   char     sender[16];
-  uint32_t id;
+  uint32_t seqNo;
+  uint32_t groupId;
   Address  from;
   Address  to;
 

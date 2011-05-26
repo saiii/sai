@@ -43,16 +43,27 @@ Net * Net::_instance = 0;
 
 Net::Net():
   _impl(0),
-  _id(0),
   _hostAddressUInt32(0)
 {
   _impl = new NetImpl();
   _preferredAddress = "*";
   initialize();
+
+  Counter * pub = new Counter();
+  _idTable.insert(std::make_pair(0, pub));
 }
 
 Net::~Net()
 {
+  IdTableIterator iter;
+  while (_idTable.size() > 0)
+  {
+    iter = _idTable.begin();
+    Counter * counter = iter->second;
+    _idTable.erase(_idTable.begin());
+    delete counter;
+  }
+
   while (_nicList.size() > 0)
   {
     Nic * nic = _nicList.front();
@@ -453,15 +464,29 @@ Net::GetInstance()
 }
 
 uint32_t 
-Net::getMessageId()
+Net::getMessageId(uint32_t p2pId)
 {
+  IdTableIterator iter = _idTable.find(p2pId);
+  Counter * counter = 0;
+  if (iter == _idTable.end())
+  {
+    Counter * cnt = new Counter(); 
+    counter = cnt;
+    _idTable.insert(std::make_pair(p2pId, cnt));
+  }
+  else
+  {
+    counter = iter->second;
+  }
+  
   // don't want to make it overflow and goes back to 0, so just reset 
   // it at some particular point
-  if (++_id > 0xFFFFFFF0) 
+  if (++counter->id > 0xFFFFFFF0)
   {
-    _id = 1;
+    counter->id = 1;
   }
-  return _id;
+
+  return counter->id;
 }
 
 std::string 
@@ -532,3 +557,12 @@ Nic::Nic()
 
 Nic::~Nic()
 {}
+
+Counter::Counter():
+  id(0)
+{
+}
+
+Counter::~Counter()
+{
+}

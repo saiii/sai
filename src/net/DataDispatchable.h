@@ -50,7 +50,7 @@ protected:
 
 public:
   virtual ~DataDispatchable();
-  bool registerHandler(uint32_t id, DataHandler * handler);
+  bool registerHandler(uint32_t opcode, DataHandler * handler);
   void setDefaultHandler(DataHandler * handler);
  
   void activateChecker() { _useChecker = true; }
