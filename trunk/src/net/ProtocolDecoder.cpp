@@ -24,6 +24,7 @@
 #include <string.h>
 #include <iostream>
 #include <net/Net.h>
+#include <net/DataBus.h>
 #include "ProtocolDecoder.h"
 
 using namespace sai::net;
@@ -68,9 +69,11 @@ ProtocolDecoder::VersionToken::decode(DataDescriptor& desc, std::string& data)
 
   memcpy(&version, ptr, sizeof(version));
   version = ntohs(version);
+  DataBus::GetInstance()->setMinimumVersion(version);
   switch (version)  
   {
     case 1:
+    case 2:
       {
         ptr       += sizeof(version);
         data_size -= sizeof(version);
@@ -132,19 +135,40 @@ ProtocolDecoder::SenderToken::decode(DataDescriptor& desc, std::string& data)
 uint32_t
 ProtocolDecoder::IdToken::decode(DataDescriptor& desc, std::string& data)
 {
-  uint32_t id = 0;
+  uint32_t seqNo = 0;
   uint32_t data_size = data.size();
-  if (data_size < sizeof(desc.id)) 
+  if (data_size < sizeof(desc.seqNo)) 
   {
     return 0;
   }
 
   const char * ptr = data.c_str();
-  memcpy(&id, ptr, sizeof(desc.id)); 
-  desc.id = ntohl(id);
+  memcpy(&seqNo, ptr, sizeof(desc.seqNo)); 
+  desc.seqNo = ntohl(seqNo);
 
-  ptr       += sizeof(desc.id);
-  data_size -= sizeof(desc.id);
+  ptr       += sizeof(desc.seqNo);
+  data_size -= sizeof(desc.seqNo);
+
+  switch (desc.version)
+  {
+    case 1:
+      desc.groupId = 0;
+      break;
+    case 2:
+      {
+        uint32_t groupId = 0;
+        if (data_size < sizeof(desc.groupId))
+        {
+          return 0;
+        }
+        memcpy(&groupId, ptr, sizeof(desc.groupId));
+        desc.groupId = ntohl(groupId);
+        ptr       += sizeof(desc.groupId);
+        data_size -= sizeof(desc.groupId);
+      }
+      break;
+  }
+
   std::string tdata;
   tdata.append(ptr, data_size);
   data = tdata; 

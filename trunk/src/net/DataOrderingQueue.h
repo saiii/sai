@@ -34,7 +34,6 @@ class TempPacket
 public:
   time_t      t;
   uint32_t    pktId;
-  uint32_t    opcode;
   std::string data;
 
 public:
@@ -47,6 +46,8 @@ class OutputPacket : public TempPacket
 public:
   uint16_t    reqs;
   uint16_t    pending;
+  uint32_t    opcode;
+  int32_t     grpId;
   std::string to;
 
 public:

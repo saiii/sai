@@ -40,32 +40,32 @@ public:
 };
 
   std::string msg [] = { // 20 lines
-    "Unix (officially trademarked as UNIX, sometimes also ",
-    "written as Unix) is a multitasking, multi-user",
-    " computer operating system originally developed in 1969 by",
-    " a group of AT&T employees at Bell Labs, including Ken Thompson,",
-    " Dennis Ritchie, Brian Kernighan, Douglas McIlroy, ",
-    "and Joe Ossanna. The Unix operating system was first ",
-    "developed in assembly language, but by 1973 had been ",
-    "almost entirely recoded in C, greatly facilitating its",
-    " further development and porting to other hardware. Today",
-    "'s Unix systems are split into various branches, developed",
-    " over time by AT&T as well as various commercial vendors a",
-    "nd non-profit organizations.",
-    "The Open Group, an industry standards consortium, owns the .",
-    "UNIX. trademark. Only systems fully compliant with and cer",
-    "tified according to the Single UNIX Specification are quali",
-    "fied to use the trademark; others might be called \"Unix sy",
-    "stem-like\" or \"Unix-like\" (though the Open Group disappr",
-    "oves of this term).[1] However, the term \"Unix\" is often ",
-    "used informally to denote any operating system that closely",
-    " resembles the trademarked system."};
+    "[ 1]Unix (officially trademarked as UNIX, sometimes also ",
+    "[ 2]written as Unix) is a multitasking, multi-user",
+    "[ 3] computer operating system originally developed in 1969 by",
+    "[ 4] a group of AT&T employees at Bell Labs, including Ken Thompson,",
+    "[ 5] Dennis Ritchie, Brian Kernighan, Douglas McIlroy, ",
+    "[ 6]and Joe Ossanna. The Unix operating system was first ",
+    "[ 7]developed in assembly language, but by 1973 had been ",
+    "[ 8]almost entirely recoded in C, greatly facilitating its",
+    "[ 9] further development and porting to other hardware. Today",
+    "[10]'s Unix systems are split into various branches, developed",
+    "[11] over time by AT&T as well as various commercial vendors a",
+    "[12]nd non-profit organizations.",
+    "[13]The Open Group, an industry standards consortium, owns the .",
+    "[14]UNIX. trademark. Only systems fully compliant with and cer",
+    "[15]tified according to the Single UNIX Specification are quali",
+    "[16]fied to use the trademark; others might be called \"Unix sy",
+    "[17]stem-like\" or \"Unix-like\" (though the Open Group disappr",
+    "[18]oves of this term).[1] However, the term \"Unix\" is often ",
+    "[19]used informally to denote any operating system that closely",
+    "[20] resembles the trademarked system."};
 
 class Sender : public TimerTask
 {
 public:
-  int count;
-
+  int         count;
+  std::string customAddress;
 
   Sender()
   {
@@ -76,6 +76,14 @@ public:
   {
     if (count < 20)
     {
+      if (count == 8 && customAddress.length() > 0)
+      {
+        DataBus::GetInstance()->sendPointToPoint(customAddress, 1, "<PRIVATE MESSAGE>");
+      }
+      else if (count == 15 && customAddress.length() > 0)
+      {
+        DataBus::GetInstance()->sendPointToPoint(customAddress, 1, "<PRIVATE MESSAGE 2>");
+      }
       DataBus::GetInstance()->send("Yo", 1, msg[count]);
       count++;
     }
@@ -114,7 +122,13 @@ int main(int argc, char * argv[])
   bus->activate();
 
   Sender* sender = new Sender();
-  sender->schedule(5, 0); 
+
+  if (argc > 1)
+  {
+    sender->customAddress = argv[1];
+  }
+
+  sender->schedule(2, 0); 
 
   Net::GetInstance()->mainLoop();
 

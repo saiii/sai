@@ -41,7 +41,13 @@ public:
   virtual void listen(std::string name) {}
   virtual void activate() {}
   virtual void deactivate() {}
-  virtual bool send(std::string name, uint32_t id, std::string data, uint32_t pktId) { return false; }
+  virtual bool send(std::string name, uint32_t id, std::string data, int32_t pktId) { return false; }
+  virtual bool sendPointToPoint(
+    std::string destination, 
+    uint32_t    id, 
+    std::string data, 
+    int32_t     pktId, 
+    int32_t     grpId) { return false; }
   virtual void blockSender(std::string name) {}
 };
 
@@ -55,7 +61,8 @@ public:
   void blockSender(std::string name);
   void activate();
   void deactivate();
-  bool send(std::string name, uint32_t id, std::string data, uint32_t pktId);
+  bool send(std::string name, uint32_t id, std::string data, int32_t pktId);
+  bool sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t pktId, int32_t grpId);
 };
 
 class ActiveMcastDataBusState : public DataBusState,
@@ -72,7 +79,8 @@ public:
   ActiveMcastDataBusState(DataBusStateDb*, ProtocolDecoder *);
   ~ActiveMcastDataBusState();
 
-  bool send(std::string name, uint32_t id, std::string data, uint32_t pktId);
+  bool send(std::string name, uint32_t id, std::string data, int32_t pktId);
+  bool sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t pktId, int32_t grpId);
   void blockSender(std::string name);
   void deactivate();
 

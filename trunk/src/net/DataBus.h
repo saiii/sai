@@ -40,13 +40,16 @@ friend class SenderProfile;
 friend class DataOrderingManager;
 private:
   static DataBus* _instance;
+  DataBusImpl*    _impl;
   DataBusStateDb* _stateDb;
   ChainFilter   * _sendReceiveFilter;
   DataBusChannel* _channel;
+  uint32_t        _version;
 
 private:
   DataBus();
-  bool send(std::string name, uint32_t id, std::string data, uint32_t pktId);
+  bool send(std::string name, uint32_t id, std::string data, int32_t pktId);
+  bool sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t pktId, int32_t grpId);
   ProtocolDecoder::Data * getDataDecoder() { return &_data; }
 
 public:
@@ -57,8 +60,12 @@ public:
   void listen(std::string name);
   void activate();
   void deactivate();
-  bool send(std::string name, uint32_t id, std::string data);
-  void blockSender(std::string name);
+  void     setMinimumVersion(uint32_t v) { _version = v < _version ? v : _version; }
+  uint32_t getMinimumVersion()           { return _version; }
+  uint32_t getPointToPointId(std::string name);
+  bool     send(std::string name, uint32_t id, std::string data);
+  bool     sendPointToPoint(std::string destination, uint32_t id, std::string data);
+  void     blockSender(std::string name);
 
   DataBusChannel * getChannel();
 };
@@ -72,7 +79,6 @@ public:
   virtual void add(std::string) = 0;
   virtual void add(uint32_t) = 0;
   virtual void clear() = 0;
-  virtual bool isPointToPoint(std::string) = 0;
 };
 
 }

@@ -18,6 +18,7 @@
 #ifndef _WIN32
 #include <syslog.h>
 #endif
+#include <cstdio>
 #include <sstream>
 #include <cstring>
 #include <iostream>
@@ -173,7 +174,7 @@ NilMcastDataBusState::activate()
 }
 
 bool
-NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, uint32_t pktId)
+NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, int32_t pktId)
 {
   if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
       Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
@@ -185,6 +186,30 @@ NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, uint
   if (_db->_state != this)
   {
     return _db->getState()->send(name, id, data, pktId);
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool 
+NilMcastDataBusState::sendPointToPoint(std::string destination, 
+                                       uint32_t    id, 
+                                       std::string data, 
+                                       int32_t     pktId, 
+                                       int32_t     grpId)
+{
+  if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
+      Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
+  {
+    Net::GetInstance()->initialize();
+  }
+
+  activate();
+  if (_db->_state != this)
+  {
+    return _db->getState()->sendPointToPoint(destination, id, data, pktId, grpId);
   }
   else
   {
@@ -234,32 +259,68 @@ ActiveMcastDataBusState::~ActiveMcastDataBusState()
 }
 
 bool
-ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data, uint32_t pktId) 
+ActiveMcastDataBusState::send(std::string name, uint32_t opcode, std::string data, int32_t pktId) 
 {
+  Net * net = Net::GetInstance();
+
   sai::net::DataDescriptor desc;
-  desc.version   = 1;
-  memcpy(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender));
-  desc.id        = pktId == 0 ? Net::GetInstance()->getMessageId() : pktId;
-  desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
+  desc.version   = DataBus::GetInstance()->getMinimumVersion();
+  memcpy(desc.sender, net->getSenderId(), sizeof(desc.sender));
+  desc.seqNo     = pktId == 0 ? net->getMessageId(0) : pktId;
+  desc.groupId   = 0;
+  desc.from.ival = net->getLocalAddressUInt32();
   desc.to.str    = name;
+  desc.opcode    = opcode;
 
   if (pktId == 0)
   {
     DataOrderingManager * mgr = DataOrderingManager::GetInstance();
-    mgr->save(desc.id, id, data.data(), data.size());
+    mgr->save(desc, data.data(), data.size());
   }
 
 #if 0
-  //static bool firstEight = true;
-  if (desc.id == 8 /*&& firstEight*/)
-  { // simulate a loss of packet
-    //firstEight = false;
-    return true;
+  bool first = true;
+  if (first && desc.seqNo == 8)
+  {
+    first = false;
+    return false;
   }
 #endif
 
   std::string wireData;
-  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
+  sai::net::ProtocolEncoder().encode(desc, opcode, data, wireData); 
+  _clientSocket->send(wireData.data(), wireData.size());
+  return true;
+}
+
+bool
+ActiveMcastDataBusState::sendPointToPoint(std::string name, 
+                                          uint32_t    opcode, 
+                                          std::string data, 
+                                          int32_t     pktId, 
+                                          int32_t     grpId) 
+{
+  Net * net = Net::GetInstance();
+
+  uint32_t p2pId = grpId == -1 ? DataBus::GetInstance()->getPointToPointId(name) : grpId;
+
+  sai::net::DataDescriptor desc;
+  desc.version   = DataBus::GetInstance()->getMinimumVersion();
+  memcpy(desc.sender, net->getSenderId(), sizeof(desc.sender));
+  desc.seqNo     = pktId == 0 ? net->getMessageId(p2pId) : pktId;
+  desc.groupId   = p2pId;
+  desc.from.ival = net->getLocalAddressUInt32();
+  desc.to.str    = name;
+  desc.opcode    = opcode;
+
+  if (pktId == 0)
+  {
+    DataOrderingManager * mgr = DataOrderingManager::GetInstance();
+    mgr->save(desc, data.data(), data.size());
+  }
+
+  std::string wireData;
+  sai::net::ProtocolEncoder().encode(desc, opcode, data, wireData); 
   _clientSocket->send(wireData.data(), wireData.size());
   return true;
 }
