@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <string>
+#include <map>
 
 #include <net/Net.h>
 #include <net/DataBus.h>
@@ -28,7 +29,7 @@ using namespace sai::net;
 
 std::string prompt;
 
-class ServerMsgPrinter : public DataHandler
+class MsgPrinter : public DataHandler
 {
 public:
   void processDataEvent(DataDescriptor& desc, std::string& msg)
@@ -37,9 +38,61 @@ public:
   }
 };
 
+class MsgWriter : public DataHandler
+{
+private:
+  typedef std::map<std::string,FILE*>           FileTable;
+  typedef std::map<std::string,FILE*>::iterator FileTableIterator;
+  FileTable _table;
+
+public:
+  MsgWriter()
+  {
+  }
+ 
+  ~MsgWriter()
+  {
+    FileTableIterator iter;
+    while (_table.size() > 0)
+    {
+      iter = _table.begin();
+      FILE * fp = iter->second;
+      _table.erase(iter);
+      fclose(fp);
+    }
+  }
+
+  void processDataEvent(DataDescriptor& desc, std::string& msg)
+  {
+    std::string name;
+    desc.from.toString(name, Address::RAW_MSG);
+    name.append("-");
+    char buf [17];
+    memcpy(buf, desc.sender, 16);
+    buf[16] = 0;
+    name.append(buf);
+    name.append(".txt");
+
+    FileTableIterator iter;
+    iter = _table.find(name);
+    if (iter == _table.end())
+    {
+      FILE * fp = fopen(name.c_str(), "w+");
+      _table.insert(std::make_pair(name, fp));
+    }
+
+    iter = _table.find(name);
+    FILE * fp = iter->second;
+
+    fprintf(fp, "%s\n", msg.c_str());
+    fflush(fp);
+  }
+};
+
 int main(int argc, char * argv[])
 {
   bool clientMode = true;
+  bool writeMode = false;
   std::string msg = "Hello, server";
   switch (argc)
   {
@@ -64,6 +117,11 @@ int main(int argc, char * argv[])
       {
         clientMode = true;
         msg = argv[2];
+      }
+      else if (strcmp(argv[1],"-server") == 0 && strcmp(argv[2], "-write") == 0)
+      {
+        clientMode = false;
+        writeMode = true;
       }
       else
       {
@@ -107,8 +165,16 @@ int main(int argc, char * argv[])
   DataBus *bus = DataBus::GetInstance();
   bus->setChannel(&channel);
 
-  ServerMsgPrinter printer;
-  bus->registerHandler(1, &printer); 
+  MsgPrinter printer;
+  MsgWriter writer;
+  if (writeMode)
+  {
+    bus->registerHandler(1, &writer); 
+  }
+  else
+  {
+    bus->registerHandler(1, &printer); 
+  }
 
   bus->listen("Yo");
   bus->activate();
