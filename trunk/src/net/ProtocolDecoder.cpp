@@ -323,6 +323,7 @@ ProtocolDecoder::DefaultDataHandler::processDataEvent(DataDescriptor& desc, std:
 ProtocolDecoder::ProtocolDecoder():
   _defaultDataHandler(0)
 {
+  // TODO create a new chain for version 2
   _magic.registerHandler(1, &_version);
   _version.registerHandler(1, &_sender);
   _sender.registerHandler(1, &_id);
