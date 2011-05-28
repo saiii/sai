@@ -65,17 +65,9 @@ public:
 typedef std::map<std::string, SenderProfile*>           SenderTable;
 typedef std::map<std::string, SenderProfile*>::iterator SenderTableIterator;
 
-class DataOrderingManager : public TimerTask
+class DataOrderingManager : public TimerTask,
+                            public DataChecker
 {
-public:
-  typedef enum
-  {
-    REL   = 0,
-    SAV   = 1,
-    ACT1  = 2,
-    DIS   = 3
-  }Action;
-
 private:
   class MsgRepeater : public TimerTask
   {
@@ -94,12 +86,14 @@ private:
   PacketList                  _outgoingList;
   MsgRepeater                 _repeater;
   SenderTable                 _senderTable;
+  SenderProfile*              _currentSender;
 
 private:
   DataOrderingManager();
-  void request(uint32_t id, std::string from);
+  void request(uint32_t id, Address from);
 
   SenderProfile * checkSender(DataDescriptor& desc);
+  void            send(std::string to, uint32_t opcode, std::string data, uint32_t pktId);
   inline uint32_t calcExpectedId(uint32_t cur);
 
 public:

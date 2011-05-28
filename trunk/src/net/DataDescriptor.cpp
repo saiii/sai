@@ -134,16 +134,17 @@ Address::toUInt(uint32_t& ret)
   }
 }
 
-void 
-DataDescriptor::Copy(DataDescriptor& dest, DataDescriptor& src)
+DataDescriptor& 
+DataDescriptor::operator=(const DataDescriptor& rhs)
 {
-  dest.version   = src.version;
-  memcpy(dest.sender, src.sender, 16);
-  dest.seqNo     = src.seqNo;
-  dest.from.ival = src.from.ival;
-  dest.from.str  = src.from.str;
-  dest.to.ival   = src.to.ival;
-  dest.to.str    = src.to.str;
-  dest.opcode    = src.opcode;
+  version   = rhs.version;
+  memcpy(sender, rhs.sender, 16);
+  seqNo     = rhs.seqNo;
+  from.ival = rhs.from.ival;
+  from.str  = rhs.from.str;
+  to.ival   = rhs.to.ival;
+  to.str    = rhs.to.str;
+  opcode    = rhs.opcode;
+  return *this;
 }
 

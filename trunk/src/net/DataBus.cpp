@@ -50,27 +50,6 @@ public:
   ~P2pName() {}
 };
 
-typedef std::vector<P2pName*>           P2pNameList;
-typedef std::vector<P2pName*>::iterator P2pNameListIterator;
-
-class DataBusImpl
-{
-public:
-  P2pNameList list;
-
-public:
-  DataBusImpl() {}
-  ~DataBusImpl()
-  {
-    while (list.size() > 0)
-    {
-      P2pName * name = list.front();
-      list.erase(list.begin());
-      delete name;
-    }
-  }
-};
-
 class _SendReceiveFilter : public DataBusFilter
 {
 public:
@@ -95,14 +74,10 @@ public:
 DataBus* DataBus::_instance = 0;
 
 DataBus::DataBus():
-  _impl(0),
   _stateDb(0),
   _sendReceiveFilter(0),
-  _channel(0),
-  _version(2)
+  _channel(0)
 {
-  _impl = new DataBusImpl();
-  activateChecker();
 }
 
 DataBus::~DataBus()
@@ -111,7 +86,6 @@ DataBus::~DataBus()
   delete _sendReceiveFilter;
   delete _stateDb;
   delete DataOrderingManager::GetInstance();
-  delete _impl;
 }
 
 DataBus * DataBus::GetInstance()
@@ -169,6 +143,8 @@ void
 DataBus::activate()
 {
   DataOrderingManager::GetInstance()->initialize();
+  _id.setChecker(DataOrderingManager::GetInstance());
+  _data.setChecker(DataOrderingManager::GetInstance());
   _stateDb->getState()->activate();
 }
 
@@ -181,28 +157,6 @@ DataBus::deactivate()
   delete _stateDb;
 }
 
-uint32_t 
-DataBus::getPointToPointId(std::string name)
-{
-  P2pNameListIterator iter;
-  for(iter  = _impl->list.begin();
-      iter != _impl->list.end();
-      iter ++)
-  {
-    P2pName * pName = *iter;
-    if (pName->name.compare(name) == 0)
-    {
-      return pName->id;
-    }
-  }
-
-  P2pName * nm = new P2pName();
-  nm->name = name;
-  nm->id   = _impl->list.size() + 1;
-  _impl->list.push_back(nm);
-  return nm->id;
-}
-
 bool
 DataBus::send(std::string name, uint32_t id, std::string data)
 {
@@ -210,21 +164,21 @@ DataBus::send(std::string name, uint32_t id, std::string data)
 }
 
 bool
-DataBus::send(std::string name, uint32_t id, std::string data, int32_t pktId)
+DataBus::send(std::string name, uint32_t id, std::string data, int32_t seqNo)
 {
-  return _stateDb->getState()->send(name, id, data, pktId);
+  return _stateDb->getState()->send(name, id, data, seqNo);
 }
 
 bool 
 DataBus::sendPointToPoint(std::string destination, uint32_t id, std::string data)
 {
-  return _stateDb->getState()->sendPointToPoint(destination, id, data, 0, -1);
+  return _stateDb->getState()->sendPointToPoint(destination, id, data, 0);
 }
 
 bool 
-DataBus::sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t pktId, int32_t grpId)
+DataBus::sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t seqNo)
 {
-  return _stateDb->getState()->sendPointToPoint(destination, id, data, pktId, grpId);
+  return _stateDb->getState()->sendPointToPoint(destination, id, data, seqNo);
 }
 
 void 

@@ -32,9 +32,9 @@ namespace net
 class TempPacket
 {
 public:
-  time_t      t;
-  uint32_t    pktId;
-  std::string data;
+  time_t         t;
+  DataDescriptor desc;
+  std::string    data;
 
 public:
   TempPacket();
@@ -44,11 +44,9 @@ public:
 class OutputPacket : public TempPacket
 {
 public:
-  uint16_t    reqs;
-  uint16_t    pending;
-  uint32_t    opcode;
-  int32_t     grpId;
-  std::string to;
+  uint16_t       reqs;
+  OutputPacket * pending;
+  bool           p2p;
 
 public:
   OutputPacket();
@@ -58,10 +56,6 @@ public:
 class InputPacket : public TempPacket
 {
 public:
-  uint32_t       from;
-  DataDescriptor desc;
-
-public:
   InputPacket();
   ~InputPacket();
 };
@@ -69,7 +63,6 @@ public:
 class MissingPacket : public TempPacket
 {
 public:
-  std::string name;
   uint32_t    reqs;
 
 public:
@@ -92,7 +85,7 @@ public:
   DataQueue();
   virtual ~DataQueue();
 
-  void add(uint32_t id, TempPacket*);
+  void add(TempPacket*);
   void removeAt(uint32_t index);
   void remove(TempPacket* packet);
   TempPacket* popAndPutLast();

@@ -69,11 +69,9 @@ ProtocolDecoder::VersionToken::decode(DataDescriptor& desc, std::string& data)
 
   memcpy(&version, ptr, sizeof(version));
   version = ntohs(version);
-  DataBus::GetInstance()->setMinimumVersion(version);
   switch (version)  
   {
     case 1:
-    case 2:
       {
         ptr       += sizeof(version);
         data_size -= sizeof(version);
@@ -148,32 +146,6 @@ ProtocolDecoder::IdToken::decode(DataDescriptor& desc, std::string& data)
 
   ptr       += sizeof(desc.seqNo);
   data_size -= sizeof(desc.seqNo);
-
-  // TODO
-  // Don't need to detect version or create a new version
-  // just detect the incoming packet id here
-  // don't create if it a private or public message
-  // only save for replay if they are our messages
-  // only save the id for private msg that doesn't belong to us
-  switch (desc.version)
-  {
-    case 1:
-      desc.groupId = 0;
-      break;
-    case 2:
-      {
-        uint32_t groupId = 0;
-        if (data_size < sizeof(desc.groupId))
-        {
-          return 0;
-        }
-        memcpy(&groupId, ptr, sizeof(desc.groupId));
-        desc.groupId = ntohl(groupId);
-        ptr       += sizeof(desc.groupId);
-        data_size -= sizeof(desc.groupId);
-      }
-      break;
-  }
 
   std::string tdata;
   tdata.append(ptr, data_size);
@@ -329,7 +301,6 @@ ProtocolDecoder::DefaultDataHandler::processDataEvent(DataDescriptor& desc, std:
 ProtocolDecoder::ProtocolDecoder():
   _defaultDataHandler(0)
 {
-  // TODO create a new chain for version 2
   _magic.registerHandler(1, &_version);
   _version.registerHandler(1, &_sender);
   _sender.registerHandler(1, &_id);
@@ -361,5 +332,71 @@ void
 ProtocolDecoder::setDefaultHandler(DataHandler * handler)
 {
   _data.setDefaultHandler(handler);
+}
+
+ProtocolDecoder::IdToken::IdToken():
+  _checker(0)
+{
+}
+
+ProtocolDecoder::IdToken::~IdToken()
+{
+}
+
+void 
+ProtocolDecoder::IdToken::processDataEvent(DataDescriptor& desc, std::string& data)
+{
+    uint32_t id = decode(desc, data);
+    if (id)
+    {
+      bool valid = true;
+      valid = _checker->saveSeqNo(desc, data);
+
+      if (valid && _filter)
+      {
+        valid = _filter->filterEvent(desc, data);
+      }
+
+      if (valid)
+      {
+        dispatch(id, desc, data);
+      }
+    }
+}
+
+ProtocolDecoder::Data::Data():
+  _checker(0)
+{
+}
+
+ProtocolDecoder::Data::~Data()
+{
+}
+
+void 
+ProtocolDecoder::Data::processDataEvent(DataDescriptor& desc, std::string& data)
+{
+    uint32_t id = decode(desc, data);
+    if (id)
+    {
+      bool valid = true;
+      if (_filter)
+      {
+        valid = _filter->filterEvent(desc, data);
+      }
+
+      if (valid)
+      {
+        if (_checker->isValid(desc, data))
+        {
+          dispatch(id, desc, data);
+          _checker->releaseMessage(desc, data);
+        }
+        else
+        {
+          _checker->saveIncoming(desc, data);
+        }
+      }
+    }
 }
 

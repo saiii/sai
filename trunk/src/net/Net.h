@@ -28,23 +28,11 @@ namespace sai
 namespace net 
 {
 
-class Counter
-{
-public:
-  uint32_t id;
-
-public:
-  Counter();
-  ~Counter();
-};
-
 // SAI : TODO Change all std::vector to sai::utils::List
 typedef std::vector<std::string*>           StringList;
 typedef std::vector<std::string*>::iterator StringListIterator;
 typedef std::vector<uint32_t>           IntList;
 typedef std::vector<uint32_t>::iterator IntListIterator;
-typedef std::map<uint32_t,Counter*>           IdTable;
-typedef std::map<uint32_t,Counter*>::iterator IdTableIterator;
 
 class Net;
 class Nic
@@ -75,8 +63,8 @@ class Net
 private:
   NetImpl*     _impl;
   NicList      _nicList;
-  IdTable      _idTable;
   static Net * _instance;
+  uint32_t     _seqNo;
   char         _sender[17];
   std::string  _hostAddress;
   std::string  _hostBcastAddress;
@@ -103,7 +91,7 @@ public:
   uint32_t    getNumNic() { return _nicList.size(); }
   std::string getNicList(std::string& ret);
 
-  uint32_t    getMessageId(uint32_t);
+  uint32_t    getMessageId();
   void        mainLoop();
   void        shutdown();
   void*       getIO();

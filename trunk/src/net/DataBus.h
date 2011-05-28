@@ -40,16 +40,14 @@ friend class SenderProfile;
 friend class DataOrderingManager;
 private:
   static DataBus* _instance;
-  DataBusImpl*    _impl;
   DataBusStateDb* _stateDb;
   ChainFilter   * _sendReceiveFilter;
   DataBusChannel* _channel;
-  uint32_t        _version;
 
 private:
   DataBus();
-  bool send(std::string name, uint32_t id, std::string data, int32_t pktId);
-  bool sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t pktId, int32_t grpId);
+  bool send(std::string name, uint32_t id, std::string data, int32_t seqNo);
+  bool sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t seqNo);
   ProtocolDecoder::Data * getDataDecoder() { return &_data; }
 
 public:
@@ -60,9 +58,6 @@ public:
   void listen(std::string name);
   void activate();
   void deactivate();
-  void     setMinimumVersion(uint32_t v) { _version = v < _version ? v : _version; }
-  uint32_t getMinimumVersion()           { return _version; }
-  uint32_t getPointToPointId(std::string name);
   bool     send(std::string name, uint32_t id, std::string data);
   bool     sendPointToPoint(std::string destination, uint32_t id, std::string data);
   void     blockSender(std::string name);
