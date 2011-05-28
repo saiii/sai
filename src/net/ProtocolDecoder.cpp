@@ -149,6 +149,12 @@ ProtocolDecoder::IdToken::decode(DataDescriptor& desc, std::string& data)
   ptr       += sizeof(desc.seqNo);
   data_size -= sizeof(desc.seqNo);
 
+  // TODO
+  // Don't need to detect version or create a new version
+  // just detect the incoming packet id here
+  // don't create if it a private or public message
+  // only save for replay if they are our messages
+  // only save the id for private msg that doesn't belong to us
   switch (desc.version)
   {
     case 1:

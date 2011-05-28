@@ -23,6 +23,7 @@
 #include <cstring>
 #include <iostream>
 #include <algorithm>
+#include <math/Utils.h>
 #include "DataBusState.h"
 #include "ProtocolEncoder.h"
 #include "DataOrderingManager.h"
@@ -279,10 +280,13 @@ ActiveMcastDataBusState::send(std::string name, uint32_t opcode, std::string dat
   }
 
 #if 0
-  bool first = true;
-  if (first && desc.seqNo == 8)
+  static uint32_t drop = 8;
+  if (desc.seqNo == drop)
   {
-    first = false;
+    // Find next drop
+    uint32_t next = sai::math::Utils::RandomInt(1, 30);
+    drop = desc.seqNo + next;
+    //printf("BLOCKED\n");
     return false;
   }
 #endif
