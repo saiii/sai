@@ -46,12 +46,12 @@ public:
 };
 
 TimerTaskImpl::TimerTaskImpl(Net& net, TimerTask * task):
-	_timer(*((boost::asio::io_service*)net.getIO())),
-	_task(task),
-	_interval(0),
-	_pending(false)
+  _timer(*((boost::asio::io_service*)net.getIO())),
+  _task(task),
+  _interval(0),
+  _pending(false)
 {
-	_timer.async_wait(boost::bind(&TimerTaskImpl::timerEvent, this, boost::asio::placeholders::error));
+  _timer.async_wait(boost::bind(&TimerTaskImpl::timerEvent, this, boost::asio::placeholders::error));
 }
 
 TimerTaskImpl::~TimerTaskImpl()
@@ -61,44 +61,44 @@ TimerTaskImpl::~TimerTaskImpl()
 void 
 TimerTaskImpl::cancel()
 {
- 	_task = 0;
-	_timer.cancel();
+  _task = 0;
+  _timer.cancel();
 }
 
 void
 TimerTaskImpl::timerEvent(const boost::system::error_code& error)
 {
-	_pending = true;
+  _pending = true;
 
-        if (_task) _task->timerEvent();
+  if (_task) _task->timerEvent();
 
-	if (!error && !_pending)
-	{
-		_timer.expires_from_now(boost::posix_time::milliseconds(_interval));
-		_timer.async_wait(boost::bind(&TimerTaskImpl::timerEvent, this, boost::asio::placeholders::error));
-	}
-	_pending = false;
+  if (!error && !_pending)
+  {
+    _timer.expires_from_now(boost::posix_time::milliseconds(_interval));
+    _timer.async_wait(boost::bind(&TimerTaskImpl::timerEvent, this, boost::asio::placeholders::error));
+  }
+  _pending = false;
 }
 
 inline void 
 TimerTaskImpl::schedule(unsigned int interval)
 {
-	_interval = interval;
-	schedule();
+  _interval = interval;
+  schedule();
 }
 
 inline void 
 TimerTaskImpl::schedule()
 {
-	if (!_pending)
-	{
-		_timer.expires_from_now(boost::posix_time::milliseconds(_interval));
-		_timer.async_wait(boost::bind(&TimerTaskImpl::timerEvent, this, boost::asio::placeholders::error));
-	}
-	else
-	{
-		_pending = false;
-	}
+  if (!_pending)
+  {
+    _timer.expires_from_now(boost::posix_time::milliseconds(_interval));
+    _timer.async_wait(boost::bind(&TimerTaskImpl::timerEvent, this, boost::asio::placeholders::error));
+  }
+  else
+  {
+    _pending = false;
+  }
 }
 
 }
@@ -118,6 +118,7 @@ TimerTask::~TimerTask()
 {
   _impl->cancel();
   delete _impl;
+  _impl = 0;
 }
 
 unsigned int 
@@ -135,21 +136,27 @@ TimerTask::getMSecInterval()
 void 
 TimerTask::schedule(unsigned int sec, unsigned int msec)
 {
-	unsigned int interval  = msec;
-	interval += (sec * 1000);
+  if (!_impl) return;
 
-	_impl->schedule(interval);
+  unsigned int interval  = msec;
+  interval += (sec * 1000);
+
+  _impl->schedule(interval);
 }
 
 void 
 TimerTask::schedule()
 {
-	_impl->schedule();
+  if (!_impl) return;
+
+  _impl->schedule();
 }
 
 void 
 TimerTask::cancel()
 {
-	_impl->cancel();
+  if (!_impl) return;
+
+  _impl->cancel();
 }
 

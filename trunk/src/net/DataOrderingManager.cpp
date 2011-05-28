@@ -367,7 +367,7 @@ DataOrderingManager::receive(DataDescriptor& desc, std::string data)
           DataBus::GetInstance()->getDataDecoder()->clrReplay();
           group->inQueue.remove(pkt);
 
-          rFrom = group->expectedId + 1;
+          rFrom += 1;
           if (rFrom > 0xFFFFFFF0)
           {
             rFrom = 1;
