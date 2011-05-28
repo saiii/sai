@@ -31,6 +31,12 @@
 
 using namespace sai::net;
 
+#define DROP_TEST 0
+
+#ifdef DROP_TEST
+uint32_t drop = 8;
+#endif
+
 DataBusStateDb::DataBusStateDb(Net& net, 
                                DataBus * bus, 
                                ProtocolDecoder* dec, 
@@ -175,7 +181,7 @@ NilMcastDataBusState::activate()
 }
 
 bool
-NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, int32_t pktId)
+NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, int32_t seqNo)
 {
   if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
       Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
@@ -186,7 +192,7 @@ NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, int3
   activate();
   if (_db->_state != this)
   {
-    return _db->getState()->send(name, id, data, pktId);
+    return _db->getState()->send(name, id, data, seqNo);
   }
   else
   {
@@ -198,8 +204,7 @@ bool
 NilMcastDataBusState::sendPointToPoint(std::string destination, 
                                        uint32_t    id, 
                                        std::string data, 
-                                       int32_t     pktId, 
-                                       int32_t     grpId)
+                                       int32_t     seqNo)
 {
   if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
       Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
@@ -210,7 +215,7 @@ NilMcastDataBusState::sendPointToPoint(std::string destination,
   activate();
   if (_db->_state != this)
   {
-    return _db->getState()->sendPointToPoint(destination, id, data, pktId, grpId);
+    return _db->getState()->sendPointToPoint(destination, id, data, seqNo);
   }
   else
   {
@@ -224,6 +229,7 @@ NilMcastDataBusState::deactivate()
   _db->_filter->clear();
   _db->_filter->add(Net::GetInstance()->getLocalAddressUInt32());
   _db->_filter->add(Net::GetInstance()->getLocalAddress());
+  _db->_filter->add(Net::GetInstance()->getSenderId());
   _db->_filter->add("*"); // For broadcast
 }
 
@@ -260,35 +266,34 @@ ActiveMcastDataBusState::~ActiveMcastDataBusState()
 }
 
 bool
-ActiveMcastDataBusState::send(std::string name, uint32_t opcode, std::string data, int32_t pktId) 
+ActiveMcastDataBusState::send(std::string name, uint32_t opcode, std::string data, int32_t seqNo) 
 {
   Net * net = Net::GetInstance();
 
   sai::net::DataDescriptor desc;
-  desc.version   = DataBus::GetInstance()->getMinimumVersion();
+  desc.version   = 1;
   memcpy(desc.sender, net->getSenderId(), sizeof(desc.sender));
-  desc.seqNo     = pktId == 0 ? net->getMessageId(0) : pktId;
-  desc.groupId   = 0;
+  desc.seqNo     = seqNo == 0 ? net->getMessageId() : seqNo;
   desc.from.ival = net->getLocalAddressUInt32();
   desc.to.str    = name;
   desc.opcode    = opcode;
 
-  if (pktId == 0)
+  if (seqNo == 0)
   {
-    DataOrderingManager * mgr = DataOrderingManager::GetInstance();
-    mgr->save(desc, data.data(), data.size());
+    DataOrderingManager::GetInstance()->saveOutgoing(desc, data, false);
   }
 
-#if 0
-  static uint32_t drop = 8;
+#ifdef DROP_TEST
   if (desc.seqNo == drop)
   {
     // Find next drop
+    sai::math::Utils::RandomSeed(time(0));
     uint32_t next = sai::math::Utils::RandomInt(1, 30);
     drop = desc.seqNo + next;
-    //printf("BLOCKED\n");
+    //printf("BLOCKED n NextDrop is %u\n", drop);
     return false;
   }
+  //printf("Curr %u : DropPub %u\n", desc.seqNo, drop);
 #endif
 
   std::string wireData;
@@ -301,27 +306,34 @@ bool
 ActiveMcastDataBusState::sendPointToPoint(std::string name, 
                                           uint32_t    opcode, 
                                           std::string data, 
-                                          int32_t     pktId, 
-                                          int32_t     grpId) 
+                                          int32_t     seqNo)
 {
   Net * net = Net::GetInstance();
 
-  uint32_t p2pId = grpId == -1 ? DataBus::GetInstance()->getPointToPointId(name) : grpId;
-
   sai::net::DataDescriptor desc;
-  desc.version   = DataBus::GetInstance()->getMinimumVersion();
+  desc.version   = 1;
   memcpy(desc.sender, net->getSenderId(), sizeof(desc.sender));
-  desc.seqNo     = pktId == 0 ? net->getMessageId(p2pId) : pktId;
-  desc.groupId   = p2pId;
+  desc.seqNo     = seqNo == 0 ? net->getMessageId() : seqNo;
   desc.from.ival = net->getLocalAddressUInt32();
   desc.to.str    = name;
   desc.opcode    = opcode;
 
-  if (pktId == 0)
+  if (seqNo == 0)
   {
-    DataOrderingManager * mgr = DataOrderingManager::GetInstance();
-    mgr->save(desc, data.data(), data.size());
+    DataOrderingManager::GetInstance()->saveOutgoing(desc, data, true);
   }
+
+#ifdef DROP_TEST
+  if (desc.seqNo == drop)
+  {
+    // Find next drop
+    uint32_t next = sai::math::Utils::RandomInt(1, 30);
+    drop = desc.seqNo + next;
+    //printf("BLOCKED n NextDrop is %u\n", drop);
+    return false;
+  }
+  //printf("Curr %u : DropPrv %u\n", desc.seqNo, drop);
+#endif
 
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, opcode, data, wireData); 

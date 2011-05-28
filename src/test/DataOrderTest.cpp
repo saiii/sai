@@ -111,9 +111,9 @@ public:
       }
       n->cnt += 1;
 
-      if ((num % 50) == 0)
+      if ((n->cnt % 50) == 0)
       {
-        printf("(%s:   :%09u) OK\n", sender, num);
+        //printf("(%s:   :%09u) OK\n", sender, num);
       }
     }
   }
@@ -257,7 +257,7 @@ int main(int argc, char * argv[])
   MsgSender snd(at, repeat);
   if (!checker)
   {
-    snd.schedule(0, 50);
+    snd.schedule(0, 850);
   }
 
   Net::GetInstance()->mainLoop();

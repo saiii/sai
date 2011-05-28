@@ -24,23 +24,13 @@
 using namespace sai::net;
 
 DataDispatchable::DataDispatchable():
-  _defaultHandler(0),
-  _useChecker(false),
-  _replay(false)
+  _defaultHandler(0)
 {
 }
 
 void 
 DataDispatchable::dispatch(uint32_t opcode, DataDescriptor& desc, std::string data)
 {
-  if (_useChecker && !_replay)
-  {
-    if (DataOrderingManager::REL != DataOrderingManager::GetInstance()->receive(desc, data))
-    {
-      return;
-    }
-  }
-
   DispatchTableIterator iter;
   if ((iter = _table.find(opcode)) != _table.end())
   {

@@ -54,7 +54,8 @@ DataOrderingManager::GetInstance()
 }
 
 DataOrderingManager::DataOrderingManager():
-  _req(0)
+  _req(0),
+  _currentSender(0)
 {
   Req * req = new Req();
   req->manager = this;
@@ -77,7 +78,12 @@ DataOrderingManager::initialize()
 
 DataOrderingManager::~DataOrderingManager()
 {
-  _outgoingList.clear();
+  while (_outgoingList.size() > 0)
+  {
+    OutputPacket * packet = dynamic_cast<OutputPacket*>(_outgoingList.front());
+    _outgoingList.erase(_outgoingList.begin());
+    delete packet;
+  }
 
   delete _req;
 }
@@ -125,11 +131,9 @@ DataOrderingManager::timerEvent()
 void 
 DataOrderingManager::processReqtEvent(DataDescriptor& desc, std::string& data)
 {
-  uint32_t id = atoi(data.c_str());
+  uint32_t seqNo = atoi(data.c_str());
 
-  std::string from;
-  desc.from.toString(from, Address::RAW_MSG);
-  request(id, from);
+  request(seqNo, desc.from);
 }
 
 void 
@@ -144,7 +148,10 @@ DataOrderingManager::save(DataDescriptor& desc, const char * data, uint32_t sz)
 
   while (_outQueue.size() > 1000000) 
   {
-    _outQueue.remove(0);
+    for (uint32_t i = 0; i < 1000; i += 1)
+    {
+      _outQueue.remove(0);
+    }
   }
 
   OutputPacket * packet = new OutputPacket();
@@ -153,8 +160,11 @@ DataOrderingManager::save(DataDescriptor& desc, const char * data, uint32_t sz)
   packet->grpId   = desc.groupId;
   packet->opcode  = desc.opcode;
   packet->t       = time(0) + 300;
+  packet->desc    = desc;
+  packet->data    = data;
   packet->reqs    = 0;
   packet->pending = 0;
+  packet->p2p     = pointToPoint;
 
   _outQueue.add(desc.seqNo, packet);
 }
@@ -253,6 +263,7 @@ SenderProfile::timerEvent()
       doMore = true;
       continue;
     }
+#endif
 
     char buff[32];
     sprintf(buff, "%u", packet->pktId);
@@ -323,8 +334,10 @@ SenderProfile::Group::releaseMessage()
 DataOrderingManager::Action
 DataOrderingManager::receive(DataDescriptor& desc, std::string data)
 {
+  enum { CONTINUE = true, STOP_HERE = false };
+
   SenderProfile *sender = checkSender(desc);
-  sender->t = time(0) + 3600;
+  _currentSender = sender;
 
   SenderProfile::GroupTableIterator iter = sender->table.find(desc.groupId);
   SenderProfile::Group * group = iter->second;
@@ -411,9 +424,9 @@ DataOrderingManager::receive(DataDescriptor& desc, std::string data)
 }
 
 void
-DataOrderingManager::request(uint32_t id, std::string from)
+DataOrderingManager::request(uint32_t seqNo, Address from)
 {
-  OutputPacket * pkt = dynamic_cast<OutputPacket*>(_outQueue.get(id));
+  OutputPacket * pkt = dynamic_cast<OutputPacket*>(_outQueue.get(seqNo));
   if (!pkt)
   {
     return;
@@ -429,9 +442,30 @@ DataOrderingManager::request(uint32_t id, std::string from)
     _repeater.schedule(0, 100);
   }
 
-  pkt->pending = 1;
-  pkt->to      = from;
-  _outgoingList.push_back(pkt);
+  OutputPacket * nPkt = new OutputPacket();
+  nPkt->t       = time(0);
+  nPkt->desc    = pkt->desc;
+  nPkt->desc.to = from;
+  nPkt->data    = pkt->data;
+  nPkt->reqs    = pkt->reqs;
+  nPkt->pending = pkt;
+  nPkt->p2p     = pkt->p2p;
+
+  pkt->pending  = nPkt;
+
+  if (pkt->p2p)
+  {
+    std::string aTo, bTo;
+    from.toString(aTo, Address::RAW_MSG);
+    pkt->desc.to.toString(bTo, Address::RAW_MSG);
+    if (aTo.compare(bTo) != 0)
+    {
+      nPkt->desc.opcode = 0;
+      nPkt->data.clear();
+    }
+  }
+
+  _outgoingList.push_back(nPkt);
 }
 
 void 

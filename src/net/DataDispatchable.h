@@ -32,6 +32,15 @@ class DataDescriptor;
 typedef std::map<uint32_t, DataHandler*>           DispatchTable;
 typedef std::map<uint32_t, DataHandler*>::iterator DispatchTableIterator;
 
+class DataChecker
+{
+public:
+  virtual bool saveSeqNo(DataDescriptor&, std::string&) = 0;
+  virtual void saveIncoming(DataDescriptor&, std::string&) = 0;
+  virtual bool isValid(DataDescriptor&, std::string&) = 0;
+  virtual void releaseMessage(DataDescriptor&, std::string&) = 0;
+};
+
 class DataDispatchable
 {
 friend class SenderProfile;
@@ -39,10 +48,6 @@ friend class DataOrderingManager;
 private:
   DispatchTable        _table;
   DataHandler         *_defaultHandler;
-  bool                 _useChecker;
-
-protected:
-  bool                 _replay;
 
 protected:
   DataDispatchable();
@@ -52,8 +57,6 @@ public:
   virtual ~DataDispatchable();
   bool registerHandler(uint32_t opcode, DataHandler * handler);
   void setDefaultHandler(DataHandler * handler);
- 
-  void activateChecker() { _useChecker = true; }
 };
 
 }

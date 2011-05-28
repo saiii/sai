@@ -47,7 +47,15 @@ protected:
 
   class IdToken : public DataChainable
   {
-    public: uint32_t decode(DataDescriptor&, std::string&);
+    private:
+      DataChecker * _checker;
+
+    public: 
+      IdToken();
+      ~IdToken();
+      uint32_t decode(DataDescriptor&, std::string&);
+      void     processDataEvent(DataDescriptor&, std::string&);
+      void     setChecker(DataChecker * c) { _checker = c; }
   };
 
   class FromToToken : public DataChainable
@@ -57,10 +65,15 @@ protected:
 
   class Data : public DataChainable
   {
+    private:
+      DataChecker * _checker;
+
     public: 
+      Data();
+      ~Data();
       uint32_t decode(DataDescriptor&, std::string&);
-      void setReplay() { _replay = true; }
-      void clrReplay() { _replay = false;}
+      void     processDataEvent(DataDescriptor&, std::string&);
+      void     setChecker(DataChecker * c) { _checker = c; }
   };
 
   class DefaultDataHandler : public DataHandler
@@ -84,7 +97,6 @@ public:
   void processDataEvent(DataDescriptor&, std::string&);
   bool registerHandler(uint32_t id, DataHandler * handler);
   void setDefaultHandler(DataHandler * handler);
-  void activateChecker() { _data.activateChecker(); }
 };
 
 }

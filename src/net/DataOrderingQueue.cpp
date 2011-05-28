@@ -39,12 +39,12 @@ DataQueue::~DataQueue()
 }
 
 void      
-DataQueue::add(uint32_t id, TempPacket* packet)
+DataQueue::add(TempPacket* packet)
 {
-  if (_table.find(id) == _table.end())
+  if (_table.find(packet->desc.seqNo) == _table.end())
   {
     _list.push_back(packet);
-    _table.insert(std::make_pair(id, packet));
+    _table.insert(std::make_pair(packet->desc.seqNo, packet));
   }
 }
 
@@ -59,7 +59,7 @@ void
 DataQueue::remove(TempPacket* packet)
 {
   PacketTableIterator iter;
-  if ((iter = _table.find(packet->pktId)) != _table.end())
+  if ((iter = _table.find(packet->desc.seqNo)) != _table.end())
   {
     TempPacket* pckt = iter->second;
     _table.erase(iter);
@@ -123,8 +123,7 @@ DataQueue::clear()
 }
 
 TempPacket::TempPacket():
-  t(0),
-  pktId(0)
+  t(0)
 {
 }
 
@@ -134,6 +133,7 @@ TempPacket::~TempPacket()
 
 OutputPacket::OutputPacket():
   reqs(0),
+  p2p(false),
   pending(0)
 {
 }
@@ -142,8 +142,7 @@ OutputPacket::~OutputPacket()
 {
 }
 
-InputPacket::InputPacket():
-  from(0)
+InputPacket::InputPacket()
 {
 }
 

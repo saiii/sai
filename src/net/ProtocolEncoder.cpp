@@ -42,19 +42,6 @@ public:
               std::string&    ret);
 };
 
-class _EncoderV2
-{
-public:
-  _EncoderV2()
-  {}
-  ~_EncoderV2()
-  {}
-  void encode(DataDescriptor& desc, 
-              uint32_t        opcode, 
-              std::string&    data, 
-              std::string&    ret);
-};
-
 ProtocolEncoder::ProtocolEncoder()
 {
 }
@@ -73,9 +60,6 @@ ProtocolEncoder::encode(DataDescriptor& desc,
   {
     case 1:
       _EncoderV1().encode(desc, opcode, data, ret);
-      break;
-    case 2:
-      _EncoderV2().encode(desc, opcode, data, ret);
       break;
     default:
       throw DataException("The specified version does not support!");
@@ -125,47 +109,6 @@ _EncoderV1::encode(DataDescriptor& desc,
   } 
 
   ADD32(ret, id);
-  ret.append(data.data(), data.size());
-}
-
-void 
-_EncoderV2::encode(DataDescriptor& desc, 
-                   uint32_t        opcode, 
-                   std::string&    data,
-                   std::string&    ret)
-{
-  ret.clear();
-
-  ADD32(ret, MAGIC);
-  ADD16(ret, 2);
-  ADD16(ret, 0);
-  ADDSTR16(ret, Net::GetInstance()->getSenderId());
-  ADD32(ret, desc.seqNo);
-  ADD32(ret, desc.groupId);
- 
-  if (desc.from.str.length() == 0)
-  { 
-    ADD16(ret, 2);
-    ADD32(ret, desc.from.ival);
-  }
-  else
-  {
-    ADD16(ret, 1);
-    ADDSTR256(ret, desc.from.str);
-  } 
-
-  if (desc.to.str.length() == 0)
-  { 
-    ADD16(ret, 2);
-    ADD32(ret, desc.to.ival);
-  }
-  else
-  {
-    ADD16(ret, 1);
-    ADDSTR256(ret, desc.to.str);
-  } 
-
-  ADD32(ret, opcode);
   ret.append(data.data(), data.size());
 }
 
