@@ -36,28 +36,19 @@ namespace net
 class SenderProfile : public TimerTask
 {
 public:
-  typedef struct 
-  {
-    SenderProfile * profile;
-
-    uint32_t     expectedId;
-    uint32_t     name;
-    DataQueue    inQueue;
-    DataQueue    missingQueue;
-
-    void addMissingList(std::string name, uint32_t from, uint32_t to);
-    void releaseMessage();
-  }Group;
-  typedef std::map<uint32_t, Group*>           GroupTable;
-  typedef std::map<uint32_t, Group*>::iterator GroupTableIterator;
+  uint32_t     expectedId;
+  DataQueue    inQueue;
+  DataQueue    missingQueue;
 
   time_t       t;
-  GroupTable   table;
   std::string  sender;
 
 public:
   SenderProfile();
   ~SenderProfile();
+
+  void addMissingList(std::string name, uint32_t from, uint32_t to);
+  void releaseMessage();
 
   void timerEvent();
 };
@@ -93,7 +84,7 @@ private:
   void request(uint32_t id, Address from);
 
   SenderProfile * checkSender(DataDescriptor& desc);
-  void            send(std::string to, uint32_t opcode, std::string data, uint32_t pktId);
+  void            send(std::string to, uint32_t opcode, std::string data, uint32_t seqNo);
   inline uint32_t calcExpectedId(uint32_t cur);
 
 public:
@@ -105,10 +96,12 @@ public:
 
   void processReqtEvent(DataDescriptor& desc, std::string& data);
 
-  void save(DataDescriptor& desc, const char * data, uint32_t sz);
-  void send(std::string to, uint32_t opcode, std::string data, int32_t pktId, int32_t grpId);
+  void saveOutgoing(DataDescriptor& desc, std::string& data, bool p2p);
 
-  Action receive(DataDescriptor& desc, std::string data);
+  bool saveSeqNo(DataDescriptor&, std::string&);
+  void saveIncoming(DataDescriptor&, std::string&);
+  bool isValid(DataDescriptor&, std::string&);
+  void releaseMessage(DataDescriptor&, std::string&);
 };
 
 inline
