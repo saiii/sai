@@ -111,6 +111,19 @@ DataOrderingManager::timerEvent()
         break;
       }
     }
+
+    while (sender->inQueue.size() > 0)
+    {
+      InputPacket * packet = dynamic_cast<InputPacket*>(sender->inQueue.at(0));
+      if (packet && t >= packet->t)
+      {
+        sender->inQueue.removeAt(0);
+      }
+      else
+      {
+        break;
+      }
+    }
   }
 
   // remove expiring message from the outgoing list & table
@@ -156,6 +169,11 @@ DataOrderingManager::saveSeqNo(DataDescriptor& desc, std::string& data)
     return STOP_HERE;
   }
 
+  while(_currentSender->inQueue.size() > 1000000)
+  {
+    _currentSender->inQueue.removeAt(0);
+  }
+
   pkt = new InputPacket();
   pkt->desc = desc;
   pkt->t    = time(0) + 360;
@@ -167,6 +185,13 @@ DataOrderingManager::saveSeqNo(DataDescriptor& desc, std::string& data)
 void 
 DataOrderingManager::saveIncoming(DataDescriptor& desc, std::string& data)
 {
+  if (desc.seqNo < _currentSender->expectedId)
+  {
+    InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
+    _currentSender->inQueue.remove(pkt);
+    return;
+  }
+
   InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
   pkt->data = data;
   pkt->desc = desc;
@@ -196,6 +221,9 @@ void
 DataOrderingManager::releaseMessage(DataDescriptor& desc, std::string& data)
 {
   _currentSender->releaseMessage();
+
+  InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
+  _currentSender->inQueue.remove(pkt);
 }
 
 void 
@@ -205,7 +233,7 @@ DataOrderingManager::saveOutgoing(DataDescriptor& desc, std::string& data, bool 
   {
     for (uint32_t i = 0; i < 1000; i += 1)
     {
-      _outQueue.remove(0);
+      _outQueue.removeAt(0);
     }
   }
 
