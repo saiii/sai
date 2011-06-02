@@ -121,7 +121,7 @@ Address::toUInt(uint32_t& ret)
   {
 #ifdef _WIN32
     extern uint32_t inetPton(std::string ip);
-    ret = inetPton(ip);
+    ret = inetPton(str);
 #else
     struct in_addr addr;
     inet_pton(AF_INET, str.c_str(), &addr);
