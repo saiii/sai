@@ -15,7 +15,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <time.h>
+#include <windows.h>
+#else
 #include <syslog.h>
 #endif
 #include <cstdio>
@@ -287,7 +290,7 @@ ActiveMcastDataBusState::send(std::string name, uint32_t opcode, std::string dat
   if (desc.seqNo == drop)
   {
     // Find next drop
-    sai::math::Utils::RandomSeed(time(0));
+	sai::math::Utils::RandomSeed((sai::math::matrixsize_t)time(0));
     uint32_t next = sai::math::Utils::RandomInt(1, 30);
     drop = desc.seqNo + next;
     //printf("BLOCKED n NextDrop is %u\n", drop);
