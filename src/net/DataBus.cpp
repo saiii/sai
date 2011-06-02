@@ -144,6 +144,7 @@ DataBus::activate()
 {
   DataOrderingManager::GetInstance()->initialize();
   _id.setChecker(DataOrderingManager::GetInstance());
+  _fromTo.setChecker(DataOrderingManager::GetInstance());
   _data.setChecker(DataOrderingManager::GetInstance());
   _stateDb->getState()->activate();
 }

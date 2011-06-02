@@ -21,6 +21,7 @@
 #include <netinet/in.h>
 #include <syslog.h>
 #endif
+#include <cstdio>
 #include <string.h>
 #include <iostream>
 #include <net/Net.h>
@@ -360,6 +361,39 @@ ProtocolDecoder::IdToken::processDataEvent(DataDescriptor& desc, std::string& da
       if (valid)
       {
         dispatch(id, desc, data);
+      }
+    }
+}
+
+ProtocolDecoder::FromToToken::FromToToken():
+  _checker(0)
+{
+}
+
+ProtocolDecoder::FromToToken::~FromToToken()
+{
+}
+
+void 
+ProtocolDecoder::FromToToken::processDataEvent(DataDescriptor& desc, std::string& data)
+{
+    uint32_t id = decode(desc, data);
+    if (id)
+    {
+      bool valid = true;
+
+      if (valid && _filter)
+      {
+        valid = _filter->filterEvent(desc, data);
+      }
+
+      if (valid)
+      {
+        dispatch(id, desc, data);
+      }
+      else
+      {
+        _checker->removeIncoming(desc, data);
       }
     }
 }

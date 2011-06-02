@@ -142,7 +142,8 @@ OutputPacket::~OutputPacket()
 {
 }
 
-InputPacket::InputPacket()
+InputPacket::InputPacket():
+  recoveredPkt(false)
 {
 }
 
