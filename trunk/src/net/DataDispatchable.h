@@ -37,6 +37,7 @@ class DataChecker
 public:
   virtual bool saveSeqNo(DataDescriptor&, std::string&) = 0;
   virtual void saveIncoming(DataDescriptor&, std::string&) = 0;
+  virtual void removeIncoming(DataDescriptor&, std::string&) = 0;
   virtual bool isValid(DataDescriptor&, std::string&) = 0;
   virtual void releaseMessage(DataDescriptor&, std::string&) = 0;
 };

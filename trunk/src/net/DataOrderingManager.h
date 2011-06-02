@@ -100,6 +100,7 @@ public:
 
   bool saveSeqNo(DataDescriptor&, std::string&);
   void saveIncoming(DataDescriptor&, std::string&);
+  void removeIncoming(DataDescriptor&, std::string&);
   bool isValid(DataDescriptor&, std::string&);
   void releaseMessage(DataDescriptor&, std::string&);
 };

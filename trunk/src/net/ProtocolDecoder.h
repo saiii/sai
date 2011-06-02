@@ -60,7 +60,15 @@ protected:
 
   class FromToToken : public DataChainable
   {
-    public: uint32_t decode(DataDescriptor&, std::string&);
+    private:
+      DataChecker * _checker;
+
+    public: 
+      FromToToken();
+      ~FromToToken();
+      uint32_t decode(DataDescriptor&, std::string&);
+      void     processDataEvent(DataDescriptor&, std::string&);
+      void     setChecker(DataChecker * c) { _checker = c; }
   };
 
   class Data : public DataChainable

@@ -145,7 +145,6 @@ void
 DataOrderingManager::processReqtEvent(DataDescriptor& desc, std::string& data)
 {
   uint32_t seqNo = atoi(data.c_str());
-
   request(seqNo, desc.from);
 }
 
@@ -154,19 +153,32 @@ DataOrderingManager::saveSeqNo(DataDescriptor& desc, std::string& data)
 {
   enum { STOP_HERE = false, CONTINUE = true};
 
+  bool recoveredPkt = false;
+  std::string recoveredName;
+
   SenderProfile *sender = checkSender(desc);
   _currentSender = sender;
 
   MissingPacket * mPkt = dynamic_cast<MissingPacket *>(_currentSender->missingQueue.get(desc.seqNo));
   if (mPkt)
   {
+    recoveredPkt  = true;
+    recoveredName = mPkt->desc.to.str;
     _currentSender->missingQueue.remove(mPkt);
   }
 
   InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
-  if (pkt)
+  if (pkt && pkt->data.size() > 0)
   { // duplicated message
     return STOP_HERE;
+  }
+  else if (pkt)
+  {
+    pkt->desc          = desc;
+    pkt->t             = time(0) + 360;
+    pkt->recoveredPkt  = recoveredPkt;
+    pkt->recoveredName = recoveredName;
+    return CONTINUE;
   }
 
   while(_currentSender->inQueue.size() > 1000000)
@@ -175,8 +187,11 @@ DataOrderingManager::saveSeqNo(DataDescriptor& desc, std::string& data)
   }
 
   pkt = new InputPacket();
-  pkt->desc = desc;
-  pkt->t    = time(0) + 360;
+  pkt->desc          = desc;
+  pkt->t             = time(0) + 360;
+  pkt->recoveredPkt  = recoveredPkt;
+  pkt->recoveredName = recoveredName;
+
   _currentSender->inQueue.add(pkt);
 
   return CONTINUE;
@@ -199,6 +214,25 @@ DataOrderingManager::saveIncoming(DataDescriptor& desc, std::string& data)
   char buf[17] = {0};
   memcpy(buf, desc.sender, 16);
   _currentSender->addMissingList(buf, _currentSender->expectedId, desc.seqNo - 1);
+}
+
+void 
+DataOrderingManager::removeIncoming(DataDescriptor& desc, std::string& data)
+{
+  InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
+  if (pkt)
+  { 
+    if (pkt->recoveredPkt)
+    {
+      MissingPacket * packet = new MissingPacket();
+      packet->t          = time(0);
+      packet->desc.seqNo = desc.seqNo;
+      packet->desc.to.str= pkt->recoveredName;
+      packet->reqs       = 1;
+      _currentSender->missingQueue.add(packet);
+    }
+    _currentSender->inQueue.remove(pkt);
+  }
 }
 
 bool 
@@ -356,7 +390,7 @@ void
 SenderProfile::releaseMessage()
 {
   // ACT#2
-  // This can be enhanced by adding timer to prevent the long time processing loop
+  // This can be enhanced by adding timer to prevent the long processing loop
   uint32_t rFrom = expectedId;
   bool found = true;
   do 
@@ -439,6 +473,7 @@ DataOrderingManager::MsgRepeater::timerEvent()
 
   OutputPacket * packet = dynamic_cast<OutputPacket*>(list->front());
   list->erase(list->begin());
+
 
   std::string to;
   packet->desc.to.toString(to, Address::RAW_MSG); 

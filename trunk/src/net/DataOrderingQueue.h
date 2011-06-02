@@ -56,6 +56,10 @@ public:
 class InputPacket : public TempPacket
 {
 public:
+  bool        recoveredPkt;
+  std::string recoveredName;
+
+public:
   InputPacket();
   ~InputPacket();
 };
