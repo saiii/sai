@@ -24,6 +24,8 @@ TEST_SRC = MathMatrix.cpp \
            AiMlFuzzyCmeans.cpp \
            MathUtils.cpp \
            NetTcp.cpp \
+           NetUdp.cpp \
+           NetUdpDirect.cpp \
            DataBus.cpp \
            DataBusOrder.cpp
 
