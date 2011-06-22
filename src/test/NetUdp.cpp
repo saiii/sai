@@ -21,6 +21,7 @@
 #include <boost/asio.hpp>
 #include <net/Socket.h>
 #include <net/Net.h>
+#include <net/TimerTask.h>
 
 using namespace sai::net;
 
@@ -59,22 +60,47 @@ int receiver(int argc, char *argv[])
   return 0;
 }
 
+class Sender : public TimerTask
+{
+private:
+  uint32_t _cnt;
+  ClientSocket * _scket;
+
+public:
+  Sender(ClientSocket* scket): _cnt(0), _scket(scket)
+  {
+  }
+
+  ~Sender()
+  {
+  }
+
+  void timerEvent()
+  {
+    char msg[32];
+    sprintf(msg, "%u", ++_cnt);
+    _scket->send(msg, strlen(msg) + 1);
+    if (_cnt >= 10000) return;
+    else schedule(0, 1);
+  }
+};
+
 int sender(int argc, char * argv[])
 {
   boost::asio::io_service io_service;
-  ClientSocket * socket = ClientSocket::Create(
+  ClientSocket * scket = ClientSocket::Create(
                             *Net::GetInstance(), 
                             SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
                             SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
                             SAI_SOCKET_EOA);
-  socket->open();
-  socket->connect("224.1.1.1", 1500);
+  scket->open();
+  scket->connect("224.1.1.1", 1500);
 
-  char msg [] = "hello, world";
-  socket->send(msg, sizeof(msg));
+  Sender s(scket);
+  s.schedule(1, 0);
 
   Net::GetInstance()->mainLoop();
-  delete socket;
+  delete scket;
   return 0;
 }
 
