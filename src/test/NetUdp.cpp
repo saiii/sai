@@ -34,7 +34,7 @@ public:
   }
 };
 
-int receiver(int argc, char *argv[])
+static int NetUdp_receiver(int argc, char *argv[])
 {
   boost::asio::io_service io_service;
   Printer printer;
@@ -85,7 +85,7 @@ public:
   }
 };
 
-int sender(int argc, char * argv[])
+static int NetUdp_sender(int argc, char * argv[])
 {
   boost::asio::io_service io_service;
   ClientSocket * scket = ClientSocket::Create(
@@ -104,6 +104,7 @@ int sender(int argc, char * argv[])
   return 0;
 }
 
+/*
 int main(int argc, char * argv[])
 {
   if (argc >= 2) 
@@ -121,3 +122,4 @@ int main(int argc, char * argv[])
   std::cerr << "Invalid arguments!" << std::endl << "Usage: " << argv[0] << " <sender | receiver [ip address for binding interface card]>" << std::endl;
   return 1;
 }
+*/
