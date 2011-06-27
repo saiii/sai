@@ -16,8 +16,14 @@
 //=============================================================================
 
 #include <time.h>
-#include <cstdio>
-#include <cstring>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <arpa/inet.h>
+#endif
 #include <algorithm>
 #include <net/DataBus.h>
 #include "DataOrderingManager.h"
@@ -26,45 +32,16 @@ using namespace sai::net;
 
 #define SAI_DOMAIN           "<SAI<ORDERING>>"
 #define SAI_REQ_OPCODE       0xFFFFFFF0
-
-class Req : public DataHandler
-{
-public:
-  DataOrderingManager * manager;
-
-public:
-  Req() : manager(0) {}
-  virtual ~Req() {}
-
-  void processDataEvent(DataDescriptor& desc, std::string& data)
-  {
-    manager->processReqtEvent(desc, data);
-  }
-};
+#define SAI_REP_OPCODE       0xFFFFFFF1
 
 DataOrderingManager  *DataOrderingManager::_instance = 0;
 
-DataOrderingManager* 
-DataOrderingManager::GetInstance()
-{
-  if (!_instance)
-  {
-    _instance = new DataOrderingManager();
-  }
-  return _instance;
-}
-
-DataOrderingManager::DataOrderingManager():
-  _req(0),
-  _currentSender(0)
-{
-  Req * req = new Req();
-  req->manager = this;
-  _req         = req;
-
-  _repeater.list    = &_outgoingList;
-  _repeater.manager = this;
-}
+//DataOrderingManager::DataOrderingManager(DataDispatchable* disp):
+//  _dispatcher(disp)
+//{
+//  _requestHandler.manager  = this;
+//  _responseHandler.manager = this;
+//}
 
 void 
 DataOrderingManager::initialize()
@@ -72,433 +49,393 @@ DataOrderingManager::initialize()
   DataBus * bus = DataBus::GetInstance();
 
   bus->listen(SAI_DOMAIN);
-  bus->registerHandler(SAI_REQ_OPCODE, _req);
+  bus->registerHandler(SAI_REQ_OPCODE, &_requestHandler);
+  bus->registerHandler(SAI_REP_OPCODE, &_responseHandler);
 
-  schedule(2, 0);
+  schedule(0, 800);
 }
 
 DataOrderingManager::~DataOrderingManager()
 {
-  while (_outgoingList.size() > 0)
+  while(_outgoingList.size() > 0)
   {
-    OutputPacket * packet = dynamic_cast<OutputPacket*>(_outgoingList.front());
+    DataBuffer* buffer = _outgoingList.front();
     _outgoingList.erase(_outgoingList.begin());
-    delete packet;
+    delete buffer;
   }
 
-  delete _req;
+  _outgoingTable.clear();
+}
+
+void 
+DataOrderingManager::addOutgoingData(DataDescriptor& desc, std::string data)
+{
+  DataBuffer * buffer = new DataBuffer();
+  buffer->_time  = time(0);
+  memcpy(&buffer->_desc, &desc, sizeof(DataDescriptor));
+  buffer->_data.append(data.data(), data.size());
+
+  _outgoingTable.insert(std::make_pair(desc.id, buffer)); 
+  _outgoingList.push_back(buffer);
 }
 
 void 
 DataOrderingManager::timerEvent()
 {
-  time_t t = time(0);
-  // remove expiring sender from the senderTable
-  for (SenderTableIterator iter =  _senderTable.begin();
-                           iter != _senderTable.end();
-                           iter ++)
+  const int MAX_WAITING_TIME = 180;
+  const int MAX_WAITING_ITEM = 100000;
+
+  if (_outgoingList.size() > 0)
   {
-    SenderProfile * sender = iter->second;
-    if (t >= sender->t)
+    time_t now = time(0);
+    DataBuffer * buffer = _outgoingList.front();
+    if ((now - buffer->_time) >= MAX_WAITING_TIME)
     {
-      _senderTable.erase(iter);
-      delete sender;
-      if (_senderTable.size() > 0)
+      BufferListIterator iter;
+      for (iter  = _outgoingList.begin();
+           iter != _outgoingList.end();
+           iter ++) 
       {
-        iter = _senderTable.begin();
-      }
-      else
-      {
-        break;
+        buffer = *iter;
+        if ((now - buffer->_time) >= MAX_WAITING_TIME)
+        {
+          _outgoingList.erase(_outgoingList.begin());
+          delete buffer;
+          iter = _outgoingList.begin();
+          continue;
+        }
       }
     }
 
-    while (sender->inQueue.size() > 0)
+    while(_outgoingList.size() > MAX_WAITING_ITEM)
     {
-      InputPacket * packet = dynamic_cast<InputPacket*>(sender->inQueue.at(0));
-      if (packet && t >= packet->t)
-      {
-        sender->inQueue.removeAt(0);
-      }
-      else
-      {
-        break;
-      }
-    }
-  }
-
-  // remove expiring message from the outgoing list & table
-  for (uint32_t i = 0; i < _outQueue.size(); i += 1)
-  {
-    OutputPacket * packet = dynamic_cast<OutputPacket*>(_outQueue.at(i));
-    if (t >= packet->t)
-    {
-      _outQueue.removeAt(i);
-      schedule(0, 1);
-      return;
+      buffer = _outgoingList.front();
+      _outgoingList.erase(_outgoingList.begin());
+      delete buffer;
     }
   }
 
   schedule();
 }
 
-void 
-DataOrderingManager::processReqtEvent(DataDescriptor& desc, std::string& data)
+bool
+DataOrderingManager::check(DataDescriptor& desc, std::string data)
 {
-  uint32_t seqNo = atoi(data.c_str());
-  request(seqNo, desc.from);
-}
+  const bool DISCARD_DATA = false;
+  const bool ACCEPT_DATA  = true;
 
-bool 
-DataOrderingManager::saveSeqNo(DataDescriptor& desc, std::string& data)
-{
-  enum { STOP_HERE = false, CONTINUE = true};
-
-  bool recoveredPkt = false;
-  std::string recoveredName;
-
-  SenderProfile *sender = checkSender(desc);
-  _currentSender = sender;
-
-  MissingPacket * mPkt = dynamic_cast<MissingPacket *>(_currentSender->missingQueue.get(desc.seqNo));
-  if (mPkt)
-  {
-    recoveredPkt  = true;
-    recoveredName = mPkt->desc.to.str;
-    _currentSender->missingQueue.remove(mPkt);
-  }
-
-  InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
-  if (pkt && pkt->data.size() > 0)
-  { // duplicated message
-    return STOP_HERE;
-  }
-  else if (pkt)
-  {
-    pkt->desc          = desc;
-    pkt->t             = time(0) + 360;
-    pkt->recoveredPkt  = recoveredPkt;
-    pkt->recoveredName = recoveredName;
-    return CONTINUE;
-  }
-
-  while(_currentSender->inQueue.size() > 1000000)
-  {
-    _currentSender->inQueue.removeAt(0);
-  }
-
-  pkt = new InputPacket();
-  pkt->desc          = desc;
-  pkt->t             = time(0) + 360;
-  pkt->recoveredPkt  = recoveredPkt;
-  pkt->recoveredName = recoveredName;
-
-  _currentSender->inQueue.add(pkt);
-
-  return CONTINUE;
-}
-
-void 
-DataOrderingManager::saveIncoming(DataDescriptor& desc, std::string& data)
-{
-  if (desc.seqNo < _currentSender->expectedId)
-  {
-    InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
-    _currentSender->inQueue.remove(pkt);
-    return;
-  }
-
-  InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
-  pkt->data = data;
-  pkt->desc = desc;
-
-  char buf[17] = {0};
-  memcpy(buf, desc.sender, 16);
-  _currentSender->addMissingList(buf, _currentSender->expectedId, desc.seqNo - 1);
-}
-
-void 
-DataOrderingManager::removeIncoming(DataDescriptor& desc, std::string& data)
-{
-  InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
-  if (pkt)
-  { 
-    if (pkt->recoveredPkt)
-    {
-      MissingPacket * packet = new MissingPacket();
-      packet->t          = time(0);
-      packet->desc.seqNo = desc.seqNo;
-      packet->desc.to.str= pkt->recoveredName;
-      packet->reqs       = 1;
-      _currentSender->missingQueue.add(packet);
-    }
-    _currentSender->inQueue.remove(pkt);
-  }
-}
-
-bool 
-DataOrderingManager::isValid(DataDescriptor& desc, std::string& data)
-{
-  if (_currentSender->expectedId == desc.seqNo || _currentSender->expectedId == 0)
-  {
-    _currentSender->expectedId = desc.seqNo + 1;
-    if (_currentSender->expectedId > 0xFFFFFFF0)
-    {
-      _currentSender->expectedId = 0;
-    }
-    return true;
-  }
-
-  return false;
-}
-
-void 
-DataOrderingManager::releaseMessage(DataDescriptor& desc, std::string& data)
-{
-  _currentSender->releaseMessage();
-
-  InputPacket * pkt = dynamic_cast<InputPacket*>(_currentSender->inQueue.get(desc.seqNo));
-  _currentSender->inQueue.remove(pkt);
-}
-
-void 
-DataOrderingManager::saveOutgoing(DataDescriptor& desc, std::string& data, bool p2p)
-{
-  while (_outQueue.size() > 1000000) 
-  {
-    for (uint32_t i = 0; i < 1000; i += 1)
-    {
-      _outQueue.removeAt(0);
-    }
-  }
-
-  OutputPacket * packet = new OutputPacket();
-  packet->t       = time(0) + 360;
-  packet->desc    = desc;
-  packet->data    = data;
-  packet->reqs    = 0;
-  packet->pending = 0;
-  packet->p2p     = p2p;
-
-  _outQueue.add(packet);
-}
-
-SenderProfile * 
-DataOrderingManager::checkSender(DataDescriptor& desc)
-{
-  SenderProfile * ret = 0;
-  char tSender[17] = {0};
-  memcpy(tSender, desc.sender, 16);
-  SenderTableIterator iter = _senderTable.find(tSender);
+  // Is this a known sender?
+  char txt[32] = {0};
+  memset(txt, 0, sizeof(txt));
+  memcpy(txt, desc.sender, sizeof(desc.sender));
+  uint64_t desc_sender = strtoul(txt, 0, 16); 
+  SenderTableIterator iter = _senderTable.find(desc_sender);
   if (iter == _senderTable.end())
   {
-    SenderProfile * sender = new SenderProfile(); 
-    sender->sender     = tSender;
-    sender->t          = time(0) + 360;
-    sender->expectedId = 0;
-    _senderTable.insert(std::make_pair(sender->sender, sender));
+    // No, this is a new sender
+    // Create sender profile
+    SenderProfile * sender = new SenderProfile(_dispatcher);
+    memcpy(&sender->_desc, &desc, sizeof(desc));
+    _senderTable.insert(std::make_pair(desc_sender, sender));
 
-    ret = sender;
+    // Set expected message id from the first message we received
+    sender->_expectedId = desc.id + 1;
+    sender->_lastId     = desc.id;
+    if (sender->_expectedId > 0xFFFFFFF0)
+    {
+      sender->_expectedId = 1;
+    }
+    sender->saveMessage(desc.id);
+    return ACCEPT_DATA;
   }
   else
   {
-    ret    = iter->second;
-    ret->t = time(0) + 360;
+    // Yes, we have received some thing from this guy before
+    SenderProfile * sender = iter->second;
+    if (sender->_expectedId == desc.id)
+    {
+      // The incoming message matches the expected message id
+      sender->_expectedId = desc.id + 1;
+      sender->_lastId     = desc.id;
+      if (sender->_expectedId > 0xFFFFFFF0)
+      {
+        sender->_expectedId = 1;
+      }
+      sender->saveMessage(desc.id);
+      sender->releaseMessage();
+      return ACCEPT_DATA;
+    }
+    else
+    {
+      // It's not what we are looking for
+      // have we already received this message?
+      if (sender->hasMessage(desc.id))
+      {
+        // Yes, this is not the first time we received this one.
+        return DISCARD_DATA;
+      }
+      else
+      {
+        // No
+        // save it and request for the first missing one
+        sender->saveMessage(desc.id);
+        sender->saveMessage(desc, data);
+        sender->requestMissingMessages(desc.id, desc.from.ival);
+        return DISCARD_DATA;
+      }
+    }
   }
-
-  return ret;
 }
 
 void 
-SenderProfile::addMissingList(std::string name, uint32_t from, uint32_t to)
+DataOrderingManager::processDataRequest (DataDescriptor& desc, std::string& msg)
 {
-  bool emptyQueue = missingQueue.size() == 0 ? true : false;
-  for (uint32_t v = from; v <= to; v += 1)
-  {
-    if (inQueue.get(v) != 0)
-    {
-      continue;
-    }
-  
-    MissingPacket * packet = dynamic_cast<MissingPacket *>(missingQueue.get(v));
-    if (!packet)
-    {
-      MissingPacket * packet = new MissingPacket();
-      packet->t          = time(0);
-      packet->desc.seqNo = v;
-      packet->desc.to.str= name;
-      packet->reqs       = 0;
-      missingQueue.add(packet);
-    }
-  }
+  // check id from outgoingTable
+  // if not found -> send NOT FOUND to make the receiver reset its expected id
+  // if found -> reply
+  uint32_t from,to;
+  char * ptr = (char*)msg.data();
+  memcpy(&from, ptr, sizeof(from)); ptr += sizeof(from);
+  memcpy(&to, ptr, sizeof(to));
+  from = ntohl(from);
+  to   = ntohl(to);
 
-  if (emptyQueue && missingQueue.size() > 0)
+  DataDescriptor dc;
+  dc.version   = 1;
+  memcpy(dc.sender, Net::GetInstance()->getSenderId(), sizeof(dc.sender));
+  dc.id        = 0;
+  dc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
+  dc.to.ival   = desc.from.ival;
+
+  do 
   {
-    schedule(0, 1);
+    dc.id = from;
+
+    BufferTableIterator iter;
+    if ((iter = _outgoingTable.find(from)) == _outgoingTable.end()) 
+    {
+      std::string msg = ":(";
+      DataBus::GetInstance()->send(SAI_DOMAIN, SAI_REP_OPCODE, dc, msg);
+      return;
+    }
+    else
+    {
+      DataBuffer * buffer = iter->second;
+      DataBus::GetInstance()->send(SAI_DOMAIN, SAI_REP_OPCODE, dc, buffer->_data);
+    }
+  }while(from++ < to);
+}
+
+void 
+DataOrderingManager::processDataResponse(DataDescriptor& desc, std::string& msg)
+{
+  char txt[32] = {0};
+  memset(txt, 0, sizeof(txt));
+  memcpy(txt, desc.sender, sizeof(desc.sender));
+  uint64_t desc_sender = strtoul(txt, 0, 16);
+  SenderTableIterator iter = _senderTable.find(desc_sender);
+  if (iter != _senderTable.end())
+  {
+    SenderProfile * sender = iter->second;
+    if (msg.compare(":(") == 0)
+    {
+      // if sender says "NOT FOUND"
+      // flush what we have and reset the expectedId
+      sender->flushMessage();
+    }
+    else
+    {
+      printf("receive recovery %u\n", desc.id);
+      sender->saveMessage(desc.id);
+      sender->saveMessage(desc, msg);
+      sender->releaseMessage();
+    }
   }
 }
 
 void 
-SenderProfile::timerEvent()
+DataRequestHandler::processDataEvent(DataDescriptor& desc, std::string& msg)
 {
-  if (missingQueue.size() == 0)
+  manager->processDataRequest(desc, msg);
+}
+
+void 
+DataResponseHandler::processDataEvent(DataDescriptor& desc, std::string& msg)
+{
+  manager->processDataResponse(desc, msg);
+}
+
+SenderProfile::SenderProfile(DataDispatchable* disp):
+  _flushMode(false),
+  _sender(0),
+  _time(0),
+  _expectedId(0),
+  _lastId(0),
+  _dispatcher(disp)
+{
+}
+
+SenderProfile::~SenderProfile()
+{
+  BufferTableIterator iter;
+  while (_dataTable.size() > 0)
   {
-    return;
+    iter = _dataTable.begin();
+    DataBuffer* buffer = iter->second;
+    _dataTable.erase(iter);
+    delete buffer;
+  }
+}
+
+bool 
+SenderProfile::hasMessage(uint32_t id)
+{
+  IntListIterator it = std::find(_intList.begin(), _intList.end(), id);
+  if (it != _intList.end())
+  {
+    return true;
   }
 
-  MissingPacket * packet = dynamic_cast<MissingPacket*>(missingQueue.popAndPutLast());
-  if (!packet)
+  BufferTableIterator iter = _dataTable.find(id);
+  return (iter == _dataTable.end())? false : true;
+}
+
+void 
+SenderProfile::saveMessage(uint32_t id)
+{
+  _intList.push_back(id);
+}
+
+void 
+SenderProfile::saveMessage(DataDescriptor& desc, std::string data)
+{
+  BufferTableIterator iter;
+  if ((iter = _dataTable.find(desc.id)) != _dataTable.end())
   {
-    return;
+    DataBuffer * buffer = iter->second;
+    memcpy(&buffer->_desc, &desc, sizeof(DataDescriptor));
+    buffer->_data.clear();
+    buffer->_data.append(data.data(), data.size());
   }
-
-#if 0
-  if (packet->t >= time(0)) 
+  else
   {
-    schedule(0, 500);
-    return;
-  }
-#endif
+    DataBuffer * buffer = new DataBuffer();
+    buffer->_time  = time(0);
+    memcpy(&buffer->_desc, &desc, sizeof(DataDescriptor));
+    buffer->_data.append(data.data(), data.size());
 
-  char buff[32];
-  sprintf(buff, "%u", packet->desc.seqNo);
-  // Re-transmission request is always a point-to-point message
-
-  // TODO : Enhance send function to support integer destination
-  std::string to;
-  packet->desc.to.toString(to, Address::RAW_MSG); 
-  DataBus::GetInstance()->sendPointToPoint(to, SAI_REQ_OPCODE, buff, 0);
-  packet->t = time(0) + 1;
-
-  if (++packet->reqs > 10)
-  {
-    expectedId = packet->desc.seqNo + 1;
-    if (expectedId > 0xFFFFFFF0)
-    {
-      expectedId = 1;
-    }
-    releaseMessage();
-    missingQueue.remove(packet);
-  }
-
-  if (missingQueue.size() > 0)
-  {
-    schedule(0, 500);
+    _dataTable.insert(std::make_pair(desc.id, buffer));
   }
 }
 
 void 
 SenderProfile::releaseMessage()
 {
-  // ACT#2
-  // This can be enhanced by adding timer to prevent the long processing loop
-  uint32_t rFrom = expectedId;
-  bool found = true;
-  do 
+  _flushMode = false;
+  schedule(0, 10);
+}
+
+void 
+SenderProfile::flushMessage()
+{
+  _flushMode = true;
+  schedule(0, 10);
+}
+
+void 
+SenderProfile::requestMissingMessages(uint32_t currId, uint32_t to)
+{
+  DataDescriptor dc;
+  dc.version   = 1;
+  memcpy(dc.sender, Net::GetInstance()->getSenderId(), sizeof(dc.sender));
+  dc.id        = 0;
+  dc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
+  dc.to.ival   = to;
+
+  std::string msg;
+  uint32_t reqId;
+  char tmp[16];
+
+  currId--;
+  if (_expectedId > currId)
   {
-    if (inQueue.size() == 0) break;
-    InputPacket * pkt = dynamic_cast<InputPacket*>(inQueue.get(rFrom));
-    if (!pkt)
+    reqId = htonl(_expectedId);
+    memcpy(tmp, &reqId, sizeof(reqId));
+    msg.append(tmp, sizeof(reqId));
+
+    reqId = 0xFFFFFFF0; 
+    reqId = htonl(reqId);
+    memcpy(tmp, &reqId, sizeof(reqId));
+    msg.append(tmp, sizeof(reqId));
+
+    DataBus::GetInstance()->send(SAI_DOMAIN, SAI_REQ_OPCODE, dc, msg);
+    msg.clear();
+
+  
+    reqId = 0;
+    memcpy(tmp, &reqId, sizeof(reqId));
+    msg.append(tmp, sizeof(reqId));
+
+    reqId = htonl(currId);
+    memcpy(tmp, &reqId, sizeof(reqId));
+    msg.append(tmp, sizeof(reqId));
+    DataBus::GetInstance()->send(SAI_DOMAIN, SAI_REQ_OPCODE, dc, msg);
+  }
+  else
+  {
+    reqId = htonl(_expectedId);
+    memcpy(tmp, &reqId, sizeof(reqId));
+    msg.append(tmp, sizeof(reqId));
+
+    reqId = htonl(currId);
+    memcpy(tmp, &reqId, sizeof(reqId));
+    msg.append(tmp, sizeof(reqId));
+    DataBus::GetInstance()->send(SAI_DOMAIN, SAI_REQ_OPCODE, dc, msg);
+  }
+}
+
+void 
+SenderProfile::timerEvent()
+{
+  // send the buffered data out if its id matches the expected id 
+  if (_dataTable.size() > 0)
+  {
+    if (!_flushMode)
     {
-      found = false;
+      BufferTableIterator iter = _dataTable.find(_expectedId);
+      if (iter == _dataTable.end())
+      {
+        return;
+      }
+
+      DataBuffer * buffer = iter->second;
+      _dataTable.erase(iter);
+      _dispatcher->dispatch(buffer->_desc.opcode, buffer->_desc, buffer->_data);
+      printf("dispatch to %u\n", buffer->_desc.opcode);
+      delete buffer;
     }
     else
     {
-      DataBus::GetInstance()->getDataDecoder()->dispatch(pkt->desc.opcode, pkt->desc, pkt->data);
-      inQueue.remove(pkt);
+      BufferTableIterator iter;
+      do 
+      { 
+        iter = _dataTable.find(_expectedId);
+        _expectedId += 1;
+        if (_expectedId > 0xFFFFFFF0)
+        {
+          _expectedId = 1;
+        }
+      } while(iter == _dataTable.end());
 
-      rFrom += 1;
-      if (rFrom > 0xFFFFFFF0)
+      if (iter != _dataTable.end())
       {
-        rFrom = 1;
+        DataBuffer * buffer = iter->second;
+        _dataTable.erase(iter);
+        _dispatcher->dispatch(buffer->_desc.opcode, buffer->_desc, buffer->_data);
+        delete buffer;
       }
     }
-  }while (found);
-  expectedId = rFrom;
-
-  if (inQueue.size() == 0 && missingQueue.size() > 0)
-  {
-    missingQueue.clear();
+    schedule(0, 10);
   }
 }
 
-void
-DataOrderingManager::request(uint32_t seqNo, Address from)
-{
-  OutputPacket * pkt = dynamic_cast<OutputPacket*>(_outQueue.get(seqNo));
-  if (!pkt)
-  {
-    return;
-  }
-
-  if (pkt->pending || ++pkt->reqs > 1000)
-  {
-    return;
-  }
-
-  if (_outgoingList.size() == 0)
-  {
-    _repeater.schedule(0, 100);
-  }
-
-  OutputPacket * nPkt = new OutputPacket();
-  nPkt->t       = time(0);
-  nPkt->desc    = pkt->desc;
-  nPkt->desc.to = from;
-  nPkt->data    = pkt->data;
-  nPkt->reqs    = pkt->reqs;
-  nPkt->pending = pkt;
-  nPkt->p2p     = pkt->p2p;
-
-  pkt->pending  = nPkt;
-
-  if (pkt->p2p)
-  {
-    std::string aTo, bTo;
-    from.toString(aTo, Address::RAW_MSG);
-    pkt->desc.to.toString(bTo, Address::RAW_MSG);
-    if (aTo.compare(bTo) != 0)
-    {
-      nPkt->desc.opcode = 0;
-      nPkt->data.clear();
-    }
-  }
-
-  _outgoingList.push_back(nPkt);
-}
-
-void 
-DataOrderingManager::MsgRepeater::timerEvent()
-{
-  if (list->size() == 0) return;
-
-  OutputPacket * packet = dynamic_cast<OutputPacket*>(list->front());
-  list->erase(list->begin());
-
-
-  std::string to;
-  packet->desc.to.toString(to, Address::RAW_MSG); 
-  manager->send(to, packet->desc.opcode, packet->data, packet->desc.seqNo);
-  packet->pending = 0;
-  delete packet;
-  if (list->size() > 0)
-  {
-    schedule(0, 1);
-  }
-}
-
-void 
-DataOrderingManager::send(std::string to, uint32_t opcode, std::string data, uint32_t seqNo)
-{
-  DataBus::GetInstance()->sendPointToPoint(to, opcode, data, seqNo);
-}
-
-SenderProfile::SenderProfile():
-  expectedId(0),
-  t(0)
-{
-}
-
-SenderProfile::~SenderProfile()
-{
-}

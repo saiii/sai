@@ -38,8 +38,8 @@ private:
   boost::asio::ip::udp::socket   _socket;
   boost::asio::ip::udp::endpoint _endpoint;
   boost::asio::ip::udp::endpoint _senderEndpoint;
-  char               *_buffer;
-  uint32_t            _bufferSize;
+  char              *_buffer;
+  uint32_t           _bufferSize;
   SocketEventHandler *_handler;
 
 public:
@@ -58,8 +58,7 @@ public:
   {
     _buffer = new char[_bufferSize];
   }
-
-  virtual ~UDPMcastServerSocket() 
+  ~UDPMcastServerSocket() 
   {
     delete [] _buffer;
   }
@@ -140,7 +139,7 @@ public:
         boost::asio::placeholders::bytes_transferred));
   }
 
-  virtual void join(std::string mcast) 
+  void join(std::string mcast) 
   {
     if (!openned) throw SocketException("Invalid state! The socket must be openned before!");
 
@@ -203,18 +202,6 @@ public:
     _handler->processDataEvent(_buffer, bytes_recvd);
     listen();
   }
-};
-
-class UDPServerSocket : public UDPMcastServerSocket
-{
-public:
-  UDPServerSocket (Net& net) : UDPMcastServerSocket(net)
-  {
-  }
-  
-  ~UDPServerSocket() {}
-
-  void join(std::string mcast) { }
 };
 
 ServerSocket::ServerSocket(Net& net):
@@ -637,32 +624,10 @@ public:
 
 class UDPBcastClientSocket : public ClientSocket
 {
-protected:
+private:
   boost::asio::ip::udp::endpoint  _remoteEndPoint;
   boost::asio::ip::udp::socket    _socket;
   bool                            _openned;
-
-protected:
-  UDPBcastClientSocket(Net& net, bool val):
-    ClientSocket(net),
-    _socket(*((boost::asio::io_service*)net.getIO()), _remoteEndPoint.protocol()),
-    _openned(true)
-  {
-    boost::asio::ip::udp::endpoint endp;
-    const boost::asio::ip::address address = boost::asio::ip::address::from_string(Net::GetInstance()->getLocalAddress());
-    endp.address(address);
-
-    if (val)
-    {
-      boost::asio::socket_base::broadcast option(true);
-      _socket.set_option(option);
-      _socket.bind(endp);
-    }
-    else
-    {
-      _socket.bind(endp);
-    }
-  }
 
 public:
   UDPBcastClientSocket(Net& net):
@@ -679,7 +644,7 @@ public:
     _socket.bind(endp);
   }
 
-  virtual ~UDPBcastClientSocket()
+  ~UDPBcastClientSocket()
   {}
 
   void open() 
@@ -731,18 +696,6 @@ public:
   }
 
   void processDataSentEvent(const boost::system::error_code& error)
-  {
-  }
-};
-
-class UDPClientSocket : public UDPBcastClientSocket
-{
-public:
-  UDPClientSocket(Net& net): UDPBcastClientSocket(net, false)
-  {
-  }
-
-  ~UDPClientSocket()
   {
   }
 };
@@ -800,11 +753,7 @@ ServerSocket::Create(Net& net, SocketOptions option, ...)
         }
         else
         {
-          ret = new UDPServerSocket(net);
-          if (reuseAddr) 
-          {
-            (dynamic_cast<UDPServerSocket*>(ret))->reuseAddr = true;
-          }
+          txt = "Currently, UDP/UNICAST does not support!";
         }
         break;
       case SAI_SOCKET_OPT_TCP:
@@ -878,7 +827,7 @@ ClientSocket::Create(Net& net, SocketOptions option, ...)
         }
         else
         {
-          ret = new UDPClientSocket(net);
+          txt = "Currently, UDP/UNICAST does not support!";
         }
         break;
       case SAI_SOCKET_OPT_TCP:

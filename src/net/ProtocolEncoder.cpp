@@ -37,9 +37,9 @@ public:
   ~_EncoderV1()
   {}
   void encode(DataDescriptor& desc, 
-              uint32_t        opcode, 
-              std::string&    data, 
-              std::string&    ret);
+              uint32_t        id, 
+              std::string& data, 
+              std::string& ret);
 };
 
 ProtocolEncoder::ProtocolEncoder()
@@ -52,14 +52,14 @@ ProtocolEncoder::~ProtocolEncoder()
 
 void 
 ProtocolEncoder::encode(DataDescriptor& desc, 
-                        uint32_t        opcode, 
-                        std::string&    data, 
-                        std::string&    ret)
+                        uint32_t        id, 
+                        std::string& data, 
+                        std::string& ret)
 {
   switch (desc.version)
   {
     case 1:
-      _EncoderV1().encode(desc, opcode, data, ret);
+      _EncoderV1().encode(desc, id, data, ret);
       break;
     default:
       throw DataException("The specified version does not support!");
@@ -75,8 +75,8 @@ ProtocolEncoder::encode(DataDescriptor& desc,
 void 
 _EncoderV1::encode(DataDescriptor& desc, 
                    uint32_t        id, 
-                   std::string&    data,
-                   std::string&    ret)
+                   std::string& data,
+                   std::string& ret)
 {
   ret.clear();
 
@@ -84,7 +84,7 @@ _EncoderV1::encode(DataDescriptor& desc,
   ADD16(ret, 1);
   ADD16(ret, 0);
   ADDSTR16(ret, Net::GetInstance()->getSenderId());
-  ADD32(ret, desc.seqNo);
+  ADD32(ret, desc.id);
  
   if (desc.from.str.length() == 0)
   { 

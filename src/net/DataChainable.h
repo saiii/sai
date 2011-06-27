@@ -40,18 +40,17 @@ protected:
 public:
   DataChainable();
   virtual ~DataChainable();
-  virtual void processDataEvent(DataDescriptor& desc, std::string& data)
+  void processDataEvent(DataDescriptor& desc, std::string& data)
   {  
     uint32_t id = decode(desc, data);
     if (id)
     {
       bool valid = true;
-      if (valid && _filter) valid = _filter->filterEvent(desc, data);
-      if (valid) dispatch(id, desc, data);
+      if (_filter) valid = _filter->filterEvent(desc, data);
+      if (valid)   dispatch(id, desc, data);
     }
   }
   void setFilter(ChainFilter * f) { _filter = f; }
-  virtual void setChecker(DataChecker * c) { }
 };
 
 }

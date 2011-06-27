@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-// SAI [ 22 Jun 2011 ]
+// SAI [ 19 Mar 2011 ]
 #include <stdio.h>
 #include <iostream>
 #include <boost/asio.hpp>
@@ -38,8 +38,9 @@ int receiver(int argc, char *argv[])
   boost::asio::io_service io_service;
   Printer printer;
   ServerSocket * socket = ServerSocket::Create(*Net::GetInstance(),
-                            SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_TCP,
+                            SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
                             SAI_SOCKET_B_REUSE_ADDR, SAI_SOCKET_OPT_TRUE,
+                            SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
                             SAI_SOCKET_EOA);
   if (argc < 3)
   {
@@ -51,6 +52,7 @@ int receiver(int argc, char *argv[])
   }
   socket->setEventHandler(&printer);
   socket->open();
+  socket->join("224.1.1.1");
   socket->listen();
   Net::GetInstance()->mainLoop();
   delete socket;
@@ -62,10 +64,11 @@ int sender(int argc, char * argv[])
   boost::asio::io_service io_service;
   ClientSocket * socket = ClientSocket::Create(
                             *Net::GetInstance(), 
-                            SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_TCP,
+                            SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
+                            SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
                             SAI_SOCKET_EOA);
   socket->open();
-  socket->connect(argv[2], 1500);
+  socket->connect("224.1.1.1", 1500);
 
   char msg [] = "hello, world";
   socket->send(msg, sizeof(msg));

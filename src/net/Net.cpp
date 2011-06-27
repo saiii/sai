@@ -43,7 +43,7 @@ Net * Net::_instance = 0;
 
 Net::Net():
   _impl(0),
-  _seqNo(0),
+  _id(0),
   _hostAddressUInt32(0)
 {
   _impl = new NetImpl();
@@ -457,12 +457,11 @@ Net::getMessageId()
 {
   // don't want to make it overflow and goes back to 0, so just reset 
   // it at some particular point
-  if (++_seqNo > 0xFFFFFFF0)
+  if (++_id > 0xFFFFFFF0) 
   {
-    _seqNo = 1;
+    _id = 1;
   }
-
-  return _seqNo;
+  return _id;
 }
 
 std::string 
@@ -533,4 +532,3 @@ Nic::Nic()
 
 Nic::~Nic()
 {}
-

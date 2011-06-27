@@ -23,13 +23,11 @@
 #include <arpa/inet.h>
 #endif
 
-#include <vector>
-#include <string>
 #include <boost/asio.hpp>
 #include "Net.h"
 #include "DataBus.h"
 #include "DataBusState.h"
-#include "DataOrderingManager.h"
+//#include "DataOrderingManager.h"
 #include "Socket.h"
 
 using namespace sai::net;
@@ -38,17 +36,6 @@ namespace sai
 { 
 namespace net 
 {
-
-class P2pName
-{
-public:
-  std::string name;
-  uint32_t    id;
-
-public:
-  P2pName():id(0) {}
-  ~P2pName() {}
-};
 
 class _SendReceiveFilter : public DataBusFilter
 {
@@ -78,6 +65,7 @@ DataBus::DataBus():
   _sendReceiveFilter(0),
   _channel(0)
 {
+  activateChecker();
 }
 
 DataBus::~DataBus()
@@ -85,7 +73,7 @@ DataBus::~DataBus()
   delete _channel;
   delete _sendReceiveFilter;
   delete _stateDb;
-  delete DataOrderingManager::GetInstance();
+  //delete DataOrderingManager::GetInstance();
 }
 
 DataBus * DataBus::GetInstance()
@@ -142,10 +130,9 @@ DataBus::listen(std::string name)
 void 
 DataBus::activate()
 {
-  DataOrderingManager::GetInstance()->initialize();
-  _id.setChecker(DataOrderingManager::GetInstance());
-  _fromTo.setChecker(DataOrderingManager::GetInstance());
-  _data.setChecker(DataOrderingManager::GetInstance());
+  //DataOrderingManager* order = new DataOrderingManager(&_data);
+  //DataOrderingManager::_instance = order;
+  //order->initialize();
   _stateDb->getState()->activate();
 }
 
@@ -161,25 +148,13 @@ DataBus::deactivate()
 bool
 DataBus::send(std::string name, uint32_t id, std::string data)
 {
-  return _stateDb->getState()->send(name, id, data, 0);
+  return _stateDb->getState()->send(name, id, data);
 }
 
 bool
-DataBus::send(std::string name, uint32_t id, std::string data, int32_t seqNo)
+DataBus::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data)
 {
-  return _stateDb->getState()->send(name, id, data, seqNo);
-}
-
-bool 
-DataBus::sendPointToPoint(std::string destination, uint32_t id, std::string data)
-{
-  return _stateDb->getState()->sendPointToPoint(destination, id, data, 0);
-}
-
-bool 
-DataBus::sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t seqNo)
-{
-  return _stateDb->getState()->sendPointToPoint(destination, id, data, seqNo);
+  return _stateDb->getState()->send(name, id, desc, data);
 }
 
 void 
