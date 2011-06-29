@@ -20,6 +20,8 @@
 #endif
 
 #include <stdarg.h>
+#include <algorithm>
+#include <vector>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
@@ -32,15 +34,96 @@
 
 using namespace sai::net;
 
+// TODO : Add mutex lock and unlock
+class BufferPool
+{
+public:
+  class Buffer
+  {
+    public:
+      char        *mem;
+      uint32_t     memSize;
+      BufferPool  *pool;
+
+    public:
+      Buffer(BufferPool* p):mem(0), memSize(65536), pool(p) { mem = new char[memSize]; }
+      ~Buffer() { delete [] mem; }
+      void release() { pool->release(this); }
+  };
+
+private:
+  typedef std::vector<Buffer*>           BufferList;
+  typedef std::vector<Buffer*>::iterator BufferListIterator;
+
+private:
+  BufferList freeList;
+  BufferList pendingList;
+
+private:
+  void create()
+  {
+    Buffer * buffer = new Buffer(this);
+    freeList.push_back(buffer);
+  }
+
+  void release(Buffer * buffer)
+  {
+    BufferListIterator iter = std::find(pendingList.begin(), pendingList.end(), buffer);
+    if (iter != pendingList.end())
+    {
+      pendingList.erase(iter);
+      freeList.push_back(buffer);
+    }
+  }
+
+public:
+  BufferPool()
+  {
+  }
+
+  ~BufferPool()
+  {
+    while (freeList.size() > 0)
+    {
+      Buffer * buffer = freeList.front();
+      freeList.erase(freeList.begin());
+      delete buffer;
+    }
+
+    while (pendingList.size() > 0)
+    {
+      Buffer * buffer = pendingList.front();
+      pendingList.erase(pendingList.begin());
+      delete buffer;
+    }
+  }
+
+  Buffer* getBuffer()
+  {
+    if (freeList.size() == 0)
+    {
+      for (int i = 0; i < 10; i += 1)
+      {
+        create();
+      }
+    }
+   
+    Buffer * ret = freeList.front();
+    freeList.erase(freeList.begin());
+    pendingList.push_back(ret);
+    return ret;   
+  }
+};
+
 class UDPMcastServerSocket : public ServerSocket
 {
 private:
   boost::asio::ip::udp::socket   _socket;
   boost::asio::ip::udp::endpoint _endpoint;
   boost::asio::ip::udp::endpoint _senderEndpoint;
-  char              *_buffer;
-  uint32_t           _bufferSize;
-  SocketEventHandler *_handler;
+  SocketEventHandler            *_handler;
+  char                          *_buffer;
+  uint32_t                       _bufferSize;
 
 public:
   bool        reuseAddr;
@@ -50,9 +133,9 @@ public:
   UDPMcastServerSocket(Net& net) : 
     ServerSocket(net),
     _socket(*((boost::asio::io_service*)net.getIO())),
+    _handler(0),
     _buffer(0),
     _bufferSize(65536),
-    _handler(0),
     reuseAddr(false), 
     openned(false)
   {
@@ -132,18 +215,11 @@ public:
       throw SocketException("SocketEventHandler cannot be null!");
     }
 
-    bool error = false;
-    size_t bytes = 0;
-    try
-    {
-      _socket.receive_from(boost::asio::buffer(_buffer, _bufferSize), _senderEndpoint);
-    }
-    catch(boost::system::system_error& e)
-    {  
-      error = true;
-    }
-
-    processDataEvent(error, bytes);
+    _socket.async_receive_from(
+      boost::asio::buffer(_buffer, _bufferSize), _senderEndpoint,
+      boost::bind(&UDPMcastServerSocket::processDataEvent, this,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred));
   }
 
   void join(std::string mcast) 
@@ -199,7 +275,7 @@ public:
     _handler = handler;
   }
 
-  void processDataEvent(bool error, size_t bytes_recvd)
+  void processDataEvent(const boost::system::error_code& error, size_t bytes_recvd)
   {
     if (error) 
     {
@@ -325,19 +401,13 @@ protected:
       }
       void readPreparation()
       {
-        bool error = false;
-        size_t bytes = 0;
-        try
-        {
-          bytes = _client->_socket.read_some(boost::asio::buffer(buffer, bufferSize));
-        }
-        catch(boost::system::system_error& e)
-        {
-          error = true;
-        }
-        processDataEvent(error, bytes);
+        _client->_socket.async_read_some(
+          boost::asio::buffer(buffer, bufferSize),
+          boost::bind(&TCPClientSocket::_ReadyState::processDataEvent, this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
       }
-      void processDataEvent(bool err, size_t bytes)
+      void processDataEvent(const boost::system::error_code& err, size_t bytes)
       {
         if (!err)
         {
@@ -429,19 +499,12 @@ private:
       }
       void start()
       {
-        bool error = false;
-        size_t bytes = 0;
-        try
-        {
-          bytes = _socket.read_some(boost::asio::buffer(buffer, bufferSize));
-        }
-        catch(boost::system::system_error& e)
-        {
-          error = true;
-        }
-        processDataEvent(error, bytes);
+        _socket.async_read_some(boost::asio::buffer(buffer, bufferSize),
+          boost::bind(&TCPServerSocket::_Session::processDataEvent, this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
       }
-      void processDataEvent(bool err, size_t bytes_transferred)
+      void processDataEvent(const boost::system::error_code& err, size_t bytes_transferred)
       {
         if (!err)
         {
