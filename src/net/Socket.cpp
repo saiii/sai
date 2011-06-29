@@ -132,11 +132,18 @@ public:
       throw SocketException("SocketEventHandler cannot be null!");
     }
 
-    _socket.async_receive_from(
-      boost::asio::buffer(_buffer, _bufferSize), _senderEndpoint,
-      boost::bind(&UDPMcastServerSocket::processDataEvent, this,
-        boost::asio::placeholders::error,
-        boost::asio::placeholders::bytes_transferred));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      _socket.receive_from(boost::asio::buffer(_buffer, _bufferSize), _senderEndpoint);
+    }
+    catch(boost::system::system_error& e)
+    {  
+      error = true;
+    }
+
+    processDataEvent(error, bytes);
   }
 
   void join(std::string mcast) 
@@ -192,7 +199,7 @@ public:
     _handler = handler;
   }
 
-  void processDataEvent(const boost::system::error_code& error, size_t bytes_recvd)
+  void processDataEvent(bool error, size_t bytes_recvd)
   {
     if (error) 
     {
@@ -280,7 +287,7 @@ protected:
       {
         delete [] buffer;
       }
-      void sentEvent(const boost::system::error_code& err) 
+      void sentEvent(bool err) 
       {
         if (err)
         {
@@ -289,24 +296,48 @@ protected:
       }
       void send(const char * data, uint32_t size) 
       {
-        boost::asio::async_write(_client->_socket, boost::asio::buffer(data, size),
-          boost::bind(&_ReadyState::sentEvent, this, boost::asio::placeholders::error));
+        bool error = false;
+        size_t bytes = 0;
+        try
+        {
+          bytes = _client->_socket.write_some(boost::asio::buffer(data, size));
+        }
+        catch(boost::system::system_error& e)
+        {
+          error = true;
+        }
+        sentEvent(error);
       }
       void send(const std::string data) 
       {
-        boost::asio::async_write(_client->_socket, 
-          boost::asio::buffer(data.data(), data.size()),
-          boost::bind(&_ReadyState::sentEvent, this, boost::asio::placeholders::error));
+        bool error = false;
+        size_t bytes = 0;
+        try
+        {
+          bytes = _client->_socket.write_some(boost::asio::buffer(data.data(), data.size()));
+        }
+        catch(boost::system::system_error& e)
+        {
+          error = true;
+        }
+
+        sentEvent(error);
       }
       void readPreparation()
       {
-        _client->_socket.async_read_some(
-          boost::asio::buffer(buffer, bufferSize), 
-          boost::bind(&TCPClientSocket::_ReadyState::processDataEvent, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
+        bool error = false;
+        size_t bytes = 0;
+        try
+        {
+          bytes = _client->_socket.read_some(boost::asio::buffer(buffer, bufferSize));
+        }
+        catch(boost::system::system_error& e)
+        {
+          error = true;
+        }
+        processDataEvent(error, bytes);
       }
-      void processDataEvent(const boost::system::error_code& err, size_t bytes)
+      void processDataEvent(bool err, size_t bytes)
       {
         if (!err)
         {
@@ -398,12 +429,19 @@ private:
       }
       void start()
       {
-        _socket.async_read_some(boost::asio::buffer(buffer, bufferSize), 
-          boost::bind(&TCPServerSocket::_Session::processDataEvent, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
+        bool error = false;
+        size_t bytes = 0;
+        try
+        {
+          bytes = _socket.read_some(boost::asio::buffer(buffer, bufferSize));
+        }
+        catch(boost::system::system_error& e)
+        {
+          error = true;
+        }
+        processDataEvent(error, bytes);
       }
-      void processDataEvent(const boost::system::error_code& err, size_t bytes_transferred)
+      void processDataEvent(bool err, size_t bytes_transferred)
       {
         if (!err)
         {
@@ -605,19 +643,35 @@ public:
 
   void send(const char *data, uint32_t size) 
   {
-    _socket.async_send_to(boost::asio::buffer(data, size), _remoteEndPoint,
-      boost::bind(&UDPMcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data, size), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
   void send(const std::string data) 
   {
-    _socket.async_send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint,
-      boost::bind(&UDPMcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
-  void processDataSentEvent(const boost::system::error_code& error)
+  void processDataSentEvent(bool error)
   {
   }
 };
@@ -683,19 +737,35 @@ public:
 
   void send(const char *data, uint32_t size) 
   {
-    _socket.async_send_to(boost::asio::buffer(data, size), _remoteEndPoint,
-      boost::bind(&UDPBcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data, size), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
   void send(const std::string data) 
   {
-    _socket.async_send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint,
-      boost::bind(&UDPBcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
-  void processDataSentEvent(const boost::system::error_code& error)
+  void processDataSentEvent(bool error)
   {
   }
 };
