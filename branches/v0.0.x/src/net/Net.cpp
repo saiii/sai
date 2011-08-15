@@ -488,21 +488,24 @@ Net::getNicList(std::string& ret)
 {
   ret.clear();
 
-  NicListIterator iter;
-  for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
+  if (_nicList.size() > 0)
   {
-    Nic * nic = *iter;
-    if (nic->_ip.compare(getLocalAddress()) == 0)
+    NicListIterator iter;
+    for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
     {
-      ret.append("selected,");
-    }
-    ret.append(nic->_ip);
-    ret.append(",");
-    ret.append(nic->_bcast);
+      Nic * nic = *iter;
+      if (nic->_ip.compare(getLocalAddress()) == 0)
+      {
+        ret.append("selected,");
+      }
+      ret.append(nic->_ip);
+      ret.append(",");
+      ret.append(nic->_bcast);
 
-    if ((iter + 1) != _nicList.end())
-    {
-      ret.append("!");
+      if ((iter + 1) != _nicList.end())
+      {
+        ret.append("!");
+      }
     }
   }
 
