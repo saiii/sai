@@ -30,6 +30,11 @@ std::string GetVersion()
   return _version;
 }
 
+const char * cGetVersion()
+{
+  return _version.c_str();
+}
+
 void PrintVersion()
 {
   std::cout << GetVersion() << std::endl;
