@@ -106,13 +106,16 @@ McastDataBusChannel::copyFrom(DataBusChannel* o)
   _localAddressUInt32 = other->_localAddressUInt32;
   _localAddress       = other->_localAddress;
 
-  StringListIterator iter;
-  for (iter  = other->_impl->recvMcastList.begin();
-       iter != other->_impl->recvMcastList.end();
-       iter ++)
+  if (other->_impl->recvMcastList.size() > 0)
   {
-    std::string *str = new std::string(**iter);
-    _impl->recvMcastList.push_back(str);
+    StringListIterator iter;
+    for (iter  = other->_impl->recvMcastList.begin();
+         iter != other->_impl->recvMcastList.end();
+         iter ++)
+    {
+      std::string *str = new std::string(**iter);
+      _impl->recvMcastList.push_back(str);
+    }
   }
 }
 
@@ -159,15 +162,18 @@ McastDataBusChannel::addRecvMcast(std::string mcast)
   if (!IsMcastAddress(mcast))
     return;
 
-  StringListIterator iter;
-  for(iter  = _impl->recvMcastList.begin();
-      iter != _impl->recvMcastList.end();
-      iter ++)
+  if (_impl->recvMcastList.size() > 0)
   {
-    std::string * str = *iter;
-    if (str->compare(mcast) == 0)
+    StringListIterator iter;
+    for(iter  = _impl->recvMcastList.begin();
+        iter != _impl->recvMcastList.end();
+        iter ++)
     {
-      return;
+      std::string * str = *iter;
+      if (str->compare(mcast) == 0)
+      {
+        return;
+      }
     }
   }
 
@@ -190,13 +196,16 @@ McastDataBusChannel::getSendMcast()
 void 
 McastDataBusChannel::getRecvMcast(StringList& ret)
 {
-  StringListIterator iter;
-  for (iter  = _impl->recvMcastList.begin();
-       iter != _impl->recvMcastList.end();
-       iter ++)
+  if (_impl->recvMcastList.size() > 0)
   {
-    std::string *str = new std::string(**iter);
-    ret.push_back(str);
+    StringListIterator iter;
+    for (iter  = _impl->recvMcastList.begin();
+         iter != _impl->recvMcastList.end();
+         iter ++)
+    {
+      std::string *str = new std::string(**iter);
+      ret.push_back(str);
+    }
   }
 }
 
