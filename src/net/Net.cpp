@@ -318,9 +318,12 @@ Net::sortNicList(NicList& list)
   NicListIterator iter;
   int i = 0;
   int size = list.size();
-  for (iter = list.begin(); iter != list.end(); iter++, i++)
+  if (list.size() > 0)
   {
-    nic[i] = *iter;
+    for (iter = list.begin(); iter != list.end(); iter++, i++)
+    {
+      nic[i] = *iter;
+    }
   }
 
   list.clear();
@@ -470,14 +473,17 @@ Net::getLocalIpFromNic(std::string name)
   static std::string ret;
   ret.clear();
 
-  NicListIterator iter;
-  for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
+  if (_nicList.size() > 0)
   {
-    Nic * nic = *iter;
-    if (nic->_name.compare(name) == 0)
+    NicListIterator iter;
+    for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
     {
-      ret = nic->_ip;
-      break;
+      Nic * nic = *iter;
+      if (nic->_name.compare(name) == 0)
+      {
+        ret = nic->_ip;
+        break;
+      }
     }
   }
   return ret;

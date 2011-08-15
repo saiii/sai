@@ -91,18 +91,21 @@ DataOrderingManager::timerEvent()
     DataBuffer * buffer = _outgoingList.front();
     if ((now - buffer->_time) >= MAX_WAITING_TIME)
     {
-      BufferListIterator iter;
-      for (iter  = _outgoingList.begin();
-           iter != _outgoingList.end();
-           iter ++) 
+      if (_outgoingList.size() > 0)
       {
-        buffer = *iter;
-        if ((now - buffer->_time) >= MAX_WAITING_TIME)
+        BufferListIterator iter;
+        for (iter  = _outgoingList.begin();
+             iter != _outgoingList.end();
+             iter ++) 
         {
-          _outgoingList.erase(_outgoingList.begin());
-          delete buffer;
-          iter = _outgoingList.begin();
-          continue;
+          buffer = *iter;
+          if ((now - buffer->_time) >= MAX_WAITING_TIME)
+          {
+            _outgoingList.erase(_outgoingList.begin());
+            delete buffer;
+            iter = _outgoingList.begin();
+            continue;
+          }
         }
       }
     }
