@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;D:\Programming\C++\sai\src&quot;;&quot;D:\Programming\C++\sai\src\utils&quot;;&quot;D:\Programming\C++\Ext\Boost\include\boost-1_46_1&quot;;&quot;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-9.0\include&quot;;&quot;D:\Programming\C++\cryptopp561&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;MSWINDOWSVS2008_EXPORTS;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;$(SAI_SRC)\src&quot;;&quot;$(SAI_SRC)\src\utils&quot;;&quot;$(BOOST_INC)&quot;;&quot;$(XERCESC_INC)&quot;;&quot;$(CRYPTOPP_INC)&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;MSWINDOWSVS2008_EXPORTS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -106,8 +106,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;D:\Programming\C++\sai\src&quot;;&quot;D:\Programming\C++\sai\src\utils&quot;;&quot;D:\Programming\C++\Ext\Boost\include\boost-1_46_1&quot;;&quot;D:\Programming\C++\Ext\xerces-c-3.1.1-x86-windows-vc-9.0\include&quot;;&quot;D:\Programming\C++\cryptopp561&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;MSWINDOWSVS2008_EXPORTS;_WIN32_WINNT=0x0501;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;$(SAI_SRC)\src&quot;;&quot;$(SAI_SRC)\src\utils&quot;;&quot;$(BOOST_INC)&quot;;&quot;$(XERCESC_INC)&quot;;&quot;$(CRYPTOPP_INC)&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;MSWINDOWSVS2008_EXPORTS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -304,543 +304,539 @@
 				Name="cryptopp"
 				>
 				<File
-					RelativePath="..\..\..\cryptopp561\3way.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\3way.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\adhoc.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\adler32.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\adler32.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\algebra.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\algebra.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\algparam.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\algparam.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\arc4.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\arc4.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\asn.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\asn.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\authenc.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\authenc.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\base32.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\base32.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\base64.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\base64.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\basecode.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\basecode.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\bench.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\bench.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\bench2.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\bench2.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\bfinit.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\bfinit.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\blowfish.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\blowfish.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\blumshub.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\blumshub.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\camellia.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\camellia.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\cast.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cast.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\casts.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\casts.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\cbcmac.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cbcmac.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\ccm.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ccm.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\channels.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\channels.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\cmac.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cmac.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\cpu.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cpu.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\crc.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\crc.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\cryptlib.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cryptlib.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\cryptlib_bds.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cryptlib_bds.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\datatest.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\datatest.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\default.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\default.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\des.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\des.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\dessp.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dessp.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\dh.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dh.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\dh2.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dh2.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\dll.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dll.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\dlltest.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dlltest.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\dsa.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dsa.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\eax.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\eax.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\ec2n.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ec2n.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\eccrypto.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\eccrypto.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\ecp.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ecp.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\elgamal.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\elgamal.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\emsa2.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\emsa2.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\eprecomp.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\eprecomp.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\esign.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\esign.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\files.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\files.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\filters.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\filters.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\fips140.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\fips140.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\fipsalgt.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\fipsalgt.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\fipstest.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\fipstest.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\gcm.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gcm.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\gf256.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gf256.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\gf2_32.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gf2_32.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\gf2n.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gf2n.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\gfpcrypt.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gfpcrypt.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\gost.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gost.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\gzip.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gzip.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\hex.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\hex.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\hmac.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\hmac.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\hrtimer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\hrtimer.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\ida.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ida.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\idea.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\idea.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\integer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\integer.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\iterhash.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\iterhash.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\luc.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\luc.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\mars.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\mars.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\marss.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\marss.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\md2.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\md2.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\md4.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\md4.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\md5.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\md5.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\misc.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\misc.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\modes.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\modes.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\mqueue.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\mqueue.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\mqv.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\mqv.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\nbtheory.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\nbtheory.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\network.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\network.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\oaep.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\oaep.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\osrng.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\osrng.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\panama.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\panama.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\pch.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pch.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\pkcspad.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pkcspad.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\polynomi.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\polynomi.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\pssr.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pssr.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\pubkey.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pubkey.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\queue.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\queue.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rabin.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rabin.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\randpool.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\randpool.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rc2.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rc2.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rc5.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rc5.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rc6.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rc6.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rdtables.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rdtables.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\regtest.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\regtest.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rijndael.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rijndael.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\ripemd.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ripemd.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rng.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rng.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rsa.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rsa.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\rw.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rw.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\safer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\safer.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\salsa.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\salsa.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\seal.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\seal.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\seed.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\seed.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\serpent.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\serpent.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\sha.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\sha.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\shacal2.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\shacal2.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\shark.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\shark.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\sharkbox.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\sharkbox.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\simple.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\simple.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\skipjack.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\skipjack.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\socketft.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\socketft.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\sosemanuk.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\sosemanuk.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\square.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\square.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\squaretb.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\squaretb.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\strciphr.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\strciphr.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\tea.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\tea.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\test.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\test.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\tftables.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\tftables.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\tiger.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\tiger.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\tigertab.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\tigertab.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\trdlocal.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\trdlocal.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\ttmac.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ttmac.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\twofish.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\twofish.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\validat1.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\validat1.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\validat2.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\validat2.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\validat3.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\validat3.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\vmac.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\vmac.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\wait.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\wait.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\wake.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\wake.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\whrlpool.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\whrlpool.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\winpipes.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\winpipes.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\x64dll.asm"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\x64dll.asm"
+					RelativePath="$(CRYPTOPP_SRC)\x64masm.asm"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\x64masm.asm"
+					RelativePath="$(CRYPTOPP_SRC)\xtr.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\xtr.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\xtrcrypt.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\xtrcrypt.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\zdeflate.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\zdeflate.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\zinflate.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\zinflate.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\cryptopp561\zlib.cpp"
+					RelativePath="$(CRYPTOPP_SRC)\zlib.cpp"
 					>
 				</File>
 			</Filter>
@@ -1038,539 +1034,539 @@
 				Name="cryptopp"
 				>
 				<File
-					RelativePath="..\..\..\cryptopp561\3way.h"
+					RelativePath="$(CRYPTOPP_INC)\3way.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\adler32.h"
+					RelativePath="$(CRYPTOPP_INC)\adler32.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\aes.h"
+					RelativePath="$(CRYPTOPP_INC)\aes.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\algebra.h"
+					RelativePath="$(CRYPTOPP_INC)\algebra.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\algparam.h"
+					RelativePath="$(CRYPTOPP_INC)\algparam.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\arc4.h"
+					RelativePath="$(CRYPTOPP_INC)\arc4.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\argnames.h"
+					RelativePath="$(CRYPTOPP_INC)\argnames.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\asn.h"
+					RelativePath="$(CRYPTOPP_INC)\asn.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\authenc.h"
+					RelativePath="$(CRYPTOPP_INC)\authenc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\base32.h"
+					RelativePath="$(CRYPTOPP_INC)\base32.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\base64.h"
+					RelativePath="$(CRYPTOPP_INC)\base64.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\basecode.h"
+					RelativePath="$(CRYPTOPP_INC)\basecode.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\bench.h"
+					RelativePath="$(CRYPTOPP_INC)\bench.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\blowfish.h"
+					RelativePath="$(CRYPTOPP_INC)\blowfish.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\blumshub.h"
+					RelativePath="$(CRYPTOPP_INC)\blumshub.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\camellia.h"
+					RelativePath="$(CRYPTOPP_INC)\camellia.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cast.h"
+					RelativePath="$(CRYPTOPP_INC)\cast.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cbcmac.h"
+					RelativePath="$(CRYPTOPP_INC)\cbcmac.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ccm.h"
+					RelativePath="$(CRYPTOPP_INC)\ccm.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\channels.h"
+					RelativePath="$(CRYPTOPP_INC)\channels.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cmac.h"
+					RelativePath="$(CRYPTOPP_INC)\cmac.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\config.h"
+					RelativePath="$(CRYPTOPP_INC)\config.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cpu.h"
+					RelativePath="$(CRYPTOPP_INC)\cpu.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\crc.h"
+					RelativePath="$(CRYPTOPP_INC)\crc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\cryptlib.h"
+					RelativePath="$(CRYPTOPP_INC)\cryptlib.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\default.h"
+					RelativePath="$(CRYPTOPP_INC)\default.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\des.h"
+					RelativePath="$(CRYPTOPP_INC)\des.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dh.h"
+					RelativePath="$(CRYPTOPP_INC)\dh.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dh2.h"
+					RelativePath="$(CRYPTOPP_INC)\dh2.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dll.h"
+					RelativePath="$(CRYPTOPP_INC)\dll.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dmac.h"
+					RelativePath="$(CRYPTOPP_INC)\dmac.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\dsa.h"
+					RelativePath="$(CRYPTOPP_INC)\dsa.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\eax.h"
+					RelativePath="$(CRYPTOPP_INC)\eax.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ec2n.h"
+					RelativePath="$(CRYPTOPP_INC)\ec2n.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\eccrypto.h"
+					RelativePath="$(CRYPTOPP_INC)\eccrypto.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ecp.h"
+					RelativePath="$(CRYPTOPP_INC)\ecp.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\elgamal.h"
+					RelativePath="$(CRYPTOPP_INC)\elgamal.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\emsa2.h"
+					RelativePath="$(CRYPTOPP_INC)\emsa2.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\eprecomp.h"
+					RelativePath="$(CRYPTOPP_INC)\eprecomp.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\esign.h"
+					RelativePath="$(CRYPTOPP_INC)\esign.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\factory.h"
+					RelativePath="$(CRYPTOPP_INC)\factory.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\files.h"
+					RelativePath="$(CRYPTOPP_INC)\files.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\filters.h"
+					RelativePath="$(CRYPTOPP_INC)\filters.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\fips140.h"
+					RelativePath="$(CRYPTOPP_INC)\fips140.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\fltrimpl.h"
+					RelativePath="$(CRYPTOPP_INC)\fltrimpl.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gcm.h"
+					RelativePath="$(CRYPTOPP_INC)\gcm.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gf256.h"
+					RelativePath="$(CRYPTOPP_INC)\gf256.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gf2_32.h"
+					RelativePath="$(CRYPTOPP_INC)\gf2_32.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gf2n.h"
+					RelativePath="$(CRYPTOPP_INC)\gf2n.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gfpcrypt.h"
+					RelativePath="$(CRYPTOPP_INC)\gfpcrypt.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gost.h"
+					RelativePath="$(CRYPTOPP_INC)\gost.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\gzip.h"
+					RelativePath="$(CRYPTOPP_INC)\gzip.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\hex.h"
+					RelativePath="$(CRYPTOPP_INC)\hex.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\hmac.h"
+					RelativePath="$(CRYPTOPP_INC)\hmac.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\hrtimer.h"
+					RelativePath="$(CRYPTOPP_INC)\hrtimer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ida.h"
+					RelativePath="$(CRYPTOPP_INC)\ida.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\idea.h"
+					RelativePath="$(CRYPTOPP_INC)\idea.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\integer.h"
+					RelativePath="$(CRYPTOPP_INC)\integer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\iterhash.h"
+					RelativePath="$(CRYPTOPP_INC)\iterhash.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\lubyrack.h"
+					RelativePath="$(CRYPTOPP_INC)\lubyrack.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\luc.h"
+					RelativePath="$(CRYPTOPP_INC)\luc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\mars.h"
+					RelativePath="$(CRYPTOPP_INC)\mars.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\md2.h"
+					RelativePath="$(CRYPTOPP_INC)\md2.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\md4.h"
+					RelativePath="$(CRYPTOPP_INC)\md4.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\md5.h"
+					RelativePath="$(CRYPTOPP_INC)\md5.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\mdc.h"
+					RelativePath="$(CRYPTOPP_INC)\mdc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\misc.h"
+					RelativePath="$(CRYPTOPP_INC)\misc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\modarith.h"
+					RelativePath="$(CRYPTOPP_INC)\modarith.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\modes.h"
+					RelativePath="$(CRYPTOPP_INC)\modes.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\modexppc.h"
+					RelativePath="$(CRYPTOPP_INC)\modexppc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\mqueue.h"
+					RelativePath="$(CRYPTOPP_INC)\mqueue.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\mqv.h"
+					RelativePath="$(CRYPTOPP_INC)\mqv.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\nbtheory.h"
+					RelativePath="$(CRYPTOPP_INC)\nbtheory.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\network.h"
+					RelativePath="$(CRYPTOPP_INC)\network.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\nr.h"
+					RelativePath="$(CRYPTOPP_INC)\nr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\oaep.h"
+					RelativePath="$(CRYPTOPP_INC)\oaep.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\oids.h"
+					RelativePath="$(CRYPTOPP_INC)\oids.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\osrng.h"
+					RelativePath="$(CRYPTOPP_INC)\osrng.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\panama.h"
+					RelativePath="$(CRYPTOPP_INC)\panama.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pch.h"
+					RelativePath="$(CRYPTOPP_INC)\pch.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pkcspad.h"
+					RelativePath="$(CRYPTOPP_INC)\pkcspad.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\polynomi.h"
+					RelativePath="$(CRYPTOPP_INC)\polynomi.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pssr.h"
+					RelativePath="$(CRYPTOPP_INC)\pssr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pubkey.h"
+					RelativePath="$(CRYPTOPP_INC)\pubkey.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\pwdbased.h"
+					RelativePath="$(CRYPTOPP_INC)\pwdbased.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\queue.h"
+					RelativePath="$(CRYPTOPP_INC)\queue.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rabin.h"
+					RelativePath="$(CRYPTOPP_INC)\rabin.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\randpool.h"
+					RelativePath="$(CRYPTOPP_INC)\randpool.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rc2.h"
+					RelativePath="$(CRYPTOPP_INC)\rc2.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rc5.h"
+					RelativePath="$(CRYPTOPP_INC)\rc5.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rc6.h"
+					RelativePath="$(CRYPTOPP_INC)\rc6.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\resource.h"
+					RelativePath="$(CRYPTOPP_INC)\resource.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rijndael.h"
+					RelativePath="$(CRYPTOPP_INC)\rijndael.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ripemd.h"
+					RelativePath="$(CRYPTOPP_INC)\ripemd.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rng.h"
+					RelativePath="$(CRYPTOPP_INC)\rng.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rsa.h"
+					RelativePath="$(CRYPTOPP_INC)\rsa.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\rw.h"
+					RelativePath="$(CRYPTOPP_INC)\rw.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\safer.h"
+					RelativePath="$(CRYPTOPP_INC)\safer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\salsa.h"
+					RelativePath="$(CRYPTOPP_INC)\salsa.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\seal.h"
+					RelativePath="$(CRYPTOPP_INC)\seal.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\secblock.h"
+					RelativePath="$(CRYPTOPP_INC)\secblock.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\seckey.h"
+					RelativePath="$(CRYPTOPP_INC)\seckey.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\seed.h"
+					RelativePath="$(CRYPTOPP_INC)\seed.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\serpent.h"
+					RelativePath="$(CRYPTOPP_INC)\serpent.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\serpentp.h"
+					RelativePath="$(CRYPTOPP_INC)\serpentp.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\sha.h"
+					RelativePath="$(CRYPTOPP_INC)\sha.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\shacal2.h"
+					RelativePath="$(CRYPTOPP_INC)\shacal2.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\shark.h"
+					RelativePath="$(CRYPTOPP_INC)\shark.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\simple.h"
+					RelativePath="$(CRYPTOPP_INC)\simple.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\skipjack.h"
+					RelativePath="$(CRYPTOPP_INC)\skipjack.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\smartptr.h"
+					RelativePath="$(CRYPTOPP_INC)\smartptr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\socketft.h"
+					RelativePath="$(CRYPTOPP_INC)\socketft.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\sosemanuk.h"
+					RelativePath="$(CRYPTOPP_INC)\sosemanuk.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\square.h"
+					RelativePath="$(CRYPTOPP_INC)\square.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\stdcpp.h"
+					RelativePath="$(CRYPTOPP_INC)\stdcpp.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\strciphr.h"
+					RelativePath="$(CRYPTOPP_INC)\strciphr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\tea.h"
+					RelativePath="$(CRYPTOPP_INC)\tea.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\tiger.h"
+					RelativePath="$(CRYPTOPP_INC)\tiger.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\trdlocal.h"
+					RelativePath="$(CRYPTOPP_INC)\trdlocal.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\trunhash.h"
+					RelativePath="$(CRYPTOPP_INC)\trunhash.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\ttmac.h"
+					RelativePath="$(CRYPTOPP_INC)\ttmac.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\twofish.h"
+					RelativePath="$(CRYPTOPP_INC)\twofish.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\validate.h"
+					RelativePath="$(CRYPTOPP_INC)\validate.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\vmac.h"
+					RelativePath="$(CRYPTOPP_INC)\vmac.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\wait.h"
+					RelativePath="$(CRYPTOPP_INC)\wait.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\wake.h"
+					RelativePath="$(CRYPTOPP_INC)\wake.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\whrlpool.h"
+					RelativePath="$(CRYPTOPP_INC)\whrlpool.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\winpipes.h"
+					RelativePath="$(CRYPTOPP_INC)\winpipes.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\words.h"
+					RelativePath="$(CRYPTOPP_INC)\words.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\xtr.h"
+					RelativePath="$(CRYPTOPP_INC)\xtr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\xtrcrypt.h"
+					RelativePath="$(CRYPTOPP_INC)\xtrcrypt.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\zdeflate.h"
+					RelativePath="$(CRYPTOPP_INC)\zdeflate.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\zinflate.h"
+					RelativePath="$(CRYPTOPP_INC)\zinflate.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cryptopp561\zlib.h"
+					RelativePath="$(CRYPTOPP_INC)\zlib.h"
 					>
 				</File>
 			</Filter>
