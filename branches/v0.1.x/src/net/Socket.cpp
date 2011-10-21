@@ -20,6 +20,8 @@
 #endif
 
 #include <stdarg.h>
+#include <algorithm>
+#include <vector>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
@@ -38,9 +40,9 @@ private:
   boost::asio::ip::udp::socket   _socket;
   boost::asio::ip::udp::endpoint _endpoint;
   boost::asio::ip::udp::endpoint _senderEndpoint;
-  char               *_buffer;
-  uint32_t            _bufferSize;
-  SocketEventHandler *_handler;
+  SocketEventHandler            *_handler;
+  char                          *_buffer;
+  uint32_t                       _bufferSize;
 
 public:
   bool        reuseAddr;
@@ -50,16 +52,15 @@ public:
   UDPMcastServerSocket(Net& net) : 
     ServerSocket(net),
     _socket(*((boost::asio::io_service*)net.getIO())),
+    _handler(0),
     _buffer(0),
     _bufferSize(65536),
-    _handler(0),
     reuseAddr(false), 
     openned(false)
   {
     _buffer = new char[_bufferSize];
   }
-
-  virtual ~UDPMcastServerSocket() 
+  ~UDPMcastServerSocket() 
   {
     delete [] _buffer;
   }
@@ -140,7 +141,7 @@ public:
         boost::asio::placeholders::bytes_transferred));
   }
 
-  virtual void join(std::string mcast) 
+  void join(std::string mcast) 
   {
     if (!openned) throw SocketException("Invalid state! The socket must be openned before!");
 
@@ -203,18 +204,6 @@ public:
     _handler->processDataEvent(_buffer, bytes_recvd);
     listen();
   }
-};
-
-class UDPServerSocket : public UDPMcastServerSocket
-{
-public:
-  UDPServerSocket (Net& net) : UDPMcastServerSocket(net)
-  {
-  }
-  
-  ~UDPServerSocket() {}
-
-  void join(std::string mcast) { }
 };
 
 ServerSocket::ServerSocket(Net& net):
@@ -293,7 +282,7 @@ protected:
       {
         delete [] buffer;
       }
-      void sentEvent(const boost::system::error_code& err) 
+      void sentEvent(bool err) 
       {
         if (err)
         {
@@ -302,19 +291,37 @@ protected:
       }
       void send(const char * data, uint32_t size) 
       {
-        boost::asio::async_write(_client->_socket, boost::asio::buffer(data, size),
-          boost::bind(&_ReadyState::sentEvent, this, boost::asio::placeholders::error));
+        bool error = false;
+        size_t bytes = 0;
+        try
+        {
+          bytes = _client->_socket.write_some(boost::asio::buffer(data, size));
+        }
+        catch(boost::system::system_error& e)
+        {
+          error = true;
+        }
+        sentEvent(error);
       }
       void send(const std::string data) 
       {
-        boost::asio::async_write(_client->_socket, 
-          boost::asio::buffer(data.data(), data.size()),
-          boost::bind(&_ReadyState::sentEvent, this, boost::asio::placeholders::error));
+        bool error = false;
+        size_t bytes = 0;
+        try
+        {
+          bytes = _client->_socket.write_some(boost::asio::buffer(data.data(), data.size()));
+        }
+        catch(boost::system::system_error& e)
+        {
+          error = true;
+        }
+
+        sentEvent(error);
       }
       void readPreparation()
       {
         _client->_socket.async_read_some(
-          boost::asio::buffer(buffer, bufferSize), 
+          boost::asio::buffer(buffer, bufferSize),
           boost::bind(&TCPClientSocket::_ReadyState::processDataEvent, this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred));
@@ -411,7 +418,7 @@ private:
       }
       void start()
       {
-        _socket.async_read_some(boost::asio::buffer(buffer, bufferSize), 
+        _socket.async_read_some(boost::asio::buffer(buffer, bufferSize),
           boost::bind(&TCPServerSocket::_Session::processDataEvent, this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred));
@@ -618,51 +625,45 @@ public:
 
   void send(const char *data, uint32_t size) 
   {
-    _socket.async_send_to(boost::asio::buffer(data, size), _remoteEndPoint,
-      boost::bind(&UDPMcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data, size), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
   void send(const std::string data) 
   {
-    _socket.async_send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint,
-      boost::bind(&UDPMcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
-  void processDataSentEvent(const boost::system::error_code& error)
+  void processDataSentEvent(bool error)
   {
   }
 };
 
 class UDPBcastClientSocket : public ClientSocket
 {
-protected:
+private:
   boost::asio::ip::udp::endpoint  _remoteEndPoint;
   boost::asio::ip::udp::socket    _socket;
   bool                            _openned;
-
-protected:
-  UDPBcastClientSocket(Net& net, bool val):
-    ClientSocket(net),
-    _socket(*((boost::asio::io_service*)net.getIO()), _remoteEndPoint.protocol()),
-    _openned(true)
-  {
-    boost::asio::ip::udp::endpoint endp;
-    const boost::asio::ip::address address = boost::asio::ip::address::from_string(Net::GetInstance()->getLocalAddress());
-    endp.address(address);
-
-    if (val)
-    {
-      boost::asio::socket_base::broadcast option(true);
-      _socket.set_option(option);
-      _socket.bind(endp);
-    }
-    else
-    {
-      _socket.bind(endp);
-    }
-  }
 
 public:
   UDPBcastClientSocket(Net& net):
@@ -679,7 +680,7 @@ public:
     _socket.bind(endp);
   }
 
-  virtual ~UDPBcastClientSocket()
+  ~UDPBcastClientSocket()
   {}
 
   void open() 
@@ -718,31 +719,35 @@ public:
 
   void send(const char *data, uint32_t size) 
   {
-    _socket.async_send_to(boost::asio::buffer(data, size), _remoteEndPoint,
-      boost::bind(&UDPBcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data, size), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
   void send(const std::string data) 
   {
-    _socket.async_send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint,
-      boost::bind(&UDPBcastClientSocket::processDataSentEvent, this,
-      boost::asio::placeholders::error));
+    bool error = false;
+    size_t bytes = 0;
+    try
+    {
+      bytes = _socket.send_to(boost::asio::buffer(data.c_str(), data.size()), _remoteEndPoint);
+    }
+    catch(boost::system::system_error& e)
+    {
+      error = true;
+    }
+    processDataSentEvent(error);
   }
 
-  void processDataSentEvent(const boost::system::error_code& error)
-  {
-  }
-};
-
-class UDPClientSocket : public UDPBcastClientSocket
-{
-public:
-  UDPClientSocket(Net& net): UDPBcastClientSocket(net, false)
-  {
-  }
-
-  ~UDPClientSocket()
+  void processDataSentEvent(bool error)
   {
   }
 };
@@ -800,11 +805,7 @@ ServerSocket::Create(Net& net, SocketOptions option, ...)
         }
         else
         {
-          ret = new UDPServerSocket(net);
-          if (reuseAddr) 
-          {
-            (dynamic_cast<UDPServerSocket*>(ret))->reuseAddr = true;
-          }
+          txt = "Currently, UDP/UNICAST does not support!";
         }
         break;
       case SAI_SOCKET_OPT_TCP:
@@ -878,7 +879,7 @@ ClientSocket::Create(Net& net, SocketOptions option, ...)
         }
         else
         {
-          ret = new UDPClientSocket(net);
+          txt = "Currently, UDP/UNICAST does not support!";
         }
         break;
       case SAI_SOCKET_OPT_TCP:

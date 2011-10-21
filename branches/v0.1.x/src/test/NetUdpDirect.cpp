@@ -101,22 +101,20 @@ static int NetUdpDirect_sender(int argc, char * argv[])
   return 0;
 }
 
-/*
 int main(int argc, char * argv[])
 {
   if (argc >= 2) 
   {
     if (strcmp(argv[1], "sender") == 0 && argc >= 3)
     {
-      return sender(argc, argv);
+      return NetUdpDirect_sender(argc, argv);
     }
     else if (strcmp(argv[1], "receiver") == 0)
     {
-      return receiver(argc, argv);
+      return NetUdpDirect_receiver(argc, argv);
     }
   }
 
   std::cerr << "Invalid arguments!" << std::endl << "Usage: " << argv[0] << " <sender <ip> | receiver [ip address for binding interface card]>" << std::endl;
   return 1;
 }
-*/
