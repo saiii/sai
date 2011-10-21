@@ -196,24 +196,27 @@ DataBus::getChannel()
 
 inline bool ContainIn(IntList& list, DataDescriptor& desc, bool checkFrom)
 {
-  IntListIterator iter;
-  for (iter  = list.begin();
-       iter != list.end();
-       iter ++)
+  if (list.size() > 0)
   {
-    uint32_t i = *iter;
-    if (checkFrom)
+    IntListIterator iter;
+    for (iter  = list.begin();
+         iter != list.end();
+         iter ++)
     {
-      if (i == desc.from.ival)
+      uint32_t i = *iter;
+      if (checkFrom)
       {
-        return true;
+        if (i == desc.from.ival)
+        {
+          return true;
+        }
       }
-    }
-    else
-    {
-      if (i == desc.to.ival)
+      else
       {
-        return true;
+        if (i == desc.to.ival)
+        {
+          return true;
+        }
       }
     }
   }
@@ -223,24 +226,27 @@ inline bool ContainIn(IntList& list, DataDescriptor& desc, bool checkFrom)
 
 inline bool ContainIn(StringList& list, DataDescriptor& desc, bool checkFrom)
 {
-  StringListIterator siter;
-  for (siter  = list.begin();
-       siter != list.end();
-       siter ++)
+  if (list.size() > 0)
   {
-    std::string *str = *siter;
-    if (checkFrom)
+    StringListIterator siter;
+    for (siter  = list.begin();
+         siter != list.end();
+         siter ++)
     {
-      if (str->compare(0, str->length(), desc.from.str) == 0)
+      std::string *str = *siter;
+      if (checkFrom)
       {
-        return true;
+        if (str->compare(0, str->length(), desc.from.str) == 0)
+        {
+          return true;
+        }
       }
-    }
-    else
-    {
-      if (str->compare(0, str->length(), desc.to.str) == 0)
+      else
       {
-        return true;
+        if (str->compare(0, str->length(), desc.to.str) == 0)
+        {
+          return true;
+        }
       }
     }
   }
@@ -284,15 +290,18 @@ _SendReceiveFilter::filterEvent(DataDescriptor& desc, std::string& data)
 void 
 _SendReceiveFilter::block(std::string name)
 {
-  StringListIterator iter;
-  for(iter  = _blockSenderListString.begin();
-      iter != _blockSenderListString.end();
-      iter ++)
+  if (_blockSenderListString.size() > 0)
   {
-    std::string * str = *iter;
-    if (str->compare(0, str->length(), name) == 0) 
-    { 
-      return; 
+    StringListIterator iter;
+    for(iter  = _blockSenderListString.begin();
+        iter != _blockSenderListString.end();
+        iter ++)
+    {
+      std::string * str = *iter;
+      if (str->compare(0, str->length(), name) == 0) 
+      { 
+        return; 
+      }
     }
   }
 
@@ -313,15 +322,18 @@ _SendReceiveFilter::block(uint32_t addr)
 void 
 _SendReceiveFilter::add(std::string name)
 {
-  StringListIterator iter;
-  for (iter  = _listenListString.begin();
-       iter != _listenListString.end();
-       iter ++)
+  if (_listenListString.size() > 0)
   {
-    std::string * str = *iter;
-    if (str->compare(0, str->length(), name) == 0)
+    StringListIterator iter;
+    for (iter  = _listenListString.begin();
+         iter != _listenListString.end();
+         iter ++)
     {
-      return;
+      std::string * str = *iter;
+      if (str->compare(0, str->length(), name) == 0)
+      {
+        return;
+      }
     }
   }
 

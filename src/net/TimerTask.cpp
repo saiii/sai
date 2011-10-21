@@ -29,20 +29,20 @@ namespace net
 class TimerTaskImpl
 {
 private:
-	boost::asio::deadline_timer  _timer;
-	TimerTask                   *_task;
-	unsigned int                 _interval;
-	bool                         _pending;
+  boost::asio::deadline_timer  _timer;
+  TimerTask                   *_task;
+  unsigned int                 _interval;
+  bool                         _pending;
 
 public:
-	TimerTaskImpl(Net&, TimerTask * task);
-	~TimerTaskImpl();
+  TimerTaskImpl(Net&, TimerTask * task);
+  ~TimerTaskImpl();
 
-	inline void schedule(unsigned int interval);
-	inline void schedule();
-	inline unsigned int getInterval() { return _interval; }
-	void cancel();
-	void timerEvent(const boost::system::error_code& error);
+  inline void schedule(unsigned int interval);
+  inline void schedule();
+  inline unsigned int getInterval() { return _interval; }
+  void cancel();
+  void timerEvent(const boost::system::error_code& error);
 };
 
 TimerTaskImpl::TimerTaskImpl(Net& net, TimerTask * task):
@@ -61,7 +61,7 @@ TimerTaskImpl::~TimerTaskImpl()
 void 
 TimerTaskImpl::cancel()
 {
-  _task = 0;
+   _task = 0;
   _timer.cancel();
 }
 
@@ -108,7 +108,7 @@ TimerTaskImpl::schedule()
 using namespace sai::net;
 
 TimerTask::TimerTask():
-	_impl(0)
+  _impl(0)
 {
   Net * net = Net::GetInstance();
   _impl = new TimerTaskImpl(*net, this);
@@ -118,7 +118,6 @@ TimerTask::~TimerTask()
 {
   _impl->cancel();
   delete _impl;
-  _impl = 0;
 }
 
 unsigned int 
@@ -136,8 +135,6 @@ TimerTask::getMSecInterval()
 void 
 TimerTask::schedule(unsigned int sec, unsigned int msec)
 {
-  if (!_impl) return;
-
   unsigned int interval  = msec;
   interval += (sec * 1000);
 
@@ -147,16 +144,12 @@ TimerTask::schedule(unsigned int sec, unsigned int msec)
 void 
 TimerTask::schedule()
 {
-  if (!_impl) return;
-
   _impl->schedule();
 }
 
 void 
 TimerTask::cancel()
 {
-  if (!_impl) return;
-
   _impl->cancel();
 }
 
