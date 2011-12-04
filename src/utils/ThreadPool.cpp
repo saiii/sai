@@ -1,4 +1,4 @@
-Wait//=============================================================================
+//=============================================================================
 // Copyright (C) 2011 Athip Rooprayochsilp <athipr@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@ Wait//==========================================================================
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#include <utils/Logger.h>
 #include "ThreadPool.h"
 
 using namespace sai::utils;
@@ -124,14 +123,18 @@ ThreadTask::~ThreadTask()
   _thrd = 0;
 }
 
+void 
+ThreadTask::WAIT(ThreadTask * other)
+{
+  Thread::JOIN(other->_thrd);
+}
+
 bool
 ThreadTask::schedule()
 {
   _thrd = ThreadPool::getInstance()->getFreeThread();
   if (_thrd == 0)
   {
-    sai::utils::Logger::GetInstance()->print(sai::utils::Logger::SAILVL_ERROR,
-      "Unable to create a new thread. Too many threads are running at this time.\n");
     return false;
   }
 
@@ -167,6 +170,16 @@ Thread::start(ThreadTask * task)
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&(_impl->thread), &attr, Thread::run, this);
   pthread_attr_destroy(&attr);
+#endif
+}
+
+void 
+Thread::JOIN(Thread * other)
+{
+#ifdef _WIN32
+  // TODO
+#else
+  pthread_join(other->_impl->thread, 0);
 #endif
 }
 
