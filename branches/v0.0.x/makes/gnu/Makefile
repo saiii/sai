@@ -47,5 +47,5 @@ clean: clean_math clean_test clean_ai clean_utils clean_net
 	  @ rm -Rf lib* *.o
 
 count:
-	  @ find . -name '*.*' | grep '\.\(cpp\|h\)$$' | xargs wc -l
+	  @ find ../../src -name '*.*' | grep '\.\(cpp\|h\)$$' | xargs wc -l
 
