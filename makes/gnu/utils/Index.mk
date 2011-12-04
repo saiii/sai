@@ -23,6 +23,7 @@ UTILS_SRC = BinarySearch.cpp \
             Version.cpp \
             Crypto.cpp \
             Logger.cpp \
+            ThreadPool.cpp \
             XmlReader.cpp
 
 UTILS_INC = \
@@ -34,6 +35,7 @@ UTILS_INC = \
           $(SAI_ROOT)/utils/Searcher.h \
           $(SAI_ROOT)/utils/Sorter.h \
           $(SAI_ROOT)/utils/Types.h \
+          $(SAI_ROOT)/utils/ThreadPool.h \
           $(SAI_ROOT)/utils/XmlReader.h
 
 UTILS_OBJ1= $(UTILS_SRC:.cpp=.o)

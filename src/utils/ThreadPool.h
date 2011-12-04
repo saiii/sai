@@ -41,7 +41,6 @@ public:
   ThreadTask();
   virtual ~ThreadTask();
   bool schedule();
-  void wait(ThreadTask* other);
 
   virtual void threadEvent() = 0;
 };
@@ -61,7 +60,6 @@ private:
   ~Thread();
 
   void start(ThreadTask * task);
-  void join(Thread * other);
 #ifdef _WIN32
   static DWORD WINAPI run(LPVOID closure);
 #else

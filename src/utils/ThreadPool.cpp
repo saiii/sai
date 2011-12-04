@@ -1,4 +1,4 @@
-//=============================================================================
+Wait//=============================================================================
 // Copyright (C) 2011 Athip Rooprayochsilp <athipr@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -139,12 +139,6 @@ ThreadTask::schedule()
   return true;
 }
 
-void 
-ThreadTask::wait(ThreadTask* other)
-{
-  _thrd->join(other->_thrd);
-}
-
 Thread::Thread():
   _impl(0)
 {
@@ -173,16 +167,6 @@ Thread::start(ThreadTask * task)
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&(_impl->thread), &attr, Thread::run, this);
   pthread_attr_destroy(&attr);
-#endif
-}
-
-void 
-Thread::join(Thread * other)
-{
-#ifdef _WIN32
-  // TODO
-#else
-  pthread_join(other->_impl->thread, 0);
 #endif
 }
 
