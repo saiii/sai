@@ -15,78 +15,24 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_DATADESCRIPTOR__
-#define __SAI_NET2_DATADESCRIPTOR__
+#include <cstring>
+#include "DataDescriptor.h"
 
-#include <stdint.h>
-#include <utils/XmlReader.h>
+using namespace sai::net2;
 
-namespace sai
+DataDescriptor::DataDescriptor():
+  version(0)
 {
-namespace net2
+  memset(&raw, 0, sizeof(raw));
+  memset(&xml, 0, sizeof(xml));
+  memset(&binary, 0, sizeof(binary));
+  
+}
+
+DataDescriptor::~DataDescriptor()
 {
+  delete [] xml.x2.data;
+  delete [] binary.b2.map;
+  delete [] binary.b2.data;
+}
 
-class Raw2
-{
-public:
-  uint8_t  encAlgo;
-  uint8_t  encTagSize;
-  char     encTag[256];
-  uint8_t  comAlgo;
-  uint8_t  comTagSize;
-  uint8_t  comTag[256];
-  uint8_t  xmlAndBinaryFlag;
-  uint32_t xmlSize; 
-  uint32_t binSize; 
-};
-
-typedef union
-{
-  Raw2 r2;
-}Raw;
-
-class Xml2
-{
-public:
-  char * data;
-};
-
-typedef union
-{
-  Xml2 x2;
-}Xml;
-
-class Binary2
-{
-public:
-  typedef struct { uint32_t offset; uint32_t size; } Pair;
-
-public:
-  uint16_t num;
-  Pair *   map;  
-  char *   data;
-};
-
-typedef union
-{
-  Binary2 b2;
-}Binary;
-
-class DataDescriptor
-{
-public:
-  uint8_t  version;
-  Raw      raw;
-  Xml      xml;
-  Binary   binary;
-
-  sai::utils::XmlReader * xmlReader;
-
-public:
-  DataDescriptor();
-  ~DataDescriptor();
-};
-
-}}
-
-#endif
