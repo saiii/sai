@@ -18,6 +18,9 @@
 #ifndef __SAI_NET2_DATADESCRIPTOR__
 #define __SAI_NET2_DATADESCRIPTOR__
 
+#include <stdint.h>
+#include <utils/XmlReader.h>
+
 namespace sai
 {
 namespace net2
@@ -76,6 +79,8 @@ public:
   Raw      raw;
   Xml      xml;
   Binary   binary;
+
+  sai::utils::XmlReader * xmlReader;
 };
 
 }}

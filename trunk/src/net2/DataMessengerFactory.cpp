@@ -24,12 +24,14 @@ using namespace sai::net2;
 
 DataMessengerFactory::DataMessengerFactory(std::string ip, uint16_t port, McastSet* mcastSet):
   _receiver(0),
-  _decoder(0)
+  _decoder(0),
+  _dispatcher(0)
 {
   _receiver = new InternalTransport();
   _receiver->initialize(ip, port, mcastSet, this);
 
-  _decoder = new RawDecoder();
+  _dispatcher = new DataDispatcher();
+  _decoder = new RawDecoder(_dispatcher);
 }
 
 DataMessengerFactory::~DataMessengerFactory()
@@ -41,6 +43,7 @@ DataMessengerFactory::~DataMessengerFactory()
     delete messenger;
   }
   
+  delete _dispatcher;
   delete _decoder;
   delete _receiver;
 }
