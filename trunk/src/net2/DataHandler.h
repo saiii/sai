@@ -31,6 +31,12 @@ public:
   virtual void processDataEvent(DataDescriptor&);
 };
 
+class RawDataHandler
+{
+public:
+  virtual void processDataEvent(const char * buffer, const uint32_t size);
+};
+
 }}
 
 #endif

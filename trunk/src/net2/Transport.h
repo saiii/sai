@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <net2/DataHandler.h>
 
 namespace sai
 {
@@ -39,11 +40,11 @@ public:
   virtual void send(std::string data) = 0;
 };
 
-class TcpTransportEventHandler
+class TcpTransportEventHandler : public RawDataHandler
 {
 public:
   virtual void processConnectionClosedEvent() {}
-  virtual void processDataEvent(const char * buffer, const int bytes) {}
+  virtual void processDataEvent(const char * buffer, const uint32_t bytes) {}
 };
 
 class TcpTransportImpl;
@@ -82,20 +83,34 @@ public:
   void send(std::string data);
 };
 
+class McastSetImpl;
 class InternalTransportImpl;
-class DataHandler;
+class McastSet
+{
+friend class InternalTransportImpl;
+private:
+  McastSetImpl* _impl;
+
+public:
+  McastSet();
+  virtual ~McastSet();
+
+  void add(std::string mcast);
+};
+
 class InternalTransport
 {
-friend class DataMessenger;
+friend class DataMessengerFactory;
 private:
   InternalTransportImpl * _impl;
-  DataHandler *           _handler;
+  RawDataHandler *        _handler;
+  McastSet *              _mcastSet;
 
 private:
   InternalTransport();
 
 public:
-  void initialize(std::string ip, uint16_t port, DataHandler * handler);
+  void initialize(std::string ip, uint16_t port, McastSet* mcastSet, RawDataHandler * handler);
   ~InternalTransport();
 };
 
