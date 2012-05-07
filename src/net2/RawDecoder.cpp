@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include <net2/DataDescriptor.h>
+#include <net2/DataDispatcher.h>
 #include <net/ProtocolDecoder.h>
 #include <net2/RawDecoder.h>
 
@@ -35,8 +36,11 @@ namespace net2
 
 class Decoder2
 {
+private:
+  DataDispatcher * disp;
+
 public:
-  Decoder2();
+  Decoder2(DataDispatcher * d);
   ~Decoder2();
 
   void processData(const char * data, const uint32_t size);
@@ -44,7 +48,8 @@ public:
 
 }}
 
-Decoder2::Decoder2()
+Decoder2::Decoder2(DataDispatcher * d):
+  disp(d)
 {}
 
 Decoder2::~Decoder2()
@@ -81,35 +86,57 @@ Decoder2::processData(const char * data, const uint32_t size)
   desc.raw.r2.encAlgo = 0;
   READ(desc.raw.r2.encAlgo);
   READ(desc.raw.r2.encTagSize);
-  READN(desc.raw.r2.encTag, desc.raw.r2.encTagSize); 
+  if (desc.raw.r2.encTagSize > 0) READN(desc.raw.r2.encTag, desc.raw.r2.encTagSize); 
   READ(desc.raw.r2.comAlgo);
   READ(desc.raw.r2.comTagSize);
-  READN(desc.raw.r2.comTag, desc.raw.r2.comTagSize);
+  if (desc.raw.r2.comTagSize > 0) READN(desc.raw.r2.comTag, desc.raw.r2.comTagSize);
   READ(desc.raw.r2.xmlAndBinaryFlag);
+  // 1 - XML
+  // 2 - BIN
   READ(desc.raw.r2.xmlSize); desc.raw.r2.xmlSize = ntohl(desc.raw.r2.xmlSize);
   READ(desc.raw.r2.binSize); desc.raw.r2.binSize = ntohl(desc.raw.r2.binSize);
 
-  READN(desc.xml.x2.data, desc.raw.r2.xmlSize);
-  READ(desc.binary.b2.num);
-  desc.binary.b2.num = ntohs(desc.binary.b2.num);
-  desc.binary.b2.map = new Binary2::Pair[desc.binary.b2.num];
-  uint32_t total = 0;
-  for (uint16_t i = 0; i < desc.binary.b2.num; i += 1)
+  // TODO Uncompress message (ptr)
+  // TODO Decrypt message (ptr)
+
+  if (desc.raw.r2.xmlAndBinaryFlag & 0x1)
   {
-    READ(desc.binary.b2.map[i].offset);  
-    READ(desc.binary.b2.map[i].size);  
-    desc.binary.b2.map[i].offset = ntohl(desc.binary.b2.map[i].offset);
-    desc.binary.b2.map[i].size   = ntohl(desc.binary.b2.map[i].size);
-    total += desc.binary.b2.map[i].size;
+    if (desc.raw.r2.xmlSize > 0) 
+    {
+      desc.xml.x2.data = new char[desc.raw.r2.xmlSize];
+      READN(desc.xml.x2.data, desc.raw.r2.xmlSize);
+    }
   }
-  READN(desc.binary.b2.data, total); 
+
+  if (desc.raw.r2.xmlAndBinaryFlag & 0x2)
+  {
+    READ(desc.binary.b2.num);
+    desc.binary.b2.num = ntohs(desc.binary.b2.num);
+    desc.binary.b2.map = new Binary2::Pair[desc.binary.b2.num];
+    uint32_t total = 0;
+    for (uint16_t i = 0; i < desc.binary.b2.num; i += 1)
+    {
+      READ(desc.binary.b2.map[i].offset);  
+      READ(desc.binary.b2.map[i].size);  
+      desc.binary.b2.map[i].offset = ntohl(desc.binary.b2.map[i].offset);
+      desc.binary.b2.map[i].size   = ntohl(desc.binary.b2.map[i].size);
+      total += desc.binary.b2.map[i].size;
+    }
+    if (total > 0) 
+    {
+      desc.binary.b2.data = new char[total];
+      READN(desc.binary.b2.data, total); 
+    }
+  }
+
+  disp->dispatch(desc);
 }
 
-RawDecoder::RawDecoder():
+RawDecoder::RawDecoder(DataDispatcher * disp):
   _old(0),
   _dec2(0)
 {
-  _dec2 = new Decoder2();
+  _dec2 = new Decoder2(disp);
   sai::net::ProtocolDecoder *dec = new sai::net::ProtocolDecoder();
   _old = dec;
 }

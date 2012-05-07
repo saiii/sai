@@ -24,6 +24,7 @@ namespace net2
 {
 
 class Decoder2;
+class DataDispatcher;
 class RawDecoder
 {
 private:
@@ -31,7 +32,7 @@ private:
   Decoder2 * _dec2;
 
 public:
-  RawDecoder();
+  RawDecoder(DataDispatcher * disp);
   virtual ~RawDecoder();
 
   void processData(const char *, const uint32_t);

@@ -15,38 +15,37 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_DATAMESSENGERFACTORY__
-#define __SAI_NET2_DATAMESSENGERFACTORY__
+#ifndef __SAI_NET2_DATADISPATCHER__
+#define __SAI_NET2_DATADISPATCHER__
 
-#include <vector>
-#include <net2/RawDecoder.h>
+#include <map>
+#include <net2/DataDescriptor.h>
 #include <net2/DataHandler.h>
-#include <net2/DataDispatcher.h>
-#include <net2/DataMessenger.h>
 
 namespace sai
 {
 namespace net2
 {
 
-class Transport;
-class DataMessenger;
-class InternalTransport;
-class DataMessengerFactory : public RawDataHandler
+typedef std::map<uint32_t, DataHandler*>           DispatchTable;
+typedef std::map<uint32_t, DataHandler*>::iterator DispatchTableIterator;
+
+class DataDispatcher
 {
+friend class DataMessengerFactory;
 private:
-  InternalTransport *          _receiver;
-  RawDecoder *                 _decoder;
-  DataDispatcher *             _dispatcher;
-  std::vector<DataMessenger*>  _list;
+  DispatchTable   _table;
+  DataHandler *   _defaultHandler;
+
+private:
+  DataDispatcher();
 
 public:
-  DataMessengerFactory(std::string ip, uint16_t port, McastSet* mcastSet);
-  virtual ~DataMessengerFactory();
-  void processDataEvent(const char *, const uint32_t);
+  ~DataDispatcher();
+  void dispatch(DataDescriptor&);
 
-  DataMessenger * create(Transport* transport);  
-  DataDispatcher * getDispatcher() { return _dispatcher; }
+  bool registerHandler(uint32_t opcode, DataHandler * handler);
+  void setDefaultHandler(DataHandler * handler);
 };
 
 }}
