@@ -7,7 +7,7 @@
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY without even the implied warranty of
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
@@ -15,76 +15,61 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_DATADESCRIPTOR__
-#define __SAI_NET2_DATADESCRIPTOR__
+#ifndef __SAI_NET2_RAWENCODER__
+#define __SAI_NET2_RAWENCODER__
 
 #include <stdint.h>
-#include <utils/XmlReader.h>
+#include <string>
+#include <net2/DataDescriptor.h>
 
 namespace sai
 {
 namespace net2
 {
 
-class Raw2
+class RawEncoder;
+class XmlEncoder
 {
+friend class RawEncoder;
+private:
+  std::string& _msg;
+  uint32_t     _opcode;
+  std::string  _userData;
+
 public:
-  uint8_t  encAlgo;
-  uint8_t  encTagSize;
-  char     encTag[256];
-  uint8_t  comAlgo;
-  uint8_t  comTagSize;
-  uint8_t  comTag[256];
-  uint8_t  xmlAndBinaryFlag;
-  uint32_t xmlSize; 
-  uint32_t binSize; 
+  XmlEncoder(std::string& out);
+  ~XmlEncoder();
+
+  void setOpcode(uint32_t ocode) { _opcode = ocode; }
+  void setUserData(std::string xml) { _userData = xml; }
+  void pack(DataDescriptor&);
 };
 
-typedef union
+class BinaryEncoder
 {
-  Raw2 r2;
-}Raw;
+friend class RawEncoder;
+private:
+  std::string& _msg;
 
-class Xml2
-{
 public:
-  char * data;
+  BinaryEncoder(std::string& out);
+  ~BinaryEncoder();
+
+  void add(char * data, uint32_t size);
+  void pack(DataDescriptor&);
 };
 
-typedef union
+class RawEncoder
 {
-  Xml2 x2;
-}Xml;
-
-class Binary2
-{
-public:
-  typedef struct { uint32_t offset; uint32_t size; } Pair;
+private:
+  std::string& _msg;
+  std::string  _back;
 
 public:
-  uint16_t num;
-  Pair *   map;  
-  char *   data;
-};
+  RawEncoder(XmlEncoder&, BinaryEncoder&, std::string& out);
+  ~RawEncoder();
 
-typedef union
-{
-  Binary2 b2;
-}Binary;
-
-class DataDescriptor
-{
-public:
-  uint8_t  version;
-  Raw      raw;
-  Xml      xml;
-  Binary   binary;
-
-  sai::utils::XmlReader * xmlReader;
-
-public:
-  DataDescriptor();
-  ~DataDescriptor();
+  void pack(DataDescriptor&);
 };
 
 }}
