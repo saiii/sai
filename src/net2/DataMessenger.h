@@ -23,19 +23,18 @@ namespace sai
 namespace net2
 {
 
-class InternalTransport;
 class Transport;
 class Packet;
 class DataMessenger
 {
+friend class DataMessengerFactory;
 private:
-  InternalTransport * receiver;
+  Transport * _transport;
 
 private:
-  DataMessenger();
+  DataMessenger(Transport*);
 
 public:
-  static DataMessenger* create(Transport* transport); 
   virtual ~DataMessenger();
  
   bool send(Packet * packet); 

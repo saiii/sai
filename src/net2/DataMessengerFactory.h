@@ -7,7 +7,7 @@
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY without even the implied warranty of
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
@@ -15,67 +15,35 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_DATADESCRIPTOR__
-#define __SAI_NET2_DATADESCRIPTOR__
+#ifndef __SAI_NET2_DATAMESSENGERFACTORY__
+#define __SAI_NET2_DATAMESSENGERFACTORY__
+
+#include <vector>
+#include <net2/RawDecoder.h>
+#include <net2/DataHandler.h>
+#include <net2/DataMessenger.h>
 
 namespace sai
 {
 namespace net2
 {
 
-class Raw2
+class Transport;
+class DataMessenger;
+class InternalTransport;
+class DataMessengerFactory : public RawDataHandler
 {
-public:
-  uint8_t  encAlgo;
-  uint8_t  encTagSize;
-  char     encTag[256];
-  uint8_t  comAlgo;
-  uint8_t  comTagSize;
-  uint8_t  comTag[256];
-  uint8_t  xmlAndBinaryFlag;
-  uint32_t xmlSize; 
-  uint32_t binSize; 
-};
-
-typedef union
-{
-  Raw2 r2;
-}Raw;
-
-class Xml2
-{
-public:
-  char * data;
-};
-
-typedef union
-{
-  Xml2 x2;
-}Xml;
-
-class Binary2
-{
-public:
-  typedef struct { uint32_t offset; uint32_t size; } Pair;
+private:
+  InternalTransport *          _receiver;
+  RawDecoder *                 _decoder;
+  std::vector<DataMessenger*>  _list;
 
 public:
-  uint16_t num;
-  Pair *   map;  
-  char *   data;
-};
+  DataMessengerFactory(std::string ip, uint16_t port, McastSet* mcastSet);
+  virtual ~DataMessengerFactory();
+  void processDataEvent(const char *, const uint32_t);
 
-typedef union
-{
-  Binary2 b2;
-}Binary;
-
-class DataDescriptor
-{
-public:
-  uint8_t  version;
-  Raw      raw;
-  Xml      xml;
-  Binary   binary;
+  DataMessenger * create(Transport* transport);  
 };
 
 }}

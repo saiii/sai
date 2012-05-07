@@ -7,7 +7,7 @@
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY without even the implied warranty of
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
@@ -15,69 +15,22 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_DATADESCRIPTOR__
-#define __SAI_NET2_DATADESCRIPTOR__
+#include "DataMessenger.h"
 
-namespace sai
+using namespace sai::net2;
+
+DataMessenger::DataMessenger(Transport* transport):
+  _transport(transport)
 {
-namespace net2
+}
+
+DataMessenger::~DataMessenger()
 {
+}
 
-class Raw2
+bool 
+DataMessenger::send(Packet * packet)
 {
-public:
-  uint8_t  encAlgo;
-  uint8_t  encTagSize;
-  char     encTag[256];
-  uint8_t  comAlgo;
-  uint8_t  comTagSize;
-  uint8_t  comTag[256];
-  uint8_t  xmlAndBinaryFlag;
-  uint32_t xmlSize; 
-  uint32_t binSize; 
-};
+  return true;
+}
 
-typedef union
-{
-  Raw2 r2;
-}Raw;
-
-class Xml2
-{
-public:
-  char * data;
-};
-
-typedef union
-{
-  Xml2 x2;
-}Xml;
-
-class Binary2
-{
-public:
-  typedef struct { uint32_t offset; uint32_t size; } Pair;
-
-public:
-  uint16_t num;
-  Pair *   map;  
-  char *   data;
-};
-
-typedef union
-{
-  Binary2 b2;
-}Binary;
-
-class DataDescriptor
-{
-public:
-  uint8_t  version;
-  Raw      raw;
-  Xml      xml;
-  Binary   binary;
-};
-
-}}
-
-#endif

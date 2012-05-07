@@ -23,8 +23,6 @@
 #include <boost/bind.hpp>
 
 #include <utils/Logger.h>
-#include <net2/DataHandler.h>
-#include <net2/DataDescriptor.h>
 
 #include "Net.h"
 #include "Transport.h"
@@ -46,10 +44,32 @@ Transport::bind(std::string ip)
 {
 }
 
+
 namespace sai
 {
 namespace net2
 {
+
+typedef std::vector<std::string>           StringList;
+typedef std::vector<std::string>::iterator StringListIterator;
+
+class McastSetImpl
+{
+public:
+  StringList list;
+
+public:
+  McastSetImpl()
+  {}
+
+  ~McastSetImpl()
+  {}
+
+  void add(std::string mcast)
+  {
+    list.push_back(mcast);
+  }
+};
 
 class TcpTransportImpl
 {
@@ -337,7 +357,7 @@ class Session
 public:
   char*                         buffer;
   boost::asio::ip::tcp::socket  sckt;
-  DataHandler*                  handler; 
+  RawDataHandler*               handler; 
 
 public:
   Session():
@@ -364,9 +384,7 @@ public:
     {
       if (handler) 
       {
-        DataDescriptor desc;
-        // do something with buffer and bytes_transferred
-        handler->processDataEvent(desc);
+        handler->processDataEvent(buffer, bytes_transferred);
       }
       start();
     }
@@ -382,7 +400,7 @@ class InternalTransportImpl
 public:
   // TCP Stuff
   boost::asio::ip::tcp::acceptor* acceptor;
-  DataHandler*                    handler; 
+  RawDataHandler*                 handler; 
 
   // UDP Stuff
   boost::asio::ip::udp::socket   udpSocket;
@@ -403,7 +421,7 @@ public:
     delete [] udpBuffer;
   }
 
-  void initialize(std::string ip, uint16_t port, DataHandler * hndlr)
+  void initialize(std::string ip, uint16_t port, McastSet* mcastSet, RawDataHandler * hndlr)
   {
     handler = hndlr;
 
@@ -457,26 +475,30 @@ public:
       }
 
       // join (default channel)
-      std::string mcast = "224.250.250.250";
-      struct ip_mreq imreq;
-      memset(&imreq, 0, sizeof(struct ip_mreq));
-
-      imreq.imr_multiaddr.s_addr = inet_addr(mcast.c_str());
-      imreq.imr_interface.s_addr = inet_addr(endpoint.address().to_string().c_str());
-      //imreq.imr_interface.s_addr = INADDR_ANY;
-
-      int ret = setsockopt(udpSocket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&imreq, sizeof(struct ip_mreq));
-      if (ret != 0)
+      McastSetImpl * set = mcastSet->_impl;
+      for (uint32_t i = 0; i < set->list.size(); i += 1)
       {
-        sai::utils::Logger::GetInstance()->print(
-          sai::utils::Logger::SAILVL_ERROR, "Unable to join the specified multicast group\n");
-      }
-
-      if (sai::utils::Logger::GetInstance())
-      {
-        sai::utils::Logger::GetInstance()->print(
-          sai::utils::Logger::SAILVL_INFO, "InternalTransportImpl joins mcast group (%s) on the (%s)\n",
-          mcast.c_str(), endpoint.address().to_string().c_str());
+        std::string mcast = set->list.at(i);
+        struct ip_mreq imreq;
+        memset(&imreq, 0, sizeof(struct ip_mreq));
+  
+        imreq.imr_multiaddr.s_addr = inet_addr(mcast.c_str());
+        imreq.imr_interface.s_addr = inet_addr(endpoint.address().to_string().c_str());
+        //imreq.imr_interface.s_addr = INADDR_ANY;
+  
+        int ret = setsockopt(udpSocket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&imreq, sizeof(struct ip_mreq));
+        if (ret != 0)
+        {
+          sai::utils::Logger::GetInstance()->print(
+            sai::utils::Logger::SAILVL_ERROR, "Unable to join the specified multicast group\n");
+        }
+  
+        if (sai::utils::Logger::GetInstance())
+        {
+          sai::utils::Logger::GetInstance()->print(
+            sai::utils::Logger::SAILVL_INFO, "InternalTransportImpl joins mcast group (%s) on the (%s)\n",
+            mcast.c_str(), endpoint.address().to_string().c_str());
+        }
       }
 
       // listen
@@ -514,9 +536,7 @@ public:
 
     if (handler)
     {
-      DataDescriptor desc;
-      // Do something with udpBuffer, bytes_recvd
-      handler->processDataEvent(desc);
+      handler->processDataEvent(udpBuffer, bytes_recvd);
     }
 
     udpSocket.async_receive_from(
@@ -598,8 +618,25 @@ InternalTransport::~InternalTransport()
 }
 
 void 
-InternalTransport::initialize(std::string ip, uint16_t port, DataHandler * handler)
+InternalTransport::initialize(std::string ip, uint16_t port, McastSet* mcastSet, RawDataHandler * handler)
 {
-  _impl->initialize(ip, port, handler);
+  _impl->initialize(ip, port, mcastSet, handler);
+}
+
+McastSet::McastSet():
+  _impl(0)
+{
+  _impl = new McastSetImpl();
+}
+
+McastSet::~McastSet()
+{
+  delete _impl;
+}
+
+void 
+McastSet::add(std::string mcast)
+{
+  _impl->add(mcast);
 }
 
