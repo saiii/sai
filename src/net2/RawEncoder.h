@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 #include <net2/DataDescriptor.h>
 
 namespace sai
@@ -27,49 +28,35 @@ namespace sai
 namespace net2
 {
 
-class RawEncoder;
-class XmlEncoder
+class BinaryEntry
 {
-friend class RawEncoder;
-private:
-  std::string& _msg;
-  uint32_t     _opcode;
-  std::string  _userData;
+public:
+  char *   data;
+  uint32_t offset;
+  uint32_t size;
 
 public:
-  XmlEncoder(std::string& out);
-  ~XmlEncoder();
-
-  void setOpcode(uint32_t ocode) { _opcode = ocode; }
-  void setUserData(std::string xml) { _userData = xml; }
-  void pack(DataDescriptor&);
-};
-
-class BinaryEncoder
-{
-friend class RawEncoder;
-private:
-  std::string& _msg;
-
-public:
-  BinaryEncoder(std::string& out);
-  ~BinaryEncoder();
-
-  void add(char * data, uint32_t size);
-  void pack(DataDescriptor&);
+  BinaryEntry();
+  ~BinaryEntry();
 };
 
 class RawEncoder
 {
 private:
-  std::string& _msg;
-  std::string  _back;
+  char *                    _buffer;
+  std::string               _data;
+  uint32_t                  _opcode;
+  std::vector<BinaryEntry*> _binList;
 
 public:
-  RawEncoder(XmlEncoder&, BinaryEncoder&, std::string& out);
+  RawEncoder();
   ~RawEncoder();
 
-  void pack(DataDescriptor&);
+  void  setOpcode(uint32_t);
+  void  appendFieldValue(std::string name, std::string value);
+  void  appendXml(std::string xml);
+  void  appendBinary(std::string binaryData);
+  char* pack(DataDescriptor&, uint32_t& size);
 };
 
 }}
