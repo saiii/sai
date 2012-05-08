@@ -15,55 +15,81 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#include <cstring>
+#include <sstream>
 #include "RawEncoder.h"
+
+#define NET_BUFFER_SIZE 8192
 
 using namespace sai::net2;
 
-XmlEncoder::XmlEncoder(std::string& out):
-  _msg(out),
+BinaryEntry::BinaryEntry():
+  data(0),
+  offset(0),
+  size(0)
+{
+}
+
+BinaryEntry::~BinaryEntry()
+{
+  delete [] data;
+}
+
+RawEncoder::RawEncoder():
+  _buffer(0),
   _opcode(0)
-{}
-
-XmlEncoder::~XmlEncoder()
-{}
-
-void 
-XmlEncoder::pack(DataDescriptor& desc)
 {
-}
-
-BinaryEncoder::BinaryEncoder(std::string& out):
-  _msg(out)
-{
-}
-
-BinaryEncoder::~BinaryEncoder()
-{
-}
-
-void 
-BinaryEncoder::add(char * data, uint32_t size)
-{
-}
-
-void 
-BinaryEncoder::pack(DataDescriptor& desc)
-{
-}
-
-RawEncoder::RawEncoder(XmlEncoder& xml, BinaryEncoder& bin, std::string& out):
-  _msg(out)
-{
-  _back.append(xml._msg.data());
-  _back.append(bin._msg.data());
+  _buffer = new char[NET_BUFFER_SIZE];
 }
 
 RawEncoder::~RawEncoder()
 {
+  while (_binList.size() > 0)
+  {
+    BinaryEntry * entry = _binList.front();
+    _binList.erase(_binList.begin());
+    delete entry;
+  }
+  delete [] _buffer;
 }
 
 void 
-RawEncoder::pack(DataDescriptor& desc)
+RawEncoder::setOpcode(uint32_t opcode)
 {
+  _opcode = opcode;
+}
+
+// name can only be alphanumeric
+void 
+RawEncoder::appendFieldValue(std::string name, std::string value)
+{
+  std::stringstream txt;
+  std::string val = sai::utils::XmlReader::EncodeSpecialCharacter(value);
+  txt << "<" << name << " value=\"" << val << "\" />";
+  _data.append(txt.str());
+}
+
+void 
+RawEncoder::appendXml(std::string xml)
+{
+  _data.append(xml);
+}
+
+void 
+RawEncoder::appendBinary(std::string binaryData)
+{
+  BinaryEntry * entry = new BinaryEntry();
+  entry->data = new char[binaryData.size()];
+  memcpy(entry->data, binaryData.data(), binaryData.size());
+  entry->offset = 0;
+  entry->size   = binaryData.size();
+  _binList.push_back(entry);
+}
+
+char*
+RawEncoder::pack(DataDescriptor& desc, uint32_t& size)
+{
+  // TODO Put things to buffer, encrypt + compress here
+  return 0;
 }
 
