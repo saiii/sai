@@ -26,8 +26,7 @@ TEST_SRC = MathMatrix.cpp \
            NetTcp.cpp \
            NetUdp.cpp \
            NetUdpDirect.cpp \
-           DataBus.cpp \
-           DataBusOrder.cpp
+           DataBus.cpp
 
 TEST_INC = 
 SAI_LIB  = libSai.a 
