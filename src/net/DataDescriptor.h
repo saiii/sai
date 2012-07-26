@@ -43,8 +43,6 @@ public:
 public:
   Address();
   void toString(std::string&, OutputType type = LOG_MSG_MULTIPLE_LINE);
-  void toUInt(uint32_t&);
-  Address& operator=(const Address& rhs) { ival = rhs.ival; str = rhs.str; return *this; }
 };
 
 class DataDescriptor
@@ -52,16 +50,13 @@ class DataDescriptor
 public:
   uint16_t version;
   char     sender[16];
-  uint32_t seqNo;
+  uint32_t id;
   Address  from;
   Address  to;
 
   uint32_t opcode;
-
 public:
   void print();
-
-  DataDescriptor& operator=(const DataDescriptor& rhs);
 };
 
 }

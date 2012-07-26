@@ -26,96 +26,112 @@
 #include <net/DataDispatchable.h>
 #include <net/DataHandler.h>
 #include <net/TimerTask.h>
-#include <net/DataOrderingQueue.h>
 
 namespace sai
 {
 namespace net
 {
 
+class DataBuffer
+{
+friend class SenderProfile;
+friend class DataOrderingManager;
+private:
+  time_t         _time; 
+  DataDescriptor _desc;
+  std::string    _data;
+};
+
+typedef std::map<uint32_t, DataBuffer*>              BufferTable;
+typedef std::map<uint32_t, DataBuffer*>::iterator    BufferTableIterator;
+typedef std::vector<DataBuffer*>                     BufferList;
+typedef std::vector<DataBuffer*>::iterator           BufferListIterator;
+typedef std::vector<uint32_t>                        IntList;
+typedef std::vector<uint32_t>::iterator              IntListIterator;
+
 class SenderProfile : public TimerTask
 {
-public:
-  uint32_t     expectedId;
-  DataQueue    inQueue;
-  DataQueue    missingQueue;
+friend class DataOrderingManager;
+private:
+  bool           _flushMode;
+  uint32_t       _sender;
+  time_t         _time;
+  DataDescriptor _desc;
 
-  time_t       t;
-  std::string  sender;
+  uint32_t       _expectedId;
+  uint32_t       _lastId;
 
-public:
-  SenderProfile();
+  BufferTable        _dataTable;
+  IntList            _intList;
+  DataDispatchable*  _dispatcher;
+
+private:
+  SenderProfile(DataDispatchable*);
   ~SenderProfile();
-
-  void addMissingList(std::string name, uint32_t from, uint32_t to);
+  bool hasMessage(uint32_t);
+  void saveMessage(uint32_t);
+  void saveMessage(DataDescriptor&, std::string);
+  void flushMessage();
   void releaseMessage();
+  void requestMissingMessages(uint32_t, uint32_t);
 
+public:
   void timerEvent();
 };
 
-typedef std::map<std::string, SenderProfile*>           SenderTable;
-typedef std::map<std::string, SenderProfile*>::iterator SenderTableIterator;
+typedef std::map<uint64_t, SenderProfile*>           SenderTable;
+typedef std::map<uint64_t, SenderProfile*>::iterator SenderTableIterator;
 
-class DataOrderingManager : public TimerTask,
-                            public DataChecker
+class DataOrderingManager;
+class DataOrderingHandler
 {
-private:
-  class MsgRepeater : public TimerTask
-  {
-    public:
-      PacketList          * list;
-      DataOrderingManager * manager;
+public:
+  DataOrderingManager * manager;
+};
 
-    public:
-      void timerEvent();
-  };
+class DataRequestHandler : public DataOrderingHandler, public DataHandler
+{
+public:
+  void processDataEvent(DataDescriptor& desc, std::string& msg);
+};
 
+class DataResponseHandler : public DataOrderingHandler, public DataHandler
+{
+public:
+  void processDataEvent(DataDescriptor& desc, std::string& msg);
+};
+
+class DataOrderingManager : public TimerTask
+{
+friend class DataBus;
 private:
   static DataOrderingManager* _instance;
-  DataHandler *               _req;
-  DataQueue                   _outQueue;
-  PacketList                  _outgoingList;
-  MsgRepeater                 _repeater;
+  DataDispatchable*           _dispatcher;
+  BufferTable                 _outgoingTable;
+  BufferList                  _outgoingList;
   SenderTable                 _senderTable;
-  SenderProfile*              _currentSender;
+
+  DataRequestHandler  _requestHandler;
+  DataResponseHandler _responseHandler;
 
 private:
-  DataOrderingManager();
-  void request(uint32_t id, Address from);
-
-  SenderProfile * checkSender(DataDescriptor& desc);
-  void            send(std::string to, uint32_t opcode, std::string data, uint32_t seqNo);
-  inline uint32_t calcExpectedId(uint32_t cur);
+  //DataOrderingManager(DataDispatchable*);
 
 public:
-  static DataOrderingManager* GetInstance();
+  //static DataOrderingManager* GetInstance() { return _instance; }
   ~DataOrderingManager();
 
   void initialize();
-  void timerEvent(); 
 
-  void processReqtEvent(DataDescriptor& desc, std::string& data);
+  void addOutgoingData(DataDescriptor&, std::string);
 
-  void saveOutgoing(DataDescriptor& desc, std::string& data, bool p2p);
+  bool check(DataDescriptor&, std::string);
 
-  bool saveSeqNo(DataDescriptor&, std::string&);
-  void saveIncoming(DataDescriptor&, std::string&);
-  void removeIncoming(DataDescriptor&, std::string&);
-  bool isValid(DataDescriptor&, std::string&);
-  void releaseMessage(DataDescriptor&, std::string&);
+  void timerEvent(); // remove expiring message from the outgoing list & table
+
+  void processDataRequest (DataDescriptor& desc, std::string& msg);
+  void processDataResponse(DataDescriptor& desc, std::string& msg);
 };
-
-inline
-uint32_t 
-DataOrderingManager::calcExpectedId(uint32_t cur)
-{
-  cur += 1;
-  if (cur > 0xFFFFFFF0)
-  {
-    cur = 0;
-  }
-  return cur;
-}
 
 }
 }

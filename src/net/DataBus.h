@@ -46,9 +46,7 @@ private:
 
 private:
   DataBus();
-  bool send(std::string name, uint32_t id, std::string data, int32_t seqNo);
-  bool sendPointToPoint(std::string destination, uint32_t id, std::string data, int32_t seqNo);
-  ProtocolDecoder::Data * getDataDecoder() { return &_data; }
+  bool send(std::string name, uint32_t id, DataDescriptor& desc, std::string data);
 
 public:
   static DataBus * GetInstance();
@@ -58,9 +56,8 @@ public:
   void listen(std::string name);
   void activate();
   void deactivate();
-  bool     send(std::string name, uint32_t id, std::string data);
-  bool     sendPointToPoint(std::string destination, uint32_t id, std::string data);
-  void     blockSender(std::string name);
+  bool send(std::string name, uint32_t id, std::string data);
+  void blockSender(std::string name);
 
   DataBusChannel * getChannel();
 };

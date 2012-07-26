@@ -21,7 +21,6 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace sai 
 { 
@@ -64,8 +63,8 @@ private:
   NetImpl*     _impl;
   NicList      _nicList;
   static Net * _instance;
-  uint32_t     _seqNo;
   char         _sender[17];
+  uint32_t     _id;
   std::string  _hostAddress;
   std::string  _hostBcastAddress;
   uint32_t     _hostAddressUInt32;
