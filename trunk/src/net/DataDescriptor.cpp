@@ -15,16 +15,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifdef _WIN32
-#include <Ws2tcpip.h>
-#else
-#include <arpa/inet.h>
-#endif
-
-#include <stdio.h>
-#include <cstring>
 #include <string>
 #include <iostream>
+#include <stdio.h>
 #include "DataDescriptor.h"
 
 using namespace sai::net;
@@ -113,38 +106,3 @@ Address::toString(std::string& ret, OutputType type)
       break;
   }
 }
-
-void 
-Address::toUInt(uint32_t& ret)
-{
-  if (ival == 0)
-  {
-#ifdef _WIN32
-    extern uint32_t inetPton(std::string ip);
-    ret = inetPton(str);
-#else
-    struct in_addr addr;
-    inet_pton(AF_INET, str.c_str(), &addr);
-    ret = htonl(addr.s_addr);
-#endif
-  }
-  else
-  {
-    ret = ival;
-  }
-}
-
-DataDescriptor& 
-DataDescriptor::operator=(const DataDescriptor& rhs)
-{
-  version   = rhs.version;
-  memcpy(sender, rhs.sender, 16);
-  seqNo     = rhs.seqNo;
-  from.ival = rhs.from.ival;
-  from.str  = rhs.from.str;
-  to.ival   = rhs.to.ival;
-  to.str    = rhs.to.str;
-  opcode    = rhs.opcode;
-  return *this;
-}
-

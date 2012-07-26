@@ -28,7 +28,6 @@ namespace net
 
 class ProtocolDecoder : public DataHandler
 {
-friend class DataOrderingManager;
 protected:
   class MagicToken : public DataChainable
   {
@@ -47,41 +46,17 @@ protected:
 
   class IdToken : public DataChainable
   {
-    private:
-      DataChecker * _checker;
-
-    public: 
-      IdToken();
-      ~IdToken();
-      uint32_t decode(DataDescriptor&, std::string&);
-      void     processDataEvent(DataDescriptor&, std::string&);
-      void     setChecker(DataChecker * c) { _checker = c; }
+    public: uint32_t decode(DataDescriptor&, std::string&);
   };
 
   class FromToToken : public DataChainable
   {
-    private:
-      DataChecker * _checker;
-
-    public: 
-      FromToToken();
-      ~FromToToken();
-      uint32_t decode(DataDescriptor&, std::string&);
-      void     processDataEvent(DataDescriptor&, std::string&);
-      void     setChecker(DataChecker * c) { _checker = c; }
+    public: uint32_t decode(DataDescriptor&, std::string&);
   };
 
   class Data : public DataChainable
   {
-    private:
-      DataChecker * _checker;
-
-    public: 
-      Data();
-      ~Data();
-      uint32_t decode(DataDescriptor&, std::string&);
-      void     processDataEvent(DataDescriptor&, std::string&);
-      void     setChecker(DataChecker * c) { _checker = c; }
+    public: uint32_t decode(DataDescriptor&, std::string&);
   };
 
   class DefaultDataHandler : public DataHandler
@@ -105,6 +80,7 @@ public:
   void processDataEvent(DataDescriptor&, std::string&);
   bool registerHandler(uint32_t id, DataHandler * handler);
   void setDefaultHandler(DataHandler * handler);
+  void activateChecker() { _data.activateChecker(); }
 };
 
 }

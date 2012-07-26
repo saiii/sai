@@ -21,11 +21,9 @@
 #include <netinet/in.h>
 #include <syslog.h>
 #endif
-#include <cstdio>
 #include <string.h>
 #include <iostream>
 #include <net/Net.h>
-#include <net/DataBus.h>
 #include "ProtocolDecoder.h"
 
 using namespace sai::net;
@@ -134,20 +132,19 @@ ProtocolDecoder::SenderToken::decode(DataDescriptor& desc, std::string& data)
 uint32_t
 ProtocolDecoder::IdToken::decode(DataDescriptor& desc, std::string& data)
 {
-  uint32_t seqNo = 0;
+  uint32_t id = 0;
   uint32_t data_size = data.size();
-  if (data_size < sizeof(desc.seqNo)) 
+  if (data_size < sizeof(desc.id)) 
   {
     return 0;
   }
 
   const char * ptr = data.c_str();
-  memcpy(&seqNo, ptr, sizeof(desc.seqNo)); 
-  desc.seqNo = ntohl(seqNo);
+  memcpy(&id, ptr, sizeof(desc.id)); 
+  desc.id = ntohl(id);
 
-  ptr       += sizeof(desc.seqNo);
-  data_size -= sizeof(desc.seqNo);
-
+  ptr       += sizeof(desc.id);
+  data_size -= sizeof(desc.id);
   std::string tdata;
   tdata.append(ptr, data_size);
   data = tdata; 
@@ -333,104 +330,5 @@ void
 ProtocolDecoder::setDefaultHandler(DataHandler * handler)
 {
   _data.setDefaultHandler(handler);
-}
-
-ProtocolDecoder::IdToken::IdToken():
-  _checker(0)
-{
-}
-
-ProtocolDecoder::IdToken::~IdToken()
-{
-}
-
-void 
-ProtocolDecoder::IdToken::processDataEvent(DataDescriptor& desc, std::string& data)
-{
-    uint32_t id = decode(desc, data);
-    if (id)
-    {
-      bool valid = true;
-      valid = _checker->saveSeqNo(desc, data);
-
-      if (valid && _filter)
-      {
-        valid = _filter->filterEvent(desc, data);
-      }
-
-      if (valid)
-      {
-        dispatch(id, desc, data);
-      }
-    }
-}
-
-ProtocolDecoder::FromToToken::FromToToken():
-  _checker(0)
-{
-}
-
-ProtocolDecoder::FromToToken::~FromToToken()
-{
-}
-
-void 
-ProtocolDecoder::FromToToken::processDataEvent(DataDescriptor& desc, std::string& data)
-{
-    uint32_t id = decode(desc, data);
-    if (id)
-    {
-      bool valid = true;
-
-      if (valid && _filter)
-      {
-        valid = _filter->filterEvent(desc, data);
-      }
-
-      if (valid)
-      {
-        dispatch(id, desc, data);
-      }
-      else
-      {
-        _checker->removeIncoming(desc, data);
-      }
-    }
-}
-
-ProtocolDecoder::Data::Data():
-  _checker(0)
-{
-}
-
-ProtocolDecoder::Data::~Data()
-{
-}
-
-void 
-ProtocolDecoder::Data::processDataEvent(DataDescriptor& desc, std::string& data)
-{
-    uint32_t id = decode(desc, data);
-    if (id)
-    {
-      bool valid = true;
-      if (_filter)
-      {
-        valid = _filter->filterEvent(desc, data);
-      }
-
-      if (valid)
-      {
-        if (_checker->isValid(desc, data))
-        {
-          dispatch(id, desc, data);
-          _checker->releaseMessage(desc, data);
-        }
-        else
-        {
-          _checker->saveIncoming(desc, data);
-        }
-      }
-    }
 }
 

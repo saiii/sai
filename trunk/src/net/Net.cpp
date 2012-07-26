@@ -43,7 +43,7 @@ Net * Net::_instance = 0;
 
 Net::Net():
   _impl(0),
-  _seqNo(0),
+  _id(0),
   _hostAddressUInt32(0)
 {
   _impl = new NetImpl();
@@ -318,9 +318,12 @@ Net::sortNicList(NicList& list)
   NicListIterator iter;
   int i = 0;
   int size = list.size();
-  for (iter = list.begin(); iter != list.end(); iter++, i++)
+  if (list.size() > 0)
   {
-    nic[i] = *iter;
+    for (iter = list.begin(); iter != list.end(); iter++, i++)
+    {
+      nic[i] = *iter;
+    }
   }
 
   list.clear();
@@ -457,12 +460,11 @@ Net::getMessageId()
 {
   // don't want to make it overflow and goes back to 0, so just reset 
   // it at some particular point
-  if (++_seqNo > 0xFFFFFFF0)
+  if (++_id > 0xFFFFFFF0) 
   {
-    _seqNo = 1;
+    _id = 1;
   }
-
-  return _seqNo;
+  return _id;
 }
 
 std::string 
@@ -471,14 +473,17 @@ Net::getLocalIpFromNic(std::string name)
   static std::string ret;
   ret.clear();
 
-  NicListIterator iter;
-  for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
+  if (_nicList.size() > 0)
   {
-    Nic * nic = *iter;
-    if (nic->_name.compare(name) == 0)
+    NicListIterator iter;
+    for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
     {
-      ret = nic->_ip;
-      break;
+      Nic * nic = *iter;
+      if (nic->_name.compare(name) == 0)
+      {
+        ret = nic->_ip;
+        break;
+      }
     }
   }
   return ret;
@@ -489,21 +494,24 @@ Net::getNicList(std::string& ret)
 {
   ret.clear();
 
-  NicListIterator iter;
-  for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
+  if (_nicList.size() > 0)
   {
-    Nic * nic = *iter;
-    if (nic->_ip.compare(getLocalAddress()) == 0)
+    NicListIterator iter;
+    for (iter = _nicList.begin(); iter != _nicList.end(); iter++)
     {
-      ret.append("selected,");
-    }
-    ret.append(nic->_ip);
-    ret.append(",");
-    ret.append(nic->_bcast);
+      Nic * nic = *iter;
+      if (nic->_ip.compare(getLocalAddress()) == 0)
+      {
+        ret.append("selected,");
+      }
+      ret.append(nic->_ip);
+      ret.append(",");
+      ret.append(nic->_bcast);
 
-    if ((iter + 1) != _nicList.end())
-    {
-      ret.append("!");
+      if ((iter + 1) != _nicList.end())
+      {
+        ret.append("!");
+      }
     }
   }
 
@@ -533,4 +541,3 @@ Nic::Nic()
 
 Nic::~Nic()
 {}
-

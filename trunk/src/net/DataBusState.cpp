@@ -15,30 +15,19 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifdef _WIN32
-#include <time.h>
-#include <windows.h>
-#else
+#ifndef _WIN32
 #include <syslog.h>
 #endif
-#include <cstdio>
 #include <sstream>
 #include <cstring>
 #include <iostream>
 #include <algorithm>
-#include <math/Utils.h>
 #include "DataBusState.h"
 #include "ProtocolEncoder.h"
-#include "DataOrderingManager.h"
+//#include "DataOrderingManager.h"
 #include "Exception.h"
 
 using namespace sai::net;
-
-#define DROP_TEST 0
-
-#ifdef DROP_TEST
-uint32_t drop = 8;
-#endif
 
 DataBusStateDb::DataBusStateDb(Net& net, 
                                DataBus * bus, 
@@ -164,8 +153,8 @@ NilMcastDataBusState::activate()
     std::cerr << se.what() << std::endl;
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-    syslog(LOG_ERR, "%s\n", localErrMsg.c_str());
-    syslog(LOG_ERR, "%s\n", se.what());
+    syslog(LOG_ERR, localErrMsg.c_str());
+    syslog(LOG_ERR, se.what());
     closelog();
 #endif
     next->deactivate();
@@ -176,7 +165,7 @@ NilMcastDataBusState::activate()
     std::cerr << localErrMsg << std::endl;
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-    syslog(LOG_ERR, "%s\n", localErrMsg.c_str());
+    syslog(LOG_ERR, localErrMsg.c_str());
     closelog();
 #endif
     next->deactivate();
@@ -184,7 +173,7 @@ NilMcastDataBusState::activate()
 }
 
 bool
-NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, int32_t seqNo)
+NilMcastDataBusState::send(std::string name, uint32_t id, std::string data)
 {
   if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
       Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
@@ -195,7 +184,7 @@ NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, int3
   activate();
   if (_db->_state != this)
   {
-    return _db->getState()->send(name, id, data, seqNo);
+    return _db->getState()->send(name, id, data);
   }
   else
   {
@@ -203,11 +192,8 @@ NilMcastDataBusState::send(std::string name, uint32_t id, std::string data, int3
   }
 }
 
-bool 
-NilMcastDataBusState::sendPointToPoint(std::string destination, 
-                                       uint32_t    id, 
-                                       std::string data, 
-                                       int32_t     seqNo)
+bool
+NilMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor&, std::string data)
 {
   if (Net::GetInstance()->getLocalAddress().compare("127.0.0.1") == 0 ||
       Net::GetInstance()->getLocalAddress().compare("0.0.0.0") == 0)
@@ -218,7 +204,7 @@ NilMcastDataBusState::sendPointToPoint(std::string destination,
   activate();
   if (_db->_state != this)
   {
-    return _db->getState()->sendPointToPoint(destination, id, data, seqNo);
+    return _db->getState()->send(name, id, data);
   }
   else
   {
@@ -232,7 +218,6 @@ NilMcastDataBusState::deactivate()
   _db->_filter->clear();
   _db->_filter->add(Net::GetInstance()->getLocalAddressUInt32());
   _db->_filter->add(Net::GetInstance()->getLocalAddress());
-  _db->_filter->add(Net::GetInstance()->getSenderId());
   _db->_filter->add("*"); // For broadcast
 }
 
@@ -269,77 +254,29 @@ ActiveMcastDataBusState::~ActiveMcastDataBusState()
 }
 
 bool
-ActiveMcastDataBusState::send(std::string name, uint32_t opcode, std::string data, int32_t seqNo) 
+ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data) 
 {
-  Net * net = Net::GetInstance();
-
   sai::net::DataDescriptor desc;
   desc.version   = 1;
-  memcpy(desc.sender, net->getSenderId(), sizeof(desc.sender));
-  desc.seqNo     = seqNo == 0 ? net->getMessageId() : seqNo;
-  desc.from.ival = net->getLocalAddressUInt32();
+  memcpy(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender));
+  desc.id        = Net::GetInstance()->getMessageId();
+  desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
   desc.to.str    = name;
-  desc.opcode    = opcode;
 
-  if (seqNo == 0)
-  {
-    DataOrderingManager::GetInstance()->saveOutgoing(desc, data, false);
-  }
-
-#ifdef DROP_TEST
-  if (desc.seqNo == drop)
-  {
-    // Find next drop
-	sai::math::Utils::RandomSeed((sai::math::matrixsize_t)time(0));
-    uint32_t next = sai::math::Utils::RandomInt(1, 30);
-    drop = desc.seqNo + next;
-    //printf("BLOCKED n NextDrop is %u\n", drop);
-    return false;
-  }
-  //printf("Curr %u : DropPub %u\n", desc.seqNo, drop);
-#endif
+  //DataOrderingManager * mgr = DataOrderingManager::GetInstance();
+  //mgr->addOutgoingData(desc, data);
 
   std::string wireData;
-  sai::net::ProtocolEncoder().encode(desc, opcode, data, wireData); 
+  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
   _clientSocket->send(wireData.data(), wireData.size());
   return true;
 }
 
 bool
-ActiveMcastDataBusState::sendPointToPoint(std::string name, 
-                                          uint32_t    opcode, 
-                                          std::string data, 
-                                          int32_t     seqNo)
+ActiveMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data) 
 {
-  Net * net = Net::GetInstance();
-
-  sai::net::DataDescriptor desc;
-  desc.version   = 1;
-  memcpy(desc.sender, net->getSenderId(), sizeof(desc.sender));
-  desc.seqNo     = seqNo == 0 ? net->getMessageId() : seqNo;
-  desc.from.ival = net->getLocalAddressUInt32();
-  desc.to.str    = name;
-  desc.opcode    = opcode;
-
-  if (seqNo == 0)
-  {
-    DataOrderingManager::GetInstance()->saveOutgoing(desc, data, true);
-  }
-
-#ifdef DROP_TEST
-  if (desc.seqNo == drop)
-  {
-    // Find next drop
-    uint32_t next = sai::math::Utils::RandomInt(1, 30);
-    drop = desc.seqNo + next;
-    //printf("BLOCKED n NextDrop is %u\n", drop);
-    return false;
-  }
-  //printf("Curr %u : DropPrv %u\n", desc.seqNo, drop);
-#endif
-
   std::string wireData;
-  sai::net::ProtocolEncoder().encode(desc, opcode, data, wireData); 
+  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
   _clientSocket->send(wireData.data(), wireData.size());
   return true;
 }
