@@ -34,6 +34,7 @@ include utils/Index.mk
 include net/Index.mk
 include net2/Index.mk
 include test/Index.mk
+include net2/Test.mk
 
 LIBS: $(SAI_OBJS) libSai.a libSai.so
 

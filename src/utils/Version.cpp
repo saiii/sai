@@ -19,15 +19,33 @@
 #include <string>
 
 #define VERSION_MAJOR_STR "0"
-#define VERSION_MINOR_STR "0"
+#define VERSION_MINOR_STR "2"
 #define VERSION_COUNT_STR "1"
-#define VERSION_SUFFI_STR "b"
+#define VERSION_SUFFI_STR "a"
+
+#ifdef _WIN32
+#include <windows.h>
+void MyMessageBox(const char * msg)
+{
+  uint32_t size = strlen(msg);
+
+  wchar_t tmp[1024];
+  mbstowcs(tmp, msg, size);
+  ::MessageBox(0, tmp, L"", MB_OK);
+}
+#endif
 
 static std::string _version  = "(libSai) Version " VERSION_MAJOR_STR "." VERSION_MINOR_STR "." VERSION_COUNT_STR VERSION_SUFFI_STR;
+static std::string _version2 = "(" VERSION_MAJOR_STR "." VERSION_MINOR_STR "." VERSION_COUNT_STR VERSION_SUFFI_STR ")";
 
 std::string GetVersion()
 {
   return _version;
+}
+
+std::string GetNet2Version()
+{
+  return _version2;
 }
 
 void PrintVersion()

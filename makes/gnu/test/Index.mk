@@ -52,7 +52,7 @@ test/%.d: $(SAI_ROOT)/test/%.cpp $(SAI_LIB)
 		sed 's,\($*\)\.o[ :]*,test/\1.o $@: ,g' < $@.d > $@; \
 		rm -f $@.d
 
-TEST: $(TEST_OBJ) $(TEST_BIN)
+TEST: $(TEST_OBJ) $(TEST_BIN) TESTNET2
 
 clean_test:
 	  @ rm -f test/*.o test/*.d $(TEST_BIN)
