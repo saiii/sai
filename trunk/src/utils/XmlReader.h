@@ -18,6 +18,7 @@
 #ifndef __SAI_UTILS_XMLREADER__
 #define __SAI_UTILS_XMLREADER__
 
+#include <stdint.h>
 #include <string>
 #include <vector>
 
