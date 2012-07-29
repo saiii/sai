@@ -24,6 +24,7 @@
 #define VERSION_SUFFI_STR "a"
 
 #ifdef _WIN32
+#include <stdint.h>
 #include <windows.h>
 void MyMessageBox(const char * msg)
 {
@@ -38,17 +39,17 @@ void MyMessageBox(const char * msg)
 static std::string _version  = "(libSai) Version " VERSION_MAJOR_STR "." VERSION_MINOR_STR "." VERSION_COUNT_STR VERSION_SUFFI_STR;
 static std::string _version2 = "(" VERSION_MAJOR_STR "." VERSION_MINOR_STR "." VERSION_COUNT_STR VERSION_SUFFI_STR ")";
 
-std::string GetVersion()
+std::string SaiGetVersion()
 {
   return _version;
 }
 
-std::string GetNet2Version()
+std::string SaiGetNet2Version()
 {
   return _version2;
 }
 
-void PrintVersion()
+void SaiPrintVersion()
 {
   std::cout << GetVersion() << std::endl;
 }
