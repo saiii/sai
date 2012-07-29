@@ -30,9 +30,13 @@ void MyMessageBox(const char * msg)
 {
   uint32_t size = strlen(msg);
 
+#ifdef _UNICODE
   wchar_t tmp[1024];
   mbstowcs(tmp, msg, size);
   ::MessageBox(0, tmp, L"", MB_OK);
+#else
+  ::MessageBox(0, msg, "", MB_OK);
+#endif
 }
 #endif
 
