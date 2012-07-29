@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <cstdio>
 #include <xercesc/dom/DOMElement.hpp>
+#include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -213,6 +214,48 @@ getAttribute(xercesc::DOMElement * element, std::string name)
   }
   xercesc::XMLString::release(&value);
   return rtn;
+}
+
+uint32_t 
+XmlReader::count()
+{
+  xercesc::DOMElement* element = _impl->startNode ? _impl->startNode : _impl->root;
+  xercesc::DOMNodeList * children = element->getChildNodes();
+  return children->getLength();
+}
+
+void     
+XmlReader::getChild(uint32_t index, std::string& name, PairList& attributeList)
+{
+  name.clear();
+  attributeList.clear();
+
+  xercesc::DOMElement* element = _impl->startNode ? _impl->startNode : _impl->root;
+  xercesc::DOMNodeList * children = element->getChildNodes();
+  if (index >= children->getLength()) return;
+
+  xercesc::DOMNode * currentNode = children->item(index);
+
+  if (!currentNode || currentNode->getNodeType() != xercesc::DOMNode::ELEMENT_NODE)
+    return;
+
+  xercesc::DOMNamedNodeMap* map = currentNode->getAttributes();
+  for (uint32_t i = 0; i < map->getLength(); i += 1)
+  {
+    xercesc::DOMNode * item = map->item(i);
+
+    const XMLCh * nodeName = element->getNodeName();
+    const XMLCh * nodeValue= element->getNodeValue();
+
+    char * sname = xercesc::XMLString::transcode(nodeName);
+    char * svalue= xercesc::XMLString::transcode(nodeValue);
+    Pair * pair = new Pair();
+    pair->name.assign(sname);
+    pair->value.assign(svalue);
+    attributeList.push_back(pair);
+    xercesc::XMLString::release(&sname);
+    xercesc::XMLString::release(&svalue);
+  }
 }
 
 std::string 
