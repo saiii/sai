@@ -19,11 +19,22 @@
 #define __SAI_UTILS_XMLREADER__
 
 #include <string>
+#include <vector>
 
 namespace sai
 {
 namespace utils
 {
+
+class Pair
+{
+public:
+  std::string name;
+  std::string value;
+};
+
+typedef std::vector<Pair*>           PairList;
+typedef std::vector<Pair*>::iterator PairListIterator;
 
 class XmlReaderImpl;
 class XmlReader
@@ -39,6 +50,9 @@ public:
   void parseMem(std::string xmlMessage);
   void moveTo(std::string tag);
   std::string get(std::string tag, std::string attribute);
+
+  uint32_t count();
+  void     getChild(uint32_t index, std::string& name, PairList& attributeList);
 
   static std::string& EncodeSpecialCharacter(std::string& from);
 };
