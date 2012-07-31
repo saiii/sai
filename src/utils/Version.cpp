@@ -55,6 +55,6 @@ std::string SaiGetNet2Version()
 
 void SaiPrintVersion()
 {
-  std::cout << GetVersion() << std::endl;
+  std::cout << SaiGetVersion() << std::endl;
 }
 
