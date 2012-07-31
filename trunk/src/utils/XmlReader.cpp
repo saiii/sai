@@ -235,6 +235,15 @@ XmlReader::getChild(uint32_t index, std::string& name, PairList& attributeList)
   if (index >= children->getLength()) return;
 
   xercesc::DOMNode * currentNode = children->item(index);
+  element = dynamic_cast<xercesc::DOMElement*>(currentNode);
+
+  const XMLCh * tagName = element->getTagName();
+  char * nm = xercesc::XMLString::transcode(tagName);
+  if (nm)
+  {
+    name = nm;
+    xercesc::XMLString::release(&nm);
+  }
 
   if (!currentNode || currentNode->getNodeType() != xercesc::DOMNode::ELEMENT_NODE)
     return;
@@ -244,17 +253,25 @@ XmlReader::getChild(uint32_t index, std::string& name, PairList& attributeList)
   {
     xercesc::DOMNode * item = map->item(i);
 
-    const XMLCh * nodeName = element->getNodeName();
-    const XMLCh * nodeValue= element->getNodeValue();
+    const XMLCh * nodeName = item->getNodeName();
+    const XMLCh * nodeValue= item->getNodeValue();
 
     char * sname = xercesc::XMLString::transcode(nodeName);
     char * svalue= xercesc::XMLString::transcode(nodeValue);
     Pair * pair = new Pair();
-    pair->name.assign(sname);
-    pair->value.assign(svalue);
     attributeList.push_back(pair);
-    xercesc::XMLString::release(&sname);
-    xercesc::XMLString::release(&svalue);
+
+    if (sname)
+    {
+      pair->name.assign(sname);
+      xercesc::XMLString::release(&sname);
+    }
+ 
+    if (svalue)
+    {
+      pair->value.assign(svalue);
+      xercesc::XMLString::release(&svalue);
+    }
   }
 }
 

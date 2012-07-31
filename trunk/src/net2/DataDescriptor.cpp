@@ -43,14 +43,14 @@ DataDescriptor::~DataDescriptor()
   delete protMessage;
 }
 
-extern std::string GetNet2Version();
+extern std::string SaiGetNet2Version();
 boost::uuids::uuid ProtMessage::_uuid = boost::uuids::random_generator()();
 
 ProtMessage::ProtMessage()
 {
   const std::string uuid = boost::uuids::to_string(_uuid);
   _map.insert(std::make_pair("uuid", uuid));
-  _map.insert(std::make_pair("api", GetNet2Version()));
+  _map.insert(std::make_pair("api", SaiGetNet2Version()));
 }
 
 ProtMessage::~ProtMessage()
