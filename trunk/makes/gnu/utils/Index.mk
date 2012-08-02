@@ -21,7 +21,8 @@ UTILS_SRC = BinarySearch.cpp \
             LinearSearch.cpp \
             List.cpp \
             Version.cpp \
-            Crypto.cpp \
+            CryptoKey.cpp \
+            CryptoFactory.cpp \
             Logger.cpp \
             ThreadPool.cpp \
             XmlReader.cpp
@@ -31,6 +32,8 @@ UTILS_INC = \
           $(SAI_ROOT)/utils/BubbleSort.h \
           $(SAI_ROOT)/utils/KDTreeSort.h \
           $(SAI_ROOT)/utils/LinearSearch.h \
+          $(SAI_ROOT)/utils/CryptoKey.h \
+          $(SAI_ROOT)/utils/CryptoFactory.h \
           $(SAI_ROOT)/utils/List.h \
           $(SAI_ROOT)/utils/Searcher.h \
           $(SAI_ROOT)/utils/Sorter.h \
