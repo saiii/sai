@@ -2,8 +2,10 @@
 export BOOST_INC=/home/athip/Dev/boost_1_47_0/BIN/include
 export BOOST_LIB=/home/athip/Dev/boost_1_47_0/BIN/lib/libboost_system.a
 export BOOST_LIB="$BOOST_LIB /home/athip/Dev/boost_1_47_0/BIN/lib/libboost_regex.a"
-export CRYPTOPP_INC=/usr/include/crypto++
-export CRYPTOPP_LIB=/usr/lib/libcrypto++.a
+#export CRYPTOPP_INC=/usr/include/crypto++
+#export CRYPTOPP_LIB=/usr/lib/libcrypto++.a
+export CRYPTOPP_INC=/home/athip/Dev/cryptopp
+export CRYPTOPP_LIB=/home/athip/Dev/cryptopp/libcryptopp.a
 export XERCES_INC=/home/athip/Dev/xerces-c-3.1.1/BIN/include
 export XERCES_LIB=/home/athip/Dev/xerces-c-3.1.1/BIN/lib/libxerces-c.a
 

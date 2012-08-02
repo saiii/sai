@@ -1,5 +1,5 @@
 //=============================================================================
-// Copyright (C) 2008 Athip Rooprayochsilp <athipr@gmail.com>
+// Copyright (C) 2012 Athip Rooprayochsilp <athipr@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,10 +15,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_UTILS_CRYPTO__
-#define __SAI_UTILS_CRYPTO__
+#ifndef __SAI_UTILS_CRYPTOFACTORY__
+#define __SAI_UTILS_CRYPTOFACTORY__
 
+#include <stdint.h>
 #include <string>
+#include <utils/CryptoKey.h>
 
 namespace sai
 {
@@ -28,24 +30,38 @@ namespace utils
 class Crypto
 {
 public:
-  virtual void encrypt(std::string& key, std::string& iv, std::string& data, std::string& output) = 0;
-  virtual void decrypt(std::string& key, std::string& iv, std::string& data, std::string& output) = 0;
+  Crypto();
+  virtual ~Crypto();
 };
 
-typedef enum {
-  AES256 = 1
-}AlgoType;
-
-class CryptoManager
+class SymmetricCrypto : public Crypto
 {
 private:
-  Crypto * _crypto;
+  uint32_t size;
 
 public:
-  CryptoManager();
-  ~CryptoManager();
+  SymmetricCrypto();
+  virtual ~SymmetricCrypto();
+  virtual void encrypt(SymmetricKey& key, std::string data, std::string& output) = 0;
+  virtual void decrypt(SymmetricKey& key, std::string data, std::string& output) = 0;
+};
 
-  Crypto * create(AlgoType);
+class AsymmetricCrypto : public Crypto
+{
+public:
+  AsymmetricCrypto();
+  virtual ~AsymmetricCrypto();
+  virtual void encrypt(AsymmetricKey& key, std::string data, std::string& output) = 0;
+  virtual void decrypt(AsymmetricKey& key, std::string data, std::string& output) = 0;
+};
+
+class CryptoFactory
+{
+public:
+  CryptoFactory();
+  ~CryptoFactory();
+
+  Crypto * create(CryptoAlgoType);
 };
 
 }

@@ -25,12 +25,14 @@ TEST_SRC = MathMatrix.cpp \
            MathUtils.cpp \
            NetTcp.cpp \
            NetUdp.cpp \
+           Crypto.cpp \
            NetUdpDirect.cpp \
            DataBus.cpp
 
 TEST_INC = 
 SAI_LIB  = libSai.a 
 LIBS    += $(BOOST_LIB)
+LIBS    += $(CRYPTOPP_LIB)
 LIBS    += -lpthread
 
 TEST_OBJ1= $(TEST_SRC:.cpp=.o)
