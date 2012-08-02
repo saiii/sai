@@ -29,7 +29,8 @@ namespace utils
 
 typedef enum {
   AES256 = 1,
-  ECC571 = 2
+  ECC521 = 2,
+  ECC571 = 3
 }CryptoAlgoType;
 
 class CryptoKey

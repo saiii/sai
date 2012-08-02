@@ -77,11 +77,20 @@ public:
   void decrypt(SymmetricKey& key, std::string data, std::string& output);
 };
 
-class EllipticCurve : public AsymmetricCrypto
+class EllipticCurveEC2N : public AsymmetricCrypto
 {
 public:
-  EllipticCurve();
-  ~EllipticCurve();
+  EllipticCurveEC2N();
+  ~EllipticCurveEC2N();
+  void encrypt(AsymmetricKey& key, std::string data, std::string& output);
+  void decrypt(AsymmetricKey& key, std::string data, std::string& output);
+};
+
+class EllipticCurveECP : public AsymmetricCrypto
+{
+public:
+  EllipticCurveECP();
+  ~EllipticCurveECP();
   void encrypt(AsymmetricKey& key, std::string data, std::string& output);
   void decrypt(AsymmetricKey& key, std::string data, std::string& output);
 };
@@ -90,16 +99,16 @@ CryptoRijindael::CryptoRijindael() {}
 
 CryptoRijindael::~CryptoRijindael() {}
 
-EllipticCurve::EllipticCurve()
+EllipticCurveEC2N::EllipticCurveEC2N()
 {
 }
 
-EllipticCurve::~EllipticCurve()
+EllipticCurveEC2N::~EllipticCurveEC2N()
 {
 }
 
 void 
-EllipticCurve::encrypt(AsymmetricKey& key, std::string data, std::string& output)
+EllipticCurveEC2N::encrypt(AsymmetricKey& key, std::string data, std::string& output)
 {
   output.clear();
 
@@ -125,12 +134,72 @@ EllipticCurve::encrypt(AsymmetricKey& key, std::string data, std::string& output
 }
 
 void 
-EllipticCurve::decrypt(AsymmetricKey& key, std::string data, std::string& output)
+EllipticCurveEC2N::decrypt(AsymmetricKey& key, std::string data, std::string& output)
 {
   CryptoPP::AutoSeededRandomPool rng;
 
   CryptoPP::ECIES<CryptoPP::EC2N>::PrivateKey * priKey = static_cast<CryptoPP::ECIES<CryptoPP::EC2N>::PrivateKey*>(key.getPrivateKey());
   CryptoPP::ECIES<CryptoPP::EC2N>::Decryptor * decryptor = new CryptoPP::ECIES<CryptoPP::EC2N>::Decryptor(*priKey);
+
+  size_t decryptedSize = decryptor->MaxPlaintextLength(data.size());
+
+  if (decryptedSize == 0)
+  {
+    // TODO: Throw security exception! "Source data to be decrypted is too long!
+    delete decryptor;
+    return;
+  }
+
+  byte* decryptedRawData = new byte[decryptedSize];
+  memset(decryptedRawData, 0, decryptedSize);
+  decryptor->Decrypt(rng, reinterpret_cast<const byte*>(data.data()), data.size(), decryptedRawData);
+  output.clear();
+  output.assign(reinterpret_cast<char *>(decryptedRawData), decryptedSize);
+  delete [] decryptedRawData;
+  delete decryptor;
+}
+
+EllipticCurveECP::EllipticCurveECP()
+{
+}
+
+EllipticCurveECP::~EllipticCurveECP()
+{
+}
+
+void 
+EllipticCurveECP::encrypt(AsymmetricKey& key, std::string data, std::string& output)
+{
+  output.clear();
+
+  CryptoPP::ECIES<CryptoPP::ECP>::PublicKey * pubKey = static_cast<CryptoPP::ECIES<CryptoPP::ECP>::PublicKey*>(key.getPublicKey());
+  CryptoPP::ECIES<CryptoPP::ECP>::Encryptor * encryptor = new CryptoPP::ECIES<CryptoPP::ECP>::Encryptor(*pubKey);
+
+  size_t encryptedSize = encryptor->CiphertextLength(data.size());
+  if (encryptedSize == 0)
+  {
+    // TODO: Throw security exception! "Source data to be encrypted is too long!
+    delete encryptor;
+    return;
+  }
+
+  CryptoPP::AutoSeededRandomPool rng;
+  byte* encryptedRawData = new byte[encryptedSize];
+  //memset(encryptedRawData, 0, encryptedSize);
+  encryptor->Encrypt(rng, (const byte*) data.data(), data.size(), encryptedRawData);
+  //encryptor->Encrypt(rng, reinterpret_cast<const byte*> (data.data()), data.size(), encryptedRawData);
+  output.assign(reinterpret_cast<char *>(encryptedRawData), encryptedSize);
+  delete [] encryptedRawData;
+  delete encryptor;
+}
+
+void 
+EllipticCurveECP::decrypt(AsymmetricKey& key, std::string data, std::string& output)
+{
+  CryptoPP::AutoSeededRandomPool rng;
+
+  CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey * priKey = static_cast<CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey*>(key.getPrivateKey());
+  CryptoPP::ECIES<CryptoPP::ECP>::Decryptor * decryptor = new CryptoPP::ECIES<CryptoPP::ECP>::Decryptor(*priKey);
 
   size_t decryptedSize = decryptor->MaxPlaintextLength(data.size());
 
@@ -197,8 +266,10 @@ CryptoFactory::create(CryptoAlgoType type)
   {
     case AES256:
       return new CryptoRijindael(); 
+    case ECC521:
+      return new EllipticCurveECP();
     case ECC571:
-      return new EllipticCurve();
+      return new EllipticCurveEC2N();
   }
   return 0;
 }

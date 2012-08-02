@@ -160,7 +160,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-class ECCKey571 : public AsymmetricKey
+class EccKey571 : public AsymmetricKey
 {
 private:
   CryptoPP::ECIES<CryptoPP::EC2N>::PrivateKey _privateKey;
@@ -169,12 +169,61 @@ private:
   std::string _sPublic;
 
 public:
-  ECCKey571() {}
-  ~ECCKey571() {}
+  EccKey571() {}
+  ~EccKey571() {}
   void generate()
   {
     CryptoPP::AutoSeededRandomPool rng;
     _privateKey.Initialize(rng, CryptoPP::ASN1::sect571r1());
+    _privateKey.MakePublicKey(_publicKey);
+    if(!_privateKey.Validate(rng, 3))
+    {
+      // TODO: Throw security exception!
+    }
+  }
+  std::string getPrivateKeyString()
+  {
+    CryptoPP::HexEncoder encoder;
+    encoder.Attach(new CryptoPP::StringSink(_sPrivate));
+    _privateKey.Save(encoder);
+    return _sPrivate;
+  }
+  std::string getPublicKeyString()
+  {
+    CryptoPP::HexEncoder encoder;
+    encoder.Attach(new CryptoPP::StringSink(_sPublic));
+    _publicKey.Save(encoder);
+    return _sPublic;
+  }
+  void * getPrivateKey() { return (void*)&_privateKey; }
+  void * getPublicKey()  { return (void*)&_publicKey;  }
+  void setPrivateKey(std::string key)
+  {
+    CryptoPP::StringSource strPrivateSource(key, true, new CryptoPP::HexDecoder);
+    _privateKey.Load(strPrivateSource);
+  }
+  void setPublicKey(std::string key)
+  {
+    CryptoPP::StringSource strPublicSource(key, true, new CryptoPP::HexDecoder);
+    _publicKey.Load(strPublicSource);
+  }
+};
+
+class EccKey521 : public AsymmetricKey
+{
+private:
+  CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey _privateKey;
+  CryptoPP::ECIES<CryptoPP::ECP>::PublicKey  _publicKey;
+  std::string _sPrivate;
+  std::string _sPublic;
+
+public:
+  EccKey521() {}
+  ~EccKey521() {}
+  void generate()
+  {
+    CryptoPP::AutoSeededRandomPool rng;
+    _privateKey.Initialize(rng, CryptoPP::ASN1::secp521r1());
     _privateKey.MakePublicKey(_publicKey);
     if(!_privateKey.Validate(rng, 3))
     {
@@ -226,8 +275,10 @@ CryptoKeyFactory::create(CryptoAlgoType type)
   {
     case AES256:
       return new AESKey(256);
-    case ECC571:
-      return new ECCKey571();
+    case ECC521: // ECP
+      return new EccKey521();
+    case ECC571: // EC2N
+      return new EccKey571();
   }
   return 0;
 }
