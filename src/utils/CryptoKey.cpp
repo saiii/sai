@@ -15,7 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#ifdef _WIN32
+#include <sys_time.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include <cryptlib.h>
 #include <eccrypto.h>
@@ -97,7 +101,7 @@ SymmetricKey::Update(uint32_t c)
 uint32_t 
 SymmetricKey::Offset()
 {
-  return (_instance->c - _instance->v);
+  return (uint32_t)(_instance->c - _instance->v);
 }
 
 std::string 
