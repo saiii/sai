@@ -77,7 +77,7 @@ SymmetricKey::Initialize()
   }
   struct timeval tv;
   gettimeofday(&tv, 0);
-  uint64_t val = (tv.tv_sec * 10000000000) + tv.tv_usec;
+  uint64_t val = (tv.tv_sec * 10000000000LL) + tv.tv_usec;
 
   _instance->v = _instance->c = val;
 }
@@ -87,7 +87,7 @@ SymmetricKey::Update()
 {
   struct timeval tv;
   gettimeofday(&tv, 0);
-  uint64_t val = (tv.tv_sec * 10000000000) + tv.tv_usec;
+  uint64_t val = (tv.tv_sec * 10000000000LL) + tv.tv_usec;
 
   _instance->c = val;
 }
