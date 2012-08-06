@@ -56,10 +56,12 @@ public:
   virtual uint32_t    size() = 0;
 
   static void        Initialize();
+  static void        Initialize(uint64_t v);
   static void        Update();
   static void        Update(uint32_t v);
   static uint32_t    Offset();
   static std::string IV();
+  static std::string InitialIV();
 };
 
 class AsymmetricKey : public CryptoKey
