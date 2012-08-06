@@ -25,6 +25,17 @@
 #include <utils/CryptoKey.h>
 #include <utils/CryptoFactory.h>
 
+#include <sstream>
+#include <cryptlib.h>
+#include <eccrypto.h>
+#include <osrng.h>
+#include <oids.h>
+#include <hex.h>
+#include <files.h>
+#include <config.h>
+#include <modes.h>
+#include <queue.h>
+
 #define PRINT_CIPHER 0
 
 using namespace sai::utils;
@@ -106,6 +117,35 @@ testEncryptECC1(int argc, char * argv[], std::string& output, std::string& privK
 #endif
   printf("Done\n");
   privKey = akey->getPrivateKeyString();
+
+  std::string tmp = akey->getPublicKeyString();
+  printf("length %u\n", tmp.length());
+  printf("%s\n", tmp.c_str());
+
+  CryptoPP::ECIES<CryptoPP::ECP>::PublicKey* p = (CryptoPP::ECIES<CryptoPP::ECP>::PublicKey*)(akey->getPublicKey());
+  const CryptoPP::ECP::Point& q = p->GetPublicElement();
+  const CryptoPP::Integer& qx = q.x;
+  const CryptoPP::Integer& qy = q.y;
+
+  printf("Count %u, %u\n", qx.ByteCount(), qy.ByteCount());
+
+  size_t sizeQX = qx.MinEncodedSize();
+  byte * bufQX = new byte[sizeQX];
+  qx.Encode(bufQX, sizeQX);
+
+  size_t sizeQY = qy.MinEncodedSize();
+  byte * bufQY = new byte[sizeQY];
+  qy.Encode(bufQY, sizeQY);
+
+  CryptoPP::Integer qqx(bufQX, sizeQX);
+  CryptoPP::Integer qqy(bufQY, sizeQY);
+  CryptoPP::ECP::Point qq;
+  qq.x = qqx;
+  qq.y = qqy;
+
+  printf("PubKey Length: %u, %u\n", sizeQX, sizeQY);
+
+  p->Initialize(CryptoPP::ASN1::secp521r1(), qq);
 
 #if TIME_TEST
   gettimeofday(&tv3, 0);

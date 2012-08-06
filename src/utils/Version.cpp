@@ -20,7 +20,7 @@
 
 #define VERSION_MAJOR_STR "0"
 #define VERSION_MINOR_STR "2"
-#define VERSION_COUNT_STR "1"
+#define VERSION_COUNT_STR "2"
 #define VERSION_SUFFI_STR "a"
 
 #ifdef _WIN32

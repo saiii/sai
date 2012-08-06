@@ -83,6 +83,16 @@ SymmetricKey::Initialize()
 }
 
 void 
+SymmetricKey::Initialize(uint64_t v)
+{
+  if (!_instance)
+  {
+    _instance = new SymmetricKeyImpl();
+  }
+  _instance->v = _instance->c = v;
+}
+
+void 
 SymmetricKey::Update()
 {
   struct timeval tv;
@@ -111,6 +121,17 @@ SymmetricKey::IV()
   ret.clear();
   char buf[33];
   sprintf(buf, "%llu", _instance->c);
+  ret.assign(buf, strlen(buf)+1);
+  return ret;
+}
+
+std::string 
+SymmetricKey::InitialIV()
+{
+  static std::string ret;
+  ret.clear();
+  char buf[33];
+  sprintf(buf, "%llu", _instance->v);
   ret.assign(buf, strlen(buf)+1);
   return ret;
 }
