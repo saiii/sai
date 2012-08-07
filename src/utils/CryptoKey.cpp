@@ -114,26 +114,22 @@ SymmetricKey::Offset()
   return (uint32_t)(_instance->c - _instance->v);
 }
 
-std::string 
-SymmetricKey::IV()
+void
+SymmetricKey::IV(std::string& ret)
 {
-  static std::string ret;
   ret.clear();
   char buf[33];
   sprintf(buf, "%llu", _instance->c);
   ret.assign(buf, strlen(buf)+1);
-  return ret;
 }
 
-std::string 
-SymmetricKey::InitialIV()
+void
+SymmetricKey::InitialIV(std::string& ret)
 {
-  static std::string ret;
   ret.clear();
   char buf[33];
   sprintf(buf, "%llu", _instance->v);
   ret.assign(buf, strlen(buf)+1);
-  return ret;
 }
 
 //-----------------------------------------------------------------------------
@@ -164,8 +160,8 @@ public:
     delete [] _key;
   }
 
-  std::string getIVString() { _sIV.assign(reinterpret_cast<const char*>(_iv), _len); return _sIV; }
-  std::string getKeyString(){ _sKey.assign(reinterpret_cast<const char*>(_key), _len); return _sKey; } 
+  void getIVString(std::string& ret) { _sIV.assign(reinterpret_cast<const char*>(_iv), _len); ret = _sIV; }
+  void getKeyString(std::string& ret){ _sKey.assign(reinterpret_cast<const char*>(_key), _len); ret = _sKey; } 
   byte *      getIVBytes() { return _iv; }
   byte *      getKeyBytes(){ return _key;}
   uint32_t    size() { return (_len); }
@@ -206,19 +202,19 @@ public:
       // TODO: Throw security exception!
     }
   }
-  std::string getPrivateKeyString()
+  void getPrivateKeyString(std::string& ret)
   {
     CryptoPP::HexEncoder encoder;
     encoder.Attach(new CryptoPP::StringSink(_sPrivate));
     _privateKey.Save(encoder);
-    return _sPrivate;
+    ret = _sPrivate;
   }
-  std::string getPublicKeyString()
+  void getPublicKeyString(std::string& ret)
   {
     CryptoPP::HexEncoder encoder;
     encoder.Attach(new CryptoPP::StringSink(_sPublic));
     _publicKey.Save(encoder);
-    return _sPublic;
+    ret = _sPublic;
   }
   void * getPrivateKey() { return (void*)&_privateKey; }
   void * getPublicKey()  { return (void*)&_publicKey;  }
@@ -255,19 +251,19 @@ public:
       // TODO: Throw security exception!
     }
   }
-  std::string getPrivateKeyString()
+  void getPrivateKeyString(std::string& ret)
   {
     CryptoPP::HexEncoder encoder;
     encoder.Attach(new CryptoPP::StringSink(_sPrivate));
     _privateKey.Save(encoder);
-    return _sPrivate;
+    ret = _sPrivate;
   }
-  std::string getPublicKeyString()
+  void getPublicKeyString(std::string& ret)
   {
     CryptoPP::HexEncoder encoder;
     encoder.Attach(new CryptoPP::StringSink(_sPublic));
     _publicKey.Save(encoder);
-    return _sPublic;
+    ret = _sPublic;
   }
   void * getPrivateKey() { return (void*)&_privateKey; }
   void * getPublicKey()  { return (void*)&_publicKey;  }

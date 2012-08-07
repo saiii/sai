@@ -59,7 +59,8 @@ int main(int argc, char * argv[])
   printf("--------------------------------------------\n");
   SymmetricKey::Initialize();
   SymmetricKey::Update();
-  std::string iv = SymmetricKey::IV();
+  std::string iv;
+  SymmetricKey::IV(iv);
   //printf("IV (%s) %u\n", iv.c_str(), iv.length());
 
   std::string out;
@@ -116,9 +117,10 @@ testEncryptECC1(int argc, char * argv[], std::string& output, std::string& privK
   gettimeofday(&tv2, 0);
 #endif
   printf("Done\n");
-  privKey = akey->getPrivateKeyString();
+  akey->getPrivateKeyString(privKey);
 
-  std::string tmp = akey->getPublicKeyString();
+  std::string tmp;
+  akey->getPublicKeyString(tmp);
   printf("length %u\n", tmp.length());
   printf("%s\n", tmp.c_str());
 
@@ -220,7 +222,7 @@ testEncryptECC2(int argc, char * argv[], std::string& output, std::string& privK
   gettimeofday(&tv2, 0);
 #endif
   printf("Done\n");
-  privKey = akey->getPrivateKeyString();
+  akey->getPrivateKeyString(privKey);
 
 #if TIME_TEST
   gettimeofday(&tv3, 0);
