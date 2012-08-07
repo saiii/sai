@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <string>
+#include <sys_time.h>
 
 #define VERSION_MAJOR_STR "0"
 #define VERSION_MINOR_STR "2"
