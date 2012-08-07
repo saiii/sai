@@ -39,12 +39,14 @@ public:
   xercesc::DOMElement      *startNode;
   std::string               xmlData;
   std::string               ret;
+  uint32_t                  errCnt;
 
 public:
   XmlReaderImpl() :  
     parser(0),
     root(0),
-    startNode(0)
+    startNode(0),
+    errCnt(0)
   {}
   ~XmlReaderImpl()
   {}
@@ -149,7 +151,7 @@ XmlReader::parseMem(std::string xmlMessage)
                                       _impl->xmlData.size(), "dummy", false);
     _impl->parser->parse(memBuf);
 
-    if (_impl->parser->getErrorCount() > 0)
+    if ((_impl->errCnt = _impl->parser->getErrorCount()) > 0)
     {
       return;
     }
