@@ -47,8 +47,8 @@ private:
   static SymmetricKeyImpl * _instance;
 
 public:
-  virtual std::string getIVString() = 0;
-  virtual std::string getKeyString() = 0;
+  virtual void        getIVString(std::string& ret) = 0;
+  virtual void        getKeyString(std::string& ret) = 0;
   virtual byte *      getIVBytes() = 0;
   virtual byte *      getKeyBytes() = 0;
   virtual void        setIV(std::string iv) = 0;
@@ -60,20 +60,20 @@ public:
   static void        Update();
   static void        Update(uint32_t v);
   static uint32_t    Offset();
-  static std::string IV();
-  static std::string InitialIV();
+  static void        IV(std::string& ret);
+  static void        InitialIV(std::string& ret);
 };
 
 class AsymmetricKey : public CryptoKey
 {
 public:
-  virtual void        generate() = 0;
-  virtual std::string getPrivateKeyString() = 0;
-  virtual std::string getPublicKeyString() = 0;
-  virtual void *      getPrivateKey() = 0;
-  virtual void *      getPublicKey() = 0;
-  virtual void        setPrivateKey(std::string key) = 0;
-  virtual void        setPublicKey(std::string key) = 0;
+  virtual void   generate() = 0;
+  virtual void   getPrivateKeyString(std::string& ret) = 0;
+  virtual void   getPublicKeyString(std::string& ret) = 0;
+  virtual void * getPrivateKey() = 0;
+  virtual void * getPublicKey() = 0;
+  virtual void   setPrivateKey(std::string key) = 0;
+  virtual void   setPublicKey(std::string key) = 0;
 };
 
 class CryptoKeyFactory
