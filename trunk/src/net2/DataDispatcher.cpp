@@ -59,7 +59,8 @@ DataDispatcher::dispatch(DataDescriptor& desc)
       {
         pReader.parseMem(desc.raw.r2.protData);
         pReader.moveTo("protocol");
-        std::string uuid = pReader.get("uuid", "value");
+        std::string uuid;
+        pReader.get("uuid", "value", uuid);
         std::string myUUID;
         ProtMessage::getUUID(myUUID);
         if (strcmp(uuid.c_str(), myUUID.c_str()) == 0)
@@ -68,7 +69,8 @@ DataDispatcher::dispatch(DataDescriptor& desc)
           return;
         }
 
-        std::string sid = pReader.get("id", "value");
+        std::string sid;
+        pReader.get("id", "value", sid);
         uint32_t id = atoi(sid.c_str());
         desc.xmlProtReader = &pReader;
 

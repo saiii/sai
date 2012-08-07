@@ -296,7 +296,8 @@ void
 MyHandler::processDataEvent(DataDescriptor& desc)
 {
   desc.xmlDataReader->moveTo("mydata");
-  std::string t = desc.xmlDataReader->get("time", "value");
+  std::string t;
+  desc.xmlDataReader->get("time", "value", t);
   std::cout << "Time : " << t << std::endl;
 }
 
