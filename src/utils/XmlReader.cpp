@@ -277,8 +277,8 @@ XmlReader::getChild(uint32_t index, std::string& name, PairList& attributeList)
   }
 }
 
-std::string 
-XmlReader::get(std::string tag, std::string attribute)
+void
+XmlReader::get(std::string tag, std::string attribute, std::string& ret)
 {
   _impl->ret.clear();
 
@@ -288,7 +288,7 @@ XmlReader::get(std::string tag, std::string attribute)
   {
     _impl->ret = getAttribute(elem, attribute);
   }
-  return _impl->ret;
+  ret = _impl->ret;
 }
 
 void  

@@ -50,7 +50,7 @@ public:
   void parseFile(std::string xmlFile);
   void parseMem(std::string xmlMessage);
   void moveTo(std::string tag);
-  std::string get(std::string tag, std::string attribute);
+  void get(std::string tag, std::string attribute, std::string& ret);
 
   uint32_t count();
   void     getChild(uint32_t index, std::string& name, PairList& attributeList);
