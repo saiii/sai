@@ -167,15 +167,29 @@ public:
   uint32_t    size() { return (_len); }
   void setIV(std::string iv)
   {
-    uint32_t size = iv.size() < _len ? iv.size() : _len;
-    memset(_iv, 0, size);
-    memcpy(_iv, iv.data(), size);
+  memset(_iv,  0x01, _len);
+  uint16_t size = iv.length() < _len ? iv.length() : _len;
+  for(uint16_t i = 0; i < size; i += 1)
+  {
+    _iv[i] = (byte) iv.at(i);
+  }
+
+    //uint32_t size = iv.size() < _len ? iv.size() : _len;
+    //memset(_iv, 0, size);
+    //memcpy(_iv, iv.data(), size);
   }
   void setKey(std::string key) 
   {
-    uint32_t size = key.size() < _len ? key.size() : _len;
-    memset(_key, 0, size);
-    memcpy(_key, key.data(), size);
+  memset(_key,  0x01, _len);
+  uint16_t size = key.length() < _len ? key.length() : _len;
+  for(uint16_t i = 0; i < size; i += 1)
+  {
+    _key[i] = (byte) key.at(i);
+  }
+
+    //uint32_t size = key.size() < _len ? key.size() : _len;
+    //memset(_key, 0, size);
+    //memcpy(_key, key.data(), size);
   }
 };
 
