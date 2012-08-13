@@ -21,7 +21,7 @@
 #define VERSION_MAJOR_STR "0"
 #define VERSION_MINOR_STR "2"
 #define VERSION_COUNT_STR "2"
-#define VERSION_SUFFI_STR "a"
+#define VERSION_SUFFI_STR "b"
 
 #ifdef _WIN32
 #include <sys_time.h>
