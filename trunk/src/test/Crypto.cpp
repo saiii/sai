@@ -57,10 +57,7 @@ int main(int argc, char * argv[])
   }
 
   printf("--------------------------------------------\n");
-  SymmetricKey::Initialize();
-  SymmetricKey::Update();
   std::string iv;
-  SymmetricKey::IV(iv);
   //printf("IV (%s) %u\n", iv.c_str(), iv.length());
 
   std::string out;

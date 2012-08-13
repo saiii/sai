@@ -66,72 +66,6 @@ public:
 
 }}
 
-SymmetricKeyImpl * SymmetricKey::_instance = 0;
-
-void     
-SymmetricKey::Initialize()
-{
-  if (!_instance)
-  {
-    _instance = new SymmetricKeyImpl();
-  }
-  struct timeval tv;
-  gettimeofday(&tv, 0);
-  uint64_t val = (tv.tv_sec * 10000000000LL) + tv.tv_usec;
-
-  _instance->v = _instance->c = val;
-}
-
-void 
-SymmetricKey::Initialize(uint64_t v)
-{
-  if (!_instance)
-  {
-    _instance = new SymmetricKeyImpl();
-  }
-  _instance->v = _instance->c = v;
-}
-
-void 
-SymmetricKey::Update()
-{
-  struct timeval tv;
-  gettimeofday(&tv, 0);
-  uint64_t val = (tv.tv_sec * 10000000000LL) + tv.tv_usec;
-
-  _instance->c = val;
-}
-
-void     
-SymmetricKey::Update(uint32_t c)
-{
-  _instance->c = _instance->v + c;
-}
-
-uint32_t 
-SymmetricKey::Offset()
-{
-  return (uint32_t)(_instance->c - _instance->v);
-}
-
-void
-SymmetricKey::IV(std::string& ret)
-{
-  ret.clear();
-  char buf[33];
-  sprintf(buf, "%llu", _instance->c);
-  ret.assign(buf, strlen(buf)+1);
-}
-
-void
-SymmetricKey::InitialIV(std::string& ret)
-{
-  ret.clear();
-  char buf[33];
-  sprintf(buf, "%llu", _instance->v);
-  ret.assign(buf, strlen(buf)+1);
-}
-
 //-----------------------------------------------------------------------------
 
 class AESKey : public SymmetricKey
@@ -167,29 +101,25 @@ public:
   uint32_t    size() { return (_len); }
   void setIV(std::string iv)
   {
-  memset(_iv,  0x01, _len);
-  uint16_t size = iv.length() < _len ? iv.length() : _len;
-  for(uint16_t i = 0; i < size; i += 1)
-  {
-    _iv[i] = (byte) iv.at(i);
-  }
-
-    //uint32_t size = iv.size() < _len ? iv.size() : _len;
-    //memset(_iv, 0, size);
-    //memcpy(_iv, iv.data(), size);
+    uint32_t size = iv.size() < _len ? iv.size() : _len;
+    memset(_iv, 0, size);
+    memcpy(_iv, iv.data(), size);
   }
   void setKey(std::string key) 
   {
-  memset(_key,  0x01, _len);
-  uint16_t size = key.length() < _len ? key.length() : _len;
-  for(uint16_t i = 0; i < size; i += 1)
-  {
-    _key[i] = (byte) key.at(i);
+    uint32_t size = key.size() < _len ? key.size() : _len;
+    memset(_key, 0, size);
+    memcpy(_key, key.data(), size);
   }
-
-    //uint32_t size = key.size() < _len ? key.size() : _len;
-    //memset(_key, 0, size);
-    //memcpy(_key, key.data(), size);
+  void randomKey()
+  {
+    CryptoPP::AutoSeededRandomPool rnd;
+    rnd.GenerateBlock(_key, _len);
+  }
+  void randomIV()
+  {
+    CryptoPP::AutoSeededRandomPool rnd;
+    rnd.GenerateBlock(_iv, _len);
   }
 };
 
@@ -267,6 +197,7 @@ public:
   }
   void getPrivateKeyString(std::string& ret)
   {
+    _sPrivate.clear();
     CryptoPP::HexEncoder encoder;
     encoder.Attach(new CryptoPP::StringSink(_sPrivate));
     _privateKey.Save(encoder);
@@ -274,6 +205,7 @@ public:
   }
   void getPublicKeyString(std::string& ret)
   {
+    _sPublic.clear();
     CryptoPP::HexEncoder encoder;
     encoder.Attach(new CryptoPP::StringSink(_sPublic));
     _publicKey.Save(encoder);

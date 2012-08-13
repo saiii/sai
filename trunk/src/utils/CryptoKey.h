@@ -43,9 +43,6 @@ public:
 class SymmetricKeyImpl;
 class SymmetricKey : public CryptoKey
 {
-private:
-  static SymmetricKeyImpl * _instance;
-
 public:
   virtual void        getIVString(std::string& ret) = 0;
   virtual void        getKeyString(std::string& ret) = 0;
@@ -54,14 +51,8 @@ public:
   virtual void        setIV(std::string iv) = 0;
   virtual void        setKey(std::string key) = 0;
   virtual uint32_t    size() = 0;
-
-  static void        Initialize();
-  static void        Initialize(uint64_t v);
-  static void        Update();
-  static void        Update(uint32_t v);
-  static uint32_t    Offset();
-  static void        IV(std::string& ret);
-  static void        InitialIV(std::string& ret);
+  virtual void        randomKey() = 0;
+  virtual void        randomIV() = 0;
 };
 
 class AsymmetricKey : public CryptoKey
