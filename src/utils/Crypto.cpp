@@ -29,11 +29,11 @@
 
 using namespace sai::utils;
 
-class CryptoRijindael : public OldCrypto
+class OldCryptoRijindael : public OldCrypto
 {
 public:
-  CryptoRijindael() {}
-  ~CryptoRijindael() {}
+  OldCryptoRijindael() {}
+  ~OldCryptoRijindael() {}
   void encrypt(std::string& key, std::string& iv, std::string& data, std::string& output);
   void decrypt(std::string& key, std::string& iv, std::string& data, std::string& output);
 };
@@ -53,14 +53,14 @@ OldCryptoManager::create(OldAlgoType t)
   switch (t)
   {
     case AES256:
-      _crypto = new CryptoRijindael(); 
+      _crypto = new OldCryptoRijindael(); 
       break;
   }
   return _crypto;
 }
 
 void 
-CryptoRijindael::encrypt(std::string& key, std::string& iv, std::string& data, std::string& output) 
+OldCryptoRijindael::encrypt(std::string& key, std::string& iv, std::string& data, std::string& output) 
 {
   const int SIZE = 32;
   byte _key[SIZE];
@@ -98,7 +98,7 @@ CryptoRijindael::encrypt(std::string& key, std::string& iv, std::string& data, s
 }
 
 void 
-CryptoRijindael::decrypt(std::string& key, std::string& iv, std::string& data, std::string& output) 
+OldCryptoRijindael::decrypt(std::string& key, std::string& iv, std::string& data, std::string& output) 
 {
   const int SIZE = 32;
   byte _key[SIZE];
