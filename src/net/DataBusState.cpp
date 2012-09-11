@@ -106,9 +106,9 @@ NilMcastDataBusState::activate()
       std::string * str = list.front();
       list.erase(list.begin());
       options.addReceive(*str);
-      options.setSend(*str);
       delete str;
     }
+	options.setSend(channel->getSendMcast());
     
     options.setInterface(channel->getLocalAddress());
     options.setPort(channel->getPort());
