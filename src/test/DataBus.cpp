@@ -24,6 +24,7 @@
 #include <net/Net.h>
 #include <net/DataBus.h>
 #include <net/DataHandler.h>
+#include <net/TimerTask.h>
 
 using namespace sai::net;
 
@@ -35,6 +36,16 @@ public:
   void processDataEvent(DataDescriptor& desc, std::string& msg)
   {
     printf("(%s): %s\n", prompt.c_str(), msg.c_str());
+  }
+};
+
+class Dummy : public TimerTask
+{
+public:
+  void timerEvent()
+  {
+    printf("Hello\n");
+    schedule();
   }
 };
 
@@ -148,7 +159,7 @@ int main(int argc, char * argv[])
 #else
   channel.setPort(1500);
 #endif
-  channel.setLocalAddress("0.0.0.0");
+  channel.setLocalAddress("eth0");
   if (clientMode)
   {
     channel.setSendMcast("224.1.1.1");
@@ -169,11 +180,11 @@ int main(int argc, char * argv[])
   MsgWriter writer;
   if (writeMode)
   {
-    bus->registerHandler(1, &writer); 
+    bus->registerHandler(1888, &writer); 
   }
   else
   {
-    bus->registerHandler(1, &printer); 
+    bus->registerHandler(1888, &printer); 
   }
 
   bus->listen("Yo");
@@ -182,7 +193,12 @@ int main(int argc, char * argv[])
   
   if (clientMode)
   {
-    bus->send("Yo", 1, msg);
+    bus->send("Yo", 1888, msg);
+  }
+  else
+  {
+    Dummy * dummy = new Dummy();
+    dummy->schedule(3600, 0);
   }
   Net::GetInstance()->mainLoop();
 

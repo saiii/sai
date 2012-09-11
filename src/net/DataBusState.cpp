@@ -87,62 +87,39 @@ NilMcastDataBusState::activate()
     // Create server socket
     txt << "Unable to create server socket";
     localErrMsg = txt.str();
-    next->_serverSocket = ServerSocket::Create(_db->_net,
-                           SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
-                           SAI_SOCKET_B_REUSE_ADDR, SAI_SOCKET_OPT_TRUE,
-                           SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
-                           SAI_SOCKET_EOA);
-    next->_serverSocket->setEventHandler(next);
     McastDataBusChannel * channel = 0;
     channel = dynamic_cast<McastDataBusChannel*>(_db->_bus->getChannel());
     txt.str("");
     txt << "Unable to bind server socket to the specified port and address ";
     txt << "(" << channel->getLocalAddress() << "," << channel->getPort() << ")";
     localErrMsg = txt.str();
-    next->_serverSocket->bind(channel->getLocalAddress(), channel->getPort());
-    next->_serverSocket->open();
 
     txt.str("");
     txt << "Unable to join multicast group";
     localErrMsg = txt.str();
     StringList list;
     channel->getRecvMcast(list);
+
+    NetworkOptions options;
     while (list.size() > 0)
     {
       std::string * str = list.front();
       list.erase(list.begin());
-      next->_serverSocket->join(*str);
+      options.addReceive(*str);
+      options.setSend(*str);
       delete str;
     }
+    
+    options.setInterface(channel->getLocalAddress());
+    options.setPort(channel->getPort());
 
-    next->_serverSocket->listen();
+    next->_socket = new PGMSocket(&options);
+    next->_socket->setEventHandler(next);
+    next->_socket->listen();
 
     txt.str("");
     txt << "Unable to create client socket";
     localErrMsg = txt.str();
-    // Create client socket
-    next->_clientSocket = ClientSocket::Create(_db->_net,
-                            SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
-                            SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
-                            SAI_SOCKET_EOA);
-    next->_clientSocket->open();
-    next->_clientSocket->connect(channel->getSendMcast(), channel->getPort());
-
-    // Create Direct Server Socket (if needed)
-    if (channel->getDirectPort())
-    {
-      txt.str("");
-      txt << "Unable to create direct server socket";
-      localErrMsg = txt.str();
-      next->_directServerSocket = ServerSocket::Create(_db->_net,
-                                    SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_TCP,
-                                    SAI_SOCKET_B_REUSE_ADDR, SAI_SOCKET_OPT_TRUE,
-                                    SAI_SOCKET_EOA);
-      next->_directServerSocket->bind(channel->getLocalAddress(), channel->getDirectPort());
-      next->_directServerSocket->setEventHandler(next);
-      next->_directServerSocket->open();
-      next->_directServerSocket->listen();
-    }
 
     _db->_state = next;
   } 
@@ -223,33 +200,16 @@ NilMcastDataBusState::deactivate()
 
 ActiveMcastDataBusState::ActiveMcastDataBusState(DataBusStateDb * db, ProtocolDecoder * dec) :
   DataBusState(db),
-  _decoder(dec),
-  _serverSocket(0),
-  _clientSocket(0),
-  _directServerSocket(0)
+  _decoder(dec)
 {}
 
 ActiveMcastDataBusState::~ActiveMcastDataBusState() 
 {
-  if (_serverSocket)
+  if (_socket)
   {
-    _serverSocket->close();
-    delete _serverSocket;
-    _serverSocket = 0;
-  }
-
-  if (_clientSocket)
-  {
-    _clientSocket->close();
-    delete _clientSocket;
-    _clientSocket = 0;
-  }
-
-  if (_directServerSocket)
-  {
-    _directServerSocket->close();
-    delete _directServerSocket;
-    _directServerSocket = 0;
+    _socket->close();
+    delete _socket;
+    _socket = 0;
   }
 }
 
@@ -268,7 +228,7 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
 
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
-  _clientSocket->send(wireData.data(), wireData.size());
+  _socket->send(wireData.data(), wireData.size());
   return true;
 }
 
@@ -277,7 +237,7 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor& des
 {
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
-  _clientSocket->send(wireData.data(), wireData.size());
+  _socket->send(wireData.data(), wireData.size());
   return true;
 }
 
@@ -290,12 +250,9 @@ ActiveMcastDataBusState::blockSender(std::string name)
 void 
 ActiveMcastDataBusState::deactivate() 
 {
-  if (_serverSocket) _serverSocket->close();
-  if (_clientSocket) _clientSocket->close();
-  delete _serverSocket;
-  delete _clientSocket;
-  _serverSocket = 0;
-  _clientSocket = 0;
+  if (_socket) _socket->close();
+  delete _socket;
+  _socket = 0;
 
   _db->_filter->clear();
   _db->_state = _db->getNilMcastState();
@@ -308,19 +265,5 @@ ActiveMcastDataBusState::processDataEvent(char *data, uint32_t size)
   dat.append(data, size);
   DataDescriptor desc;
   _db->_decoder->processDataEvent(desc, dat);
-}
-
-bool 
-ActiveMcastDataBusState::processConnectionEvent(std::string ip)
-{
-  DataDescriptor desc;
-  std::string dummy;
-  desc.from.str = ip;
-  return _db->_filter->filterEvent(desc, dummy);
-}
-
-void 
-ActiveMcastDataBusState::processConnectedEvent(ClientSocket * sckt)
-{
 }
 

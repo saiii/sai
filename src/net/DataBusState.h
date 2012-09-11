@@ -20,7 +20,7 @@
 
 #include <string>
 #include <net/Net.h>
-#include <net/Socket.h>
+#include <net/PGMSocket.h>
 #include <net/DataBus.h>
 
 namespace sai 
@@ -61,14 +61,12 @@ public:
 };
 
 class ActiveMcastDataBusState : public DataBusState,
-                                public SocketEventHandler
+                                public PGMSocketEventHandler
 {
 friend class NilMcastDataBusState;
 private:
   ProtocolDecoder * _decoder;
-  ServerSocket    * _serverSocket;
-  ClientSocket    * _clientSocket;
-  ServerSocket    * _directServerSocket;
+  PGMSocket       * _socket;
 
 public:
   ActiveMcastDataBusState(DataBusStateDb*, ProtocolDecoder *);
@@ -80,8 +78,6 @@ public:
   void deactivate();
 
   void processDataEvent(char *data, uint32_t size);
-  bool processConnectionEvent(std::string ip);
-  void processConnectedEvent(ClientSocket * sckt);
 };
 
 class DataBusStateDb
