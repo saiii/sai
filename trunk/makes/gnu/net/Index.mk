@@ -16,6 +16,7 @@
 ##=============================================================================
 
 NET_SRC = Socket.cpp \
+          PGMSocket.cpp \
           Exception.cpp \
           Net.cpp \
           DataBus.cpp \
@@ -44,6 +45,7 @@ SAI_OBJS += $(NET_OBJ)
 SAI_INC  += $(NET_INC)
 
 INC += -I$(BOOST_INC)
+INC += -I$(OPGM_INC)
 
 net/%.o: $(SAI_ROOT)/net/%.cpp
 	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) -c $<

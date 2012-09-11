@@ -51,6 +51,7 @@ Net::Net():
   initialize();
 }
 
+extern std::string SaiGetVersion(); 
 Net::~Net()
 {
   while (_nicList.size() > 0)
@@ -64,7 +65,6 @@ Net::~Net()
 
   // Just a dummy call
   // we want to make sure that all applications used this module have version data in their binaries
-  extern std::string SaiGetVersion(); 
   SaiGetVersion();
 }
 

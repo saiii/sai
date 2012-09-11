@@ -33,7 +33,9 @@ TEST_INC =
 SAI_LIB  = libSai.a 
 LIBS    += $(BOOST_LIB)
 LIBS    += $(CRYPTOPP_LIB)
+LIBS    += $(OPGM_LIB)
 LIBS    += -lpthread
+LIBS    += -lrt
 
 TEST_OBJ1= $(TEST_SRC:.cpp=.o)
 TEST_OBJ = $(addprefix test/, $(TEST_OBJ1))

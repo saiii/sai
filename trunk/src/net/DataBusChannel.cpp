@@ -23,6 +23,7 @@
 #include <arpa/inet.h>
 #endif
 
+#include <cstring>
 #include <net/DataBusChannel.h>
 #include <net/DataBusChannelImpl.h>
 
@@ -58,7 +59,11 @@ DataBusChannel::getDirectPort()
 std::string 
 DataBusChannel::getLocalAddress()
 {
-  return _localAddress;
+  static std::string empty = "";
+  if (strcmp(_localAddress.c_str(), "0.0.0.0") == 0)
+    return empty;
+  else
+    return _localAddress;
 }
 
 uint32_t 
