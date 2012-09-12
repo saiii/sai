@@ -20,6 +20,7 @@
 
 #include <string>
 #include <net/Net.h>
+#include <net/Socket.h>
 #include <net/PGMSocket.h>
 #include <net/DataBus.h>
 
@@ -65,19 +66,42 @@ class ActiveMcastDataBusState : public DataBusState,
 {
 friend class NilMcastDataBusState;
 private:
-  ProtocolDecoder * _decoder;
   PGMSocket       * _socket;
+
+protected:
+  ProtocolDecoder * _decoder;
 
 public:
   ActiveMcastDataBusState(DataBusStateDb*, ProtocolDecoder *);
-  ~ActiveMcastDataBusState();
+  virtual ~ActiveMcastDataBusState();
+
+  virtual bool send(std::string name, uint32_t id, std::string data);
+  virtual bool send(std::string name, uint32_t id, DataDescriptor&, std::string data);
+  virtual void blockSender(std::string name);
+  virtual void deactivate();
+
+  void processDataEvent(char *data, uint32_t size);
+};
+
+class ActiveClassicMcastDataBusState : public ActiveMcastDataBusState,
+                                       public SocketEventHandler
+{
+friend class NilMcastDataBusState;
+private:
+  ServerSocket    * _classicServerSocket;
+  ClientSocket    * _classicClientSocket;
+
+public:
+  ActiveClassicMcastDataBusState(DataBusStateDb*, ProtocolDecoder *);
+  ~ActiveClassicMcastDataBusState();
 
   bool send(std::string name, uint32_t id, std::string data);
   bool send(std::string name, uint32_t id, DataDescriptor&, std::string data);
-  void blockSender(std::string name);
   void deactivate();
 
   void processDataEvent(char *data, uint32_t size);
+  bool processConnectionEvent(std::string ip);
+  void processConnectedEvent(ClientSocket * sckt);
 };
 
 class DataBusStateDb
@@ -85,6 +109,7 @@ class DataBusStateDb
 friend class DataBusState;
 friend class NilMcastDataBusState;
 friend class ActiveMcastDataBusState;
+friend class ActiveClassicMcastDataBusState;
 private:
   Net&              _net;
   DataBus         * _bus;
@@ -92,15 +117,17 @@ private:
   DataBusFilter   * _filter;
   DataBusState    * _nilMcast;
   DataBusState    * _activeMcast;
+  DataBusState    * _activeClassicMcast;
   DataBusState    * _state;
 
 public:
   DataBusStateDb(Net&, DataBus * bus, ProtocolDecoder* dec, DataBusFilter* fil);
   ~DataBusStateDb();
 
-  DataBusState* getNilMcastState()     { return _nilMcast;    		}
-  DataBusState* getActiveMcastState()  { return _activeMcast; 		}  
-  DataBusState* getState()             { return _state;       		}
+  DataBusState* getNilMcastState()            { return _nilMcast;    		}
+  DataBusState* getActiveMcastState()         { return _activeMcast; 		}  
+  DataBusState* getActiveClassicMcastState()  { return _activeClassicMcast; 	}  
+  DataBusState* getState()                    { return _state;       		}
 };
 
 }
