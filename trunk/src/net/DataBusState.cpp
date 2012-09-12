@@ -39,17 +39,20 @@ DataBusStateDb::DataBusStateDb(Net& net,
   _filter(fil),
   _nilMcast(0),
   _activeMcast(0),
+  _activeClassicMcast(0),
   _state(0)
 {
   _nilMcast    = new NilMcastDataBusState(this);
   _activeMcast = new ActiveMcastDataBusState(this, _decoder);
-  _state       = _nilMcast;
+  _activeClassicMcast = new ActiveClassicMcastDataBusState(this, _decoder);
+  _state              = _nilMcast;
 }
 
 DataBusStateDb::~DataBusStateDb()
 {
   delete _nilMcast;
   delete _activeMcast;
+  delete _activeClassicMcast;
 }
 
 NilMcastDataBusState::NilMcastDataBusState(DataBusStateDb *db) : 
@@ -76,8 +79,21 @@ NilMcastDataBusState::blockSender(std::string name)
 void 
 NilMcastDataBusState::activate() 
 {
-  ActiveMcastDataBusState* next = dynamic_cast<ActiveMcastDataBusState*>(
-                                    _db->getActiveMcastState());
+  McastDataBusChannel * channel = 0;
+  channel = dynamic_cast<McastDataBusChannel*>(_db->_bus->getChannel());
+
+  ActiveMcastDataBusState* next = 0;
+  ActiveClassicMcastDataBusState* mnext = 0;
+  if (!channel->isClassicChannel())
+  {
+    next = dynamic_cast<ActiveMcastDataBusState*>(_db->getActiveMcastState());
+  }
+  else
+  {
+    next  = dynamic_cast<ActiveClassicMcastDataBusState*>(_db->getActiveClassicMcastState());
+    mnext = dynamic_cast<ActiveClassicMcastDataBusState*>(_db->getActiveClassicMcastState());
+  }
+
   if (!next) return;
  
   std::string localErrMsg = "";
@@ -87,12 +103,26 @@ NilMcastDataBusState::activate()
     // Create server socket
     txt << "Unable to create server socket";
     localErrMsg = txt.str();
-    McastDataBusChannel * channel = 0;
-    channel = dynamic_cast<McastDataBusChannel*>(_db->_bus->getChannel());
+
+    if (channel->isClassicChannel())
+    {
+      mnext->_classicServerSocket = ServerSocket::Create(_db->_net,
+                                     SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
+                                     SAI_SOCKET_B_REUSE_ADDR, SAI_SOCKET_OPT_TRUE,
+                                     SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
+                                     SAI_SOCKET_EOA);
+      mnext->_classicServerSocket->setEventHandler(mnext);
+    }
+
     txt.str("");
     txt << "Unable to bind server socket to the specified port and address ";
     txt << "(" << channel->getLocalAddress() << "," << channel->getPort() << ")";
     localErrMsg = txt.str();
+    if (channel->isClassicChannel())
+    {
+      mnext->_classicServerSocket->bind(channel->getLocalAddress(), channel->getPort());
+      mnext->_classicServerSocket->open();
+    }
 
     txt.str("");
     txt << "Unable to join multicast group";
@@ -106,20 +136,42 @@ NilMcastDataBusState::activate()
       std::string * str = list.front();
       list.erase(list.begin());
       options.addReceive(*str);
+      if (channel->isClassicChannel())
+      {
+        mnext->_classicServerSocket->join(*str);
+      }
       delete str;
     }
-	options.setSend(channel->getSendMcast());
+    options.setSend(channel->getSendMcast());
     
     options.setInterface(channel->getLocalAddress());
     options.setPort(channel->getPort());
 
-    next->_socket = new PGMSocket(&options);
-    next->_socket->setEventHandler(next);
-    next->_socket->listen();
+    if (!channel->isClassicChannel())
+    {
+      next->_socket = new PGMSocket(&options);
+      next->_socket->setEventHandler(next);
+      next->_socket->listen();
+    }
+    else
+    {
+      mnext->_classicServerSocket->listen();
+    }
 
     txt.str("");
     txt << "Unable to create client socket";
     localErrMsg = txt.str();
+
+    // Create client socket
+    if (channel->isClassicChannel())
+    {
+      mnext->_classicClientSocket = ClientSocket::Create(_db->_net,
+                                     SAI_SOCKET_I_PROTOCOL, SAI_SOCKET_OPT_UDP,
+                                     SAI_SOCKET_B_USEIP_MULTICAST, SAI_SOCKET_OPT_TRUE,
+                                     SAI_SOCKET_EOA);
+      mnext->_classicClientSocket->open();
+      mnext->_classicClientSocket->connect(channel->getSendMcast(), channel->getPort());
+    }
 
     _db->_state = next;
   } 
@@ -130,8 +182,8 @@ NilMcastDataBusState::activate()
     std::cerr << se.what() << std::endl;
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-    syslog(LOG_ERR, localErrMsg.c_str());
-    syslog(LOG_ERR, se.what());
+    syslog(LOG_ERR, "%s", localErrMsg.c_str());
+    syslog(LOG_ERR, "%s", se.what());
     closelog();
 #endif
     next->deactivate();
@@ -142,7 +194,7 @@ NilMcastDataBusState::activate()
     std::cerr << localErrMsg << std::endl;
 #else
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-    syslog(LOG_ERR, localErrMsg.c_str());
+    syslog(LOG_ERR, "%s", localErrMsg.c_str());
     closelog();
 #endif
     next->deactivate();
@@ -223,9 +275,6 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, std::string data)
   desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
   desc.to.str    = name;
 
-  //DataOrderingManager * mgr = DataOrderingManager::GetInstance();
-  //mgr->addOutgoingData(desc, data);
-
   std::string wireData;
   sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
   _socket->send(wireData.data(), wireData.size());
@@ -265,5 +314,91 @@ ActiveMcastDataBusState::processDataEvent(char *data, uint32_t size)
   dat.append(data, size);
   DataDescriptor desc;
   _db->_decoder->processDataEvent(desc, dat);
+}
+
+ActiveClassicMcastDataBusState::ActiveClassicMcastDataBusState(DataBusStateDb* db, ProtocolDecoder * decoder):
+  ActiveMcastDataBusState(db, decoder),
+  _classicServerSocket(0),
+  _classicClientSocket(0)
+{
+}
+
+ActiveClassicMcastDataBusState::~ActiveClassicMcastDataBusState()
+{
+  if (_classicServerSocket)
+  {
+    _classicServerSocket->close();
+    delete _classicServerSocket;
+    _classicServerSocket = 0;
+  }
+
+  if (_classicClientSocket)
+  {
+    _classicClientSocket->close();
+    delete _classicClientSocket;
+    _classicClientSocket = 0;
+  }
+}
+
+bool 
+ActiveClassicMcastDataBusState::send(std::string name, uint32_t id, std::string data)
+{
+  sai::net::DataDescriptor desc;
+  desc.version   = 1;
+  memcpy(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender));
+  desc.id        = Net::GetInstance()->getMessageId();
+  desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
+  desc.to.str    = name;
+
+  std::string wireData;
+  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
+  _classicClientSocket->send(wireData.data(), wireData.size());
+  return true;
+}
+
+bool 
+ActiveClassicMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data)
+{
+  std::string wireData;
+  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
+  _classicClientSocket->send(wireData.data(), wireData.size());
+  return true;
+}
+
+void 
+ActiveClassicMcastDataBusState::deactivate()
+{
+  if (_classicServerSocket) _classicServerSocket->close();
+  if (_classicClientSocket) _classicClientSocket->close();
+  delete _classicServerSocket;
+  delete _classicClientSocket;
+  _classicServerSocket = 0;
+  _classicClientSocket = 0;
+
+  _db->_filter->clear();
+  _db->_state = _db->getNilMcastState();
+}
+
+void 
+ActiveClassicMcastDataBusState::processDataEvent(char *data, uint32_t size)
+{
+  std::string dat;
+  dat.append(data, size);
+  DataDescriptor desc;
+  _db->_decoder->processDataEvent(desc, dat);
+}
+
+bool 
+ActiveClassicMcastDataBusState::processConnectionEvent(std::string ip)
+{
+  DataDescriptor desc;
+  std::string dummy;
+  desc.from.str = ip;
+  return _db->_filter->filterEvent(desc, dummy);
+}
+
+void 
+ActiveClassicMcastDataBusState::processConnectedEvent(ClientSocket * sckt)
+{
 }
 

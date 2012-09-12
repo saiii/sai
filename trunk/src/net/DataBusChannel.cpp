@@ -31,7 +31,8 @@ using namespace sai::net;
 
 DataBusChannel::DataBusChannel():
   _localAddressUInt32(0),
-  _directPort(0)
+  _directPort(0),
+  _classicChannel(false)
 {}
 
 DataBusChannel::~DataBusChannel()
@@ -42,6 +43,12 @@ DataBusChannel::setLocalAddress(std::string ip)
 {
   _localAddress       = ip;
   _localAddressUInt32 = 0;
+}
+
+void 
+DataBusChannel::setClassicChannel(bool v)
+{
+  _classicChannel = v;
 }
 
 void 
@@ -64,6 +71,12 @@ DataBusChannel::getLocalAddress()
     return empty;
   else
     return _localAddress;
+}
+
+bool 
+DataBusChannel::isClassicChannel()
+{
+  return _classicChannel;
 }
 
 uint32_t 
