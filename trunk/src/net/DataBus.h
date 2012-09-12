@@ -39,10 +39,11 @@ class DataBus : public ProtocolDecoder
 friend class SenderProfile;
 friend class DataOrderingManager;
 private:
-  static DataBus* _instance;
-  DataBusStateDb* _stateDb;
-  ChainFilter   * _sendReceiveFilter;
-  DataBusChannel* _channel;
+  static DataBus*  _instance;
+  static DataBus** _instanceList;
+  DataBusStateDb*  _stateDb;
+  ChainFilter   *  _sendReceiveFilter;
+  DataBusChannel*  _channel;
 
 private:
   DataBus();
@@ -50,6 +51,7 @@ private:
 
 public:
   static DataBus * GetInstance();
+  static DataBus * GetInstance(uint32_t index);
   ~DataBus();
   void setChannel(DataBusChannel*);
 
