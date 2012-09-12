@@ -58,7 +58,8 @@ public:
 }
 }
 
-DataBus* DataBus::_instance = 0;
+DataBus*  DataBus::_instance = 0;
+DataBus** DataBus::_instanceList = 0;
 
 DataBus::DataBus():
   _stateDb(0),
@@ -83,6 +84,29 @@ DataBus * DataBus::GetInstance()
     _instance = new DataBus();
   }
   return _instance;
+}
+
+DataBus * DataBus::GetInstance(uint32_t index)
+{
+  if (_instanceList == 0)
+  {
+    _instanceList = new DataBus*[10];
+    for (uint32_t i = 0; i < 10; i += 1)
+    {
+      _instanceList[i] = 0;
+    }
+  }
+
+  if (index < 10)
+  {
+    if (_instanceList[index] == 0)
+    {
+      _instanceList[index] = new DataBus();
+    }
+    return _instanceList[index];
+  }
+
+  return 0;
 }
 
 void 
