@@ -123,6 +123,7 @@ McastDataBusChannel::copyFrom(DataBusChannel* o)
   _directPort         = other->_directPort;
   _localAddressUInt32 = other->_localAddressUInt32;
   _localAddress       = other->_localAddress;
+  _classicChannel     = other->_classicChannel;
 
   if (other->_impl->recvMcastList.size() > 0)
   {

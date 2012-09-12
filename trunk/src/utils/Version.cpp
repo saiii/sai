@@ -19,9 +19,9 @@
 #include <string>
 
 #define VERSION_MAJOR_STR "0"
-#define VERSION_MINOR_STR "2"
-#define VERSION_COUNT_STR "2"
-#define VERSION_SUFFI_STR "b"
+#define VERSION_MINOR_STR "3"
+#define VERSION_COUNT_STR "0"
+#define VERSION_SUFFI_STR "a"
 
 #ifdef _WIN32
 #include <sys_time.h>
