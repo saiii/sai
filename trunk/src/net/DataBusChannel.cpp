@@ -52,6 +52,12 @@ DataBusChannel::setClassicChannel(bool v)
 }
 
 void 
+DataBusChannel::setEnableHttpInterface(bool v)
+{
+  _enableHttpInterface = v;
+}
+
+void 
 DataBusChannel::setDirectPort(uint16_t port)
 {
   _directPort = port;
@@ -102,6 +108,12 @@ DataBusChannel::getLocalAddressUInt32()
   }
 }
 
+bool 
+DataBusChannel::enableHttpInterface()
+{
+  return _enableHttpInterface;
+}
+
 McastDataBusChannel::McastDataBusChannel():
   _impl(0)
 {
@@ -124,6 +136,7 @@ McastDataBusChannel::copyFrom(DataBusChannel* o)
   _localAddressUInt32 = other->_localAddressUInt32;
   _localAddress       = other->_localAddress;
   _classicChannel     = other->_classicChannel;
+  _enableHttpInterface= other->_enableHttpInterface;
 
   if (other->_impl->recvMcastList.size() > 0)
   {

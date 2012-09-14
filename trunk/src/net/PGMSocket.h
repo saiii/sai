@@ -40,6 +40,7 @@ private:
   std::string         _interface;
   std::string         _send;
   std::vector<char *> _receive;
+  bool                _withHttp;
 
 public:
   NetworkOptions();
@@ -49,7 +50,9 @@ public:
   void     addReceive(std::string rec);
   void     setSend(std::string snd);
   void     setPort(uint16_t port) { _port = port; }
+  void     setHttp(bool v)        { _withHttp = v;}
   uint16_t getPort()              { return _port; }
+  bool     enableHttp()           { return _withHttp; }
   void     toString(std::string& ret);
 };
 
@@ -74,7 +77,8 @@ private:
   static uint8_t          _InitCnt;
   PGMSocketEventHandler * _handler;
 
-  pgm_sock_t*             _sckt;
+  pgm_sock_t*             _scktRecv;
+  pgm_sock_t*             _scktSend;
   struct pgm_addrinfo_t * _addrInfo;
   
   Receiver *              _receiver;

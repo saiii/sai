@@ -36,6 +36,7 @@ protected:
   uint32_t    _localAddressUInt32;
   uint16_t    _directPort;
   bool        _classicChannel;
+  bool        _enableHttpInterface;
 
 public:
   DataBusChannel();
@@ -43,12 +44,14 @@ public:
   virtual void copyFrom(DataBusChannel* other) {}
   virtual void setLocalAddress(std::string ip);
   virtual void setClassicChannel(bool v);
+  virtual void setEnableHttpInterface(bool v);
 
   virtual void        setDirectPort(uint16_t port);
   virtual uint16_t    getDirectPort();
   virtual std::string getLocalAddress();
   virtual uint32_t    getLocalAddressUInt32();
   virtual bool        isClassicChannel();
+  virtual bool        enableHttpInterface();
 };
 
 class McastDataBusChannelImpl;

@@ -131,6 +131,10 @@ NilMcastDataBusState::activate()
     channel->getRecvMcast(list);
 
     NetworkOptions options;
+    if (!channel->isClassicChannel())
+    {
+      options.setHttp(channel->enableHttpInterface());
+    }
     while (list.size() > 0)
     {
       std::string * str = list.front();
