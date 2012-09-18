@@ -42,6 +42,7 @@ public:
   virtual void listen(std::string name) {}
   virtual void activate() {}
   virtual void deactivate() {}
+  virtual bool send(PGMSocket * sockt, std::string name, uint32_t id, std::string data) { return false; }
   virtual bool send(std::string name, uint32_t id, std::string data) { return false; }
   virtual bool send(std::string name, uint32_t id, DataDescriptor&, std::string data) { return false; }
   virtual void blockSender(std::string name) {}
@@ -75,6 +76,7 @@ public:
   ActiveMcastDataBusState(DataBusStateDb*, ProtocolDecoder *);
   virtual ~ActiveMcastDataBusState();
 
+  virtual bool send(PGMSocket * sockt, std::string name, uint32_t id, std::string data);
   virtual bool send(std::string name, uint32_t id, std::string data);
   virtual bool send(std::string name, uint32_t id, DataDescriptor&, std::string data);
   virtual void blockSender(std::string name);

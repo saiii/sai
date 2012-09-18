@@ -9,7 +9,7 @@ export CRYPTOPP_LIB=/home/athip/Dev/cryptopp/libcryptopp.a
 export XERCES_INC=/home/athip/Dev/xerces-c-3.1.1/BIN/include
 export XERCES_LIB=/home/athip/Dev/xerces-c-3.1.1/BIN/lib/libxerces-c.a
 export OPGM_INC=/home/athip/Dev/libpgm-5.1.118/openpgm/pgm/BIN/include/pgm-5.1
-export OPGM_LIB=/home/athip/Dev/libpgm-5.1.118/openpgm/pgm/BIN/lib/libpgm.a
+export OPGM_LIB="/home/athip/Dev/libpgm-5.1.118/openpgm/pgm/BIN/lib/libpgmhttp.a /home/athip/Dev/libpgm-5.1.118/openpgm/pgm/BIN/lib/libpgm.a"
 
 MJR=`grep VERSION_MAJOR ../../src/utils/Version.cpp | grep define | cut -d' ' -f 3 | cut -d\" -f 2`
 MNR=`grep VERSION_MINOR ../../src/utils/Version.cpp | grep define | cut -d' ' -f 3 | cut -d\" -f 2`
