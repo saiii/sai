@@ -25,6 +25,7 @@
 #include <net/ProtocolDecoder.h>
 #include <net/DataBusChannel.h>
 #include <net/DataBusChannelImpl.h>
+#include <net/PGMSocket.h>
 #include <net/Net.h>
 
 namespace sai 
@@ -59,9 +60,11 @@ public:
   void activate();
   void deactivate();
   bool send(std::string name, uint32_t id, std::string data);
+  bool send(PGMSocket*, std::string name, uint32_t id, std::string data);
   void blockSender(std::string name);
 
   DataBusChannel * getChannel();
+  DataBusStateDb * getDb() { return _stateDb; }
 };
 
 class DataBusFilter : public ChainFilter
