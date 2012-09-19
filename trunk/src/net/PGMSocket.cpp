@@ -67,20 +67,28 @@ NetworkOptions::toString(std::string& ret)
   ret.clear();
   ret.append(_interface);
   ret.append(";");
-  std::vector<char *>::iterator iter;
-  for (iter  = _receive.begin();
-       iter != _receive.end();
-       iter ++)
+
+  if (_receive.size() == 1 && strcmp(_receive.at(0), _send.c_str()) == 0)
   {
-    char * ch = *iter;
-    ret.append(ch);
-    if (iter + 1 != _receive.end())
-    {
-      ret.append(",");
-    }
+    ret.append(_send);
   }
-  ret.append(";");
-  ret.append(_send);
+  else
+  {
+    std::vector<char *>::iterator iter;
+    for (iter  = _receive.begin();
+         iter != _receive.end();
+         iter ++)
+    {
+      char * ch = *iter;
+      ret.append(ch);
+      if (iter + 1 != _receive.end())
+      {
+        ret.append(",");
+      }
+    }
+    ret.append(";");
+    ret.append(_send);
+  }
 }
 
 void
@@ -284,7 +292,7 @@ PGMSocket::PGMSocket(NetworkOptions* options):
   pgm_freeaddrinfo (_addrInfo);
 
   const int blocking = 1;
-  const int multicast_loop = 0;
+  const int multicast_loop = 1;
   const int multicast_hops = 16;
   const int dscp = 0x2e << 2; 
   pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_MULTICAST_LOOP, &multicast_loop, sizeof(multicast_loop));
