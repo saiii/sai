@@ -15,6 +15,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#ifndef _WIN32
+#include <syslog.h>
+#endif
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -97,7 +100,11 @@ Initialize()
   pgm_error_t* err = 0;
   pgm_messages_init();
   if (!pgm_init (&err)) {
-    // TODO log error err->message
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "Failed to initialize (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     pgm_messages_shutdown();
     return;
@@ -146,7 +153,11 @@ PGMSocket::PGMSocket(NetworkOptions* options):
 
   if (!pgm_getaddrinfo (network.c_str(), 0, &_addrInfo, &err)) 
   {
-    // TODO log error err->message
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_getaddrinfo (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
@@ -154,13 +165,21 @@ PGMSocket::PGMSocket(NetworkOptions* options):
   sa_family_t family = _addrInfo->ai_send_addrs[0].gsr_group.ss_family;
   if (!pgm_socket (&_scktRecv, family, SOCK_SEQPACKET, IPPROTO_UDP, &err)) 
   {
-    // TODO log error err->message
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_socket (recv) (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
   if (!pgm_socket (&_scktSend, family, SOCK_SEQPACKET, IPPROTO_UDP, &err)) 
   {
-    // TODO log error err->message
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_socket (send) (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
@@ -236,14 +255,18 @@ PGMSocket::PGMSocket(NetworkOptions* options):
   }
 
   // BIND
-  const int32_t fixPort = 8080; // the pgm logical port is fixed
+  const int32_t fixPort = 8080 + port; // the pgm logical port is fixed
   struct pgm_sockaddr_t addr;
   memset (&addr, 0, sizeof(addr));
   addr.sa_port = fixPort;
   addr.sa_addr.sport = DEFAULT_DATA_SOURCE_PORT; // Let's random
   if (!pgm_gsi_create_from_hostname (&addr.sa_addr.gsi, &err)) 
   {
-    // TODO log error err->message
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_gsi_create_from_hostname (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
@@ -264,8 +287,11 @@ PGMSocket::PGMSocket(NetworkOptions* options):
                   &ifReq, sizeof(ifReq),        /* rx interface */
                   &err))
   {
-    // TODO log error err->message
-    fprintf(stderr, "PGMSocket::bind %s\n", err->message);
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_bind3 (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
@@ -275,8 +301,11 @@ PGMSocket::PGMSocket(NetworkOptions* options):
                   &ifReq, sizeof(ifReq),        /* rx interface */
                   &err))
   {
-    // TODO log error err->message
-    fprintf(stderr, "PGMSocket::bind %s\n", err->message);
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_bind3 (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
@@ -291,12 +320,14 @@ PGMSocket::PGMSocket(NetworkOptions* options):
   pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_SEND_GROUP, &_addrInfo->ai_send_addrs[0], sizeof(struct group_req));
   pgm_freeaddrinfo (_addrInfo);
 
-  const int blocking = 1;
+  const int nonblocking = 1;
+  const int blocking = 0;
   const int multicast_loop = 1;
   const int multicast_hops = 16;
   const int dscp = 0x2e << 2; 
   pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_MULTICAST_LOOP, &multicast_loop, sizeof(multicast_loop));
   pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_MULTICAST_HOPS, &multicast_hops, sizeof(multicast_hops));
+
   pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_MULTICAST_LOOP, &multicast_loop, sizeof(multicast_loop));
   pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_MULTICAST_HOPS, &multicast_hops, sizeof(multicast_hops));
   if (AF_INET6 != family)
@@ -304,8 +335,10 @@ PGMSocket::PGMSocket(NetworkOptions* options):
     pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_TOS, &dscp, sizeof(dscp));
     pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_TOS, &dscp, sizeof(dscp));
   }
+
+  pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_NOBLOCK, &nonblocking, sizeof(nonblocking));
   //pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_NOBLOCK, &blocking, sizeof(blocking));
-  //pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_NOBLOCK, &blocking, sizeof(blocking));
+  pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_NOBLOCK, &blocking, sizeof(blocking));
 
 }
 
@@ -324,8 +357,11 @@ PGMSocket::listen()
   pgm_error_t* err = 0;
   if (!pgm_connect(_scktRecv, &err)) 
   {
-    // TODO log error err->message
-    fprintf(stderr, "PGMSocket::listen %s\n", err->message);
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "listen (recv) (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
@@ -333,8 +369,11 @@ PGMSocket::listen()
 
   if (!pgm_connect(_scktSend, &err)) 
   {
-    // TODO log error err->message
-    fprintf(stderr, "PGMSocket::listen %s\n", err->message);
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "listen (send) (%s)", err->message);
+    closelog();
+#endif
     pgm_error_free(err);
     return;
   }
@@ -346,7 +385,11 @@ PGMSocket::send(const char *data, uint32_t size)
   const int status = pgm_send (_scktSend, data, size, 0);
   if (PGM_IO_STATUS_NORMAL != status)
   {
-    // TODO log error err->message
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_send failed");
+    closelog();
+#endif
   }
 }
 
@@ -393,6 +436,18 @@ Receiver::threadEvent()
   socklen_t fromlen = sizeof(from);
   size_t len;
 
+  int efd = epoll_create (IP_MAX_MEMBERSHIPS);
+  int retval = pgm_epoll_ctl (_sckt, efd, EPOLL_CTL_ADD, EPOLLIN);
+  if (retval < 0)
+  {
+#ifndef _WIN32
+    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog(LOG_ERR, "pgm_epoll_ctl failed");
+    closelog();
+#endif
+  }
+  struct epoll_event events[1];
+
   while (_running)
   {
     const int status = pgm_recvfrom (_sckt,
@@ -403,22 +458,47 @@ Receiver::threadEvent()
                                      &from,
                                      &fromlen,
                                      &err);
-    if (status == PGM_IO_STATUS_NORMAL)
+    switch(status)
     {
-      // TODO deal with from
-      _handler->processDataEvent(buffer, (uint32_t)len);
-    }
-    else 
-    {
-      if (err) 
-      {
-        // TODO log error err->message
-        pgm_error_free(err);
+      case PGM_IO_STATUS_NORMAL:
+        // TODO deal with from
+        _handler->processDataEvent(buffer, (uint32_t)len);
+        break;
+      case PGM_IO_STATUS_TIMER_PENDING:
+        {
+          struct timeval tv;
+          socklen_t optlen = sizeof (tv);
+          pgm_getsockopt (_sckt, IPPROTO_PGM, PGM_TIME_REMAIN, &tv, &optlen);
+
+          int timeout = PGM_IO_STATUS_WOULD_BLOCK == status ? -1 : ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+          epoll_wait (efd, events, 1, timeout /* ms */);
+        }
+        break;
+      case PGM_IO_STATUS_RATE_LIMITED:
+        {
+          struct timeval tv;
+          socklen_t optlen = sizeof (tv);
+          pgm_getsockopt (_sckt, IPPROTO_PGM, PGM_RATE_REMAIN, &tv, &optlen);
+
+          int timeout = PGM_IO_STATUS_WOULD_BLOCK == status ? -1 : ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+          epoll_wait (efd, events, 1, timeout /* ms */);
+        }
+        break;
+      case PGM_IO_STATUS_WOULD_BLOCK:
+        epoll_wait (efd, events, 1, -1);
+        break;
+      default:
+        if (err)
+        {
+#ifndef _WIN32
+          openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+          syslog(LOG_ERR, "pgm_recvfrom failed (%s)", err->message);
+          closelog();
+#endif
+          pgm_error_free(err);
+        }
         err = 0;
-      }
-      // TODO recover from the error!!!
-      //if (status == PGM_IO_STATUS_ERROR)
-      //  break;
+        break;
     }
   }
   delete [] buffer;
