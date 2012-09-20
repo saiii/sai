@@ -436,17 +436,30 @@ Receiver::threadEvent()
   socklen_t fromlen = sizeof(from);
   size_t len;
 
-  int efd = epoll_create (IP_MAX_MEMBERSHIPS);
-  int retval = pgm_epoll_ctl (_sckt, efd, EPOLL_CTL_ADD, EPOLLIN);
-  if (retval < 0)
-  {
 #ifndef _WIN32
-    openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-    syslog(LOG_ERR, "pgm_epoll_ctl failed");
-    closelog();
-#endif
-  }
-  struct epoll_event events[1];
+  int fds;
+  fd_set readfds;
+  int g_quit_pipe[2];
+  pipe(g_quit_pipe);
+#else
+  SOCKET recv_sock, pending_sock;
+  DWORD cEvents = PGM_RECV_SOCKET_READ_COUNT + 1;
+  WSAEVENT waitEvents[ cEvents ];
+  socklen_t socklen = sizeof (SOCKET);
+
+  waitEvents[0] = g_quit_event;
+  waitEvents[1] = WSACreateEvent();
+  waitEvents[2] = WSACreateEvent();
+  assert (2 == PGM_RECV_SOCKET_READ_COUNT);
+  pgm_getsockopt (_sckt, IPPROTO_PGM, PGM_RECV_SOCK, &recv_sock, &socklen);
+  WSAEventSelect (recv_sock, waitEvents[1], FD_READ);
+  pgm_getsockopt (_sckt, IPPROTO_PGM, PGM_PENDING_SOCK, &pending_sock, &socklen);
+  WSAEventSelect (pending_sock, waitEvents[2], FD_READ);
+
+  DWORD dwTimeout, dwEvents;
+#endif 
+
+  struct timeval tv;
 
   while (_running)
   {
@@ -462,6 +475,7 @@ Receiver::threadEvent()
     {
       case PGM_IO_STATUS_NORMAL:
         // TODO deal with from
+        printf("processData\n");
         _handler->processDataEvent(buffer, (uint32_t)len);
         break;
       case PGM_IO_STATUS_TIMER_PENDING:
@@ -470,8 +484,21 @@ Receiver::threadEvent()
           socklen_t optlen = sizeof (tv);
           pgm_getsockopt (_sckt, IPPROTO_PGM, PGM_TIME_REMAIN, &tv, &optlen);
 
-          int timeout = PGM_IO_STATUS_WOULD_BLOCK == status ? -1 : ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
-          epoll_wait (efd, events, 1, timeout /* ms */);
+#ifndef _WIN32
+          fds = g_quit_pipe[0] + 1;
+          FD_ZERO(&readfds);
+          FD_SET(g_quit_pipe[0], &readfds);
+          pgm_select_info (_sckt, &readfds, 0, &fds);
+          fds = select(fds, &readfds, 0, 0, &tv);
+#else
+          dwTimeout = ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+          dwEvents = WSAWaitForMultipleEvents (cEvents, waitEvents, FALSE, dwTimeout, FALSE);
+          switch (dwEvents) {
+            case WSA_WAIT_EVENT_0+1: WSAResetEvent (waitEvents[1]); break;
+            case WSA_WAIT_EVENT_0+2: WSAResetEvent (waitEvents[2]); break;
+            default: break;
+          }
+#endif
         }
         break;
       case PGM_IO_STATUS_RATE_LIMITED:
@@ -480,12 +507,42 @@ Receiver::threadEvent()
           socklen_t optlen = sizeof (tv);
           pgm_getsockopt (_sckt, IPPROTO_PGM, PGM_RATE_REMAIN, &tv, &optlen);
 
-          int timeout = PGM_IO_STATUS_WOULD_BLOCK == status ? -1 : ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
-          epoll_wait (efd, events, 1, timeout /* ms */);
+#ifndef _WIN32
+          fds = g_quit_pipe[0] + 1;
+          FD_ZERO(&readfds);
+          FD_SET(g_quit_pipe[0], &readfds);
+          pgm_select_info (_sckt, &readfds, 0, &fds);
+          fds = select(fds, &readfds, 0, 0, &tv);
+#else
+          dwTimeout = ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+          dwEvents = WSAWaitForMultipleEvents (cEvents, waitEvents, FALSE, dwTimeout, FALSE);
+          switch (dwEvents) {
+            case WSA_WAIT_EVENT_0+1: WSAResetEvent (waitEvents[1]); break;
+            case WSA_WAIT_EVENT_0+2: WSAResetEvent (waitEvents[2]); break;
+            default: break;
+          }
+#endif
         }
         break;
       case PGM_IO_STATUS_WOULD_BLOCK:
-        epoll_wait (efd, events, 1, -1);
+#ifndef _WIN32
+        fds = g_quit_pipe[0] + 1;
+        FD_ZERO(&readfds);
+        FD_SET(g_quit_pipe[0], &readfds);
+        pgm_select_info (_sckt, &readfds, 0, &fds);
+        tv.tv_sec  = 1;
+        tv.tv_usec = 0;
+        fds = select(fds, &readfds, 0, 0, &tv);
+        printf("would block\n");
+#else
+        dwTimeout = WSA_INFINITE;
+        dwEvents = WSAWaitForMultipleEvents (cEvents, waitEvents, FALSE, dwTimeout, FALSE);
+        switch (dwEvents) {
+          case WSA_WAIT_EVENT_0+1: WSAResetEvent (waitEvents[1]); break;
+          case WSA_WAIT_EVENT_0+2: WSAResetEvent (waitEvents[2]); break;
+          default: break;
+        }
+#endif
         break;
       default:
         if (err)
@@ -493,6 +550,10 @@ Receiver::threadEvent()
 #ifndef _WIN32
           openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
           syslog(LOG_ERR, "pgm_recvfrom failed (%s)", err->message);
+          if (status == PGM_IO_STATUS_ERROR)
+          {
+            syslog(LOG_ERR, "pgm_recvfrom PGM_IO_STATUS_ERROR");
+          }
           closelog();
 #endif
           pgm_error_free(err);
