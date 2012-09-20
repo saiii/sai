@@ -485,7 +485,6 @@ Receiver::threadEvent()
     {
       case PGM_IO_STATUS_NORMAL:
         // TODO deal with from
-        printf("processData\n");
         _handler->processDataEvent(buffer, (uint32_t)len);
         break;
       case PGM_IO_STATUS_TIMER_PENDING:
@@ -540,10 +539,7 @@ Receiver::threadEvent()
         FD_ZERO(&readfds);
         FD_SET(g_quit_pipe[0], &readfds);
         pgm_select_info (_sckt, &readfds, 0, &fds);
-        tv.tv_sec  = 1;
-        tv.tv_usec = 0;
-        fds = select(fds, &readfds, 0, 0, &tv);
-        printf("would block\n");
+        fds = select(fds, &readfds, 0, 0, 0);
 #else
         dwTimeout = WSA_INFINITE;
         dwEvents = WSAWaitForMultipleEvents (cEvents, waitEvents, FALSE, dwTimeout, FALSE);
