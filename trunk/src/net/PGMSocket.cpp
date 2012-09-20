@@ -15,15 +15,23 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #ifndef _WIN32
 #include <syslog.h>
 #endif
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <utils/ThreadPool.h>
 #include <pgm/pgm.h>
 #include <pgm/http.h>
-#include <utils/ThreadPool.h>
 #include "PGMSocket.h"
 
 #define NET_BUFFER_SIZE 81920
@@ -442,9 +450,11 @@ Receiver::threadEvent()
   int g_quit_pipe[2];
   pipe(g_quit_pipe);
 #else
+  WSAEVENT g_quit_event;
+  g_quit_event = WSACreateEvent();
   SOCKET recv_sock, pending_sock;
   DWORD cEvents = PGM_RECV_SOCKET_READ_COUNT + 1;
-  WSAEVENT waitEvents[ cEvents ];
+  WSAEVENT waitEvents[ 3 ];
   socklen_t socklen = sizeof (SOCKET);
 
   waitEvents[0] = g_quit_event;

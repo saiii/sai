@@ -21,8 +21,8 @@
 #include <string>
 #include <net/Net.h>
 #include <net/Socket.h>
-#include <net/PGMSocket.h>
 #include <net/DataBus.h>
+#include <net/PGMSocket.h>
 
 namespace sai 
 { 

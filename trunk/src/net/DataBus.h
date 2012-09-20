@@ -25,8 +25,8 @@
 #include <net/ProtocolDecoder.h>
 #include <net/DataBusChannel.h>
 #include <net/DataBusChannelImpl.h>
-#include <net/PGMSocket.h>
 #include <net/Net.h>
+#include <net/PGMSocket.h>
 
 namespace sai 
 { 
