@@ -76,7 +76,6 @@ public:
   ActiveMcastDataBusState(DataBusStateDb*, ProtocolDecoder *);
   virtual ~ActiveMcastDataBusState();
 
-  virtual bool send(PGMSocket * sockt, std::string name, uint32_t id, std::string data);
   virtual bool send(std::string name, uint32_t id, std::string data);
   virtual bool send(std::string name, uint32_t id, DataDescriptor&, std::string data);
   virtual void blockSender(std::string name);

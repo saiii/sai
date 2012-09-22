@@ -60,7 +60,6 @@ public:
   void activate();
   void deactivate();
   bool send(std::string name, uint32_t id, std::string data);
-  bool send(PGMSocket*, std::string name, uint32_t id, std::string data);
   void blockSender(std::string name);
 
   DataBusChannel * getChannel();
