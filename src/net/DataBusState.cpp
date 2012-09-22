@@ -302,22 +302,6 @@ ActiveMcastDataBusState::send(std::string name, uint32_t id, DataDescriptor& des
   return true;
 }
 
-bool 
-ActiveMcastDataBusState::send(PGMSocket * sockt, std::string name, uint32_t id, std::string data) 
-{ 
-  sai::net::DataDescriptor desc;
-  desc.version   = 1;
-  memcpy(desc.sender, Net::GetInstance()->getSenderId(), sizeof(desc.sender));
-  desc.id        = Net::GetInstance()->getMessageId();
-  desc.from.ival = Net::GetInstance()->getLocalAddressUInt32();
-  desc.to.str    = name;
-
-  std::string wireData;
-  sai::net::ProtocolEncoder().encode(desc, id, data, wireData); 
-  sockt->send(wireData.data(), wireData.size());
-  return true; 
-}
-
 void 
 ActiveMcastDataBusState::blockSender(std::string name) 
 {

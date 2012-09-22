@@ -175,12 +175,6 @@ DataBus::send(std::string name, uint32_t id, std::string data)
   return _stateDb->getState()->send(name, id, data);
 }
 
-bool 
-DataBus::send(PGMSocket* sckt, std::string name, uint32_t id, std::string data)
-{
-  return _stateDb->getState()->send(sckt, name, id, data);
-}
-
 bool
 DataBus::send(std::string name, uint32_t id, DataDescriptor& desc, std::string data)
 {
