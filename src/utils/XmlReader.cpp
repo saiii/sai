@@ -162,6 +162,9 @@ XmlReader::parseMem(std::string xmlMessage)
   catch(xercesc::XMLException& e)
   {
   }
+  catch(...)
+  {
+  }
 }
 
 xercesc::DOMElement*
@@ -280,6 +283,11 @@ XmlReader::getChild(uint32_t index, std::string& name, PairList& attributeList)
 void
 XmlReader::get(std::string tag, std::string attribute, std::string& ret)
 {
+  if (!_impl->root) 
+  {
+    return;
+  }
+
   _impl->ret.clear();
 
   xercesc::DOMElement * elem = 0;
