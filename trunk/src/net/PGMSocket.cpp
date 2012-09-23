@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <cstring>
 #include <utils/ThreadPool.h>
+#include <utils/Logger.h>
 #include <pgm/pgm.h>
 #include <pgm/http.h>
 #include "PGMSocket.h"
@@ -148,15 +149,23 @@ PGMSocket::PGMSocket(NetworkOptions* options):
   pgm_error_t* err = 0;
   if (options->enableHttp())
   {
-    //if (!pgm_http_init(2010, &err))
-    //{
-    //  printf("Initializing http interface error %s\n", err->message);
-    //  pgm_error_free(err);
-    //}
-    //else
-    //{
-    //  printf("Initializing http interface at port %d\n", 2010);
-    //}
+    if (!pgm_http_init(2010, &err))
+    {
+#ifndef _WIN32
+      openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+      syslog(LOG_ERR, "Initializing http interface error %s", err->message);
+      closelog();
+#endif
+      pgm_error_free(err);
+    }
+    else
+    {
+      if (sai::utils::Logger::GetInstance())
+      {
+        sai::utils::Logger::GetInstance()->print(
+          sai::utils::Logger::SAILVL_DEBUG, "Initializing http interface at port %d\n", 2010);
+      }
+    }
   }
 
   if (!pgm_getaddrinfo (network.c_str(), 0, &_addrInfo, &err)) 
