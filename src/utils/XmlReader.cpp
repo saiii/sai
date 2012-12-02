@@ -20,7 +20,6 @@
 #endif
 #include <stdint.h>
 #include <cstdio>
-#include <pthread.h>
 #include <utils/rapidxml.hpp>
 #include <utils/XmlReader.h>
 
@@ -35,7 +34,7 @@ public:
   xml_document<>            doc;
   xml_node<>               *root;
   xml_node<>               *startNode;
-  std::vector<char>        *buffer;
+  char                     *buffer;
 
   std::string               xmlData;
   std::string               ret;
@@ -48,7 +47,7 @@ public:
   {}
   ~XmlReaderImpl()
   {
-    delete buffer;
+    delete [] buffer;
   }
 };
 }}
@@ -123,9 +122,10 @@ XmlReader::parseFile(std::string xmlFile)
 void 
 XmlReader::parseMem(std::string xmlMessage)
 {
-  _impl->buffer = new std::vector<char>(xmlMessage.begin(), xmlMessage.end());
-  _impl->buffer->push_back('\0');
-  _impl->doc.parse<0>(&_impl->buffer->at(0));
+  _impl->buffer = new char[xmlMessage.length()+1];
+  memset(_impl->buffer, 0, xmlMessage.length() + 1);
+  memcpy(_impl->buffer, xmlMessage.c_str(), xmlMessage.length());
+  _impl->doc.parse<0>(_impl->buffer);
 
   _impl->xmlData.clear();
   _impl->xmlData.append(xmlMessage.c_str(), xmlMessage.length());
