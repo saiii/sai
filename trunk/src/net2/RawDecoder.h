@@ -19,26 +19,32 @@
 #define __SAI_NET2_RAWDECODER__
 
 #include <stdint.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
 
 namespace sai
 {
 namespace net2
 {
 
-class Decoder2;
+class Decoder3;
 class DataDispatcher;
+class Endpoint;
 class RawDecoder
 {
 friend class DataMessengerFactory;
 private:
   void *     _old;
-  Decoder2 * _dec2;
+  Decoder3 * _dec3;
 
 public:
   RawDecoder(DataDispatcher * disp);
   virtual ~RawDecoder();
 
-  void processData(const char *, const uint32_t);
+  void processData(Endpoint * endpoint, const char *, const uint32_t);
 };
 
 }}

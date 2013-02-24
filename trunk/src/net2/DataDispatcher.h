@@ -39,17 +39,20 @@ private:
   DispatchTable   _table;
   DataHandler *   _defaultHandler;
   void *          _old;
+  bool            _ignoreDestinationField;
 
-private:
+protected:
   DataDispatcher();
+  bool intlRegisterHandler(uint32_t id, DataHandler * handler);
 
 public:
-  ~DataDispatcher();
-  void dispatch(DataDescriptor&);
+  virtual ~DataDispatcher();
+  virtual void dispatch(DataDescriptor&, char * origMsg, uint32_t origSize);
 
-  bool registerHandler(uint32_t opcode, DataHandler * handler);
-  bool registerHandler(uint32_t opcode, sai::net::DataHandler * handler);
+  bool registerHandler(uint32_t id, DataHandler * handler);
+  bool registerHandler(uint32_t id, sai::net::DataHandler * handler);
   void setDefaultHandler(DataHandler * handler);
+  void setIgnoreDestinationField() { _ignoreDestinationField = true; }
 };
 
 }}

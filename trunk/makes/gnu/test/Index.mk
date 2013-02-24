@@ -34,6 +34,7 @@ SAI_LIB  = libSai.a
 LIBS    += $(BOOST_LIB)
 LIBS    += $(CRYPTOPP_LIB)
 LIBS    += $(OPGM_LIB)
+LIBS    += $(XERCES_LIB)
 LIBS    += -lpthread
 LIBS    += -lrt
 

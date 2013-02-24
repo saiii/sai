@@ -22,7 +22,9 @@ TESTNET2_SRC = \
           Test_RawEncoder.cpp \
           Test_RawDecoder.cpp \
           Test_DataMessenger.cpp \
-          Test_Resolver.cpp 
+          Test_Resolver.cpp \
+          Test_Authen.cpp \
+          Test_PgmTransport.cpp
 
 TESTNET2_INC = 
 
@@ -44,7 +46,7 @@ net2/%.d: $(SAI_ROOT)/net2/%.cpp
 		rm -f $@.d
 
 net2/%.exe: net2/%.o libSai.a
-	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) $< libSai.a $(SAIEXT_LIB) $(BOOST_LIB) $(XERCES_LIB) $(CRYPTOPP_LIB) -lcurl -lpthread
+	$(CC) -o $@ $(OPTS) $(DEF) $(INC) -I$(SAI_ROOT) $< libSai.a $(SAIEXT_LIB) $(OPGM_LIB) $(BOOST_LIB) $(XERCES_LIB) $(CRYPTOPP_LIB) -lcurl -lpthread
 
 TESTNET2: $(TESTNET2_OBJ) $(TESTNET2_EXE)
 

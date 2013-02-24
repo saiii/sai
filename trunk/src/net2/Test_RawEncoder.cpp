@@ -5,7 +5,7 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//	        
+//        
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -50,20 +50,20 @@ test1(std::string fileName)
   std::string data = txt.str();
 
   DataDescriptor desc;
-  desc.raw.r2.encAlgo    = ENC_ALGO_NONE;
-  desc.raw.r2.encTagSize = 0;
-  desc.raw.r2.comAlgo    = COMP_ALGO_NONE;
-  desc.raw.r2.comTagSize = 0;
-  desc.raw.r2.hashAlgo   = HASH_ALGO_SHA256;
-  desc.raw.r2.hashTagSize= 32;
+  desc.raw->encAlgo    = ENC_ALGO_NONE;
+  desc.raw->encTagSize = 0;
+  desc.raw->comAlgo    = COMP_ALGO_NONE;
+  desc.raw->comTagSize = 0;
+  desc.raw->hashAlgo   = HASH_ALGO_SHA256;
+  desc.raw->hashTagSize= 32;
   // protSize cannot be managed by user
-  desc.raw.r2.xmlSize    = data.length();
-  desc.raw.r2.binSize    = 0;
+  desc.raw->xmlSize    = data.length();
+  desc.raw->binSize    = 0;
   // protData cannot be managed by user
-  desc.raw.r2.xmlData    = (char*)data.c_str();
-  desc.raw.r2.binData    = 0;
+  desc.raw->xmlData    = (char*)data.c_str();
+  desc.raw->binData    = 0;
 
-  desc.protMessage->setId(1);
+  desc.protMessage->setId(10000);
 
   uint32_t size = 0;
   RawEncoder encoder;
@@ -82,20 +82,20 @@ test2(std::string fileName)
 {
   std::string data = "Hello, world";
   DataDescriptor desc;
-  desc.raw.r2.encAlgo    = ENC_ALGO_NONE;
-  desc.raw.r2.encTagSize = 0;
-  desc.raw.r2.comAlgo    = COMP_ALGO_NONE;
-  desc.raw.r2.comTagSize = 0;
-  desc.raw.r2.hashAlgo   = HASH_ALGO_SHA256;
-  desc.raw.r2.hashTagSize= 32;
+  desc.raw->encAlgo    = ENC_ALGO_NONE;
+  desc.raw->encTagSize = 0;
+  desc.raw->comAlgo    = COMP_ALGO_NONE;
+  desc.raw->comTagSize = 0;
+  desc.raw->hashAlgo   = HASH_ALGO_SHA256;
+  desc.raw->hashTagSize= 32;
   // protSize cannot be managed by user
-  desc.raw.r2.xmlSize    = 0;
-  desc.raw.r2.binSize    = data.size();
+  desc.raw->xmlSize    = 0;
+  desc.raw->binSize    = data.size();
   // protData cannot be managed by user
-  desc.raw.r2.xmlData    = 0;
-  desc.raw.r2.binData    = (char*)data.data();
+  desc.raw->xmlData    = 0;
+  desc.raw->binData    = (char*)data.data();
 
-  desc.protMessage->setId(1);
+  desc.protMessage->setId(10000);
 
   uint32_t size = 0;
   RawEncoder encoder;
@@ -123,20 +123,20 @@ test3(std::string fileName)
   std::string data2 = "Oh My God! It works!";
 
   DataDescriptor desc;
-  desc.raw.r2.encAlgo    = ENC_ALGO_NONE;
-  desc.raw.r2.encTagSize = 0;
-  desc.raw.r2.comAlgo    = COMP_ALGO_NONE;
-  desc.raw.r2.comTagSize = 0;
-  desc.raw.r2.hashAlgo   = HASH_ALGO_SHA256;
-  desc.raw.r2.hashTagSize= 32;
+  desc.raw->encAlgo    = ENC_ALGO_NONE;
+  desc.raw->encTagSize = 0;
+  desc.raw->comAlgo    = COMP_ALGO_NONE;
+  desc.raw->comTagSize = 0;
+  desc.raw->hashAlgo   = HASH_ALGO_SHA256;
+  desc.raw->hashTagSize= 32;
   // protSize cannot be managed by user
-  desc.raw.r2.xmlSize    = data.length();
-  desc.raw.r2.binSize    = data2.length();
+  desc.raw->xmlSize    = data.length();
+  desc.raw->binSize    = data2.length();
   // protData cannot be managed by user
-  desc.raw.r2.xmlData    = (char*)data.c_str();
-  desc.raw.r2.binData    = (char*)data2.c_str();
+  desc.raw->xmlData    = (char*)data.c_str();
+  desc.raw->binData    = (char*)data2.c_str();
 
-  desc.protMessage->setId(1);
+  desc.protMessage->setId(10000);
 
   uint32_t size = 0;
   RawEncoder encoder;

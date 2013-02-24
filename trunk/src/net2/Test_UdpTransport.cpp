@@ -5,7 +5,7 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//	        
+//        
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -25,19 +25,7 @@ using namespace sai::net2;
 
 int main(int argc, char * argv[])
 {
-  UdpTransport* transport = new UdpTransport();
-  // connection test
-  transport->bind("192.168.8.148");
-  //transport->destination("50.23.58.155", 8008);
-  transport->destination("224.3.3.3", 8808);
-  //transport->send("Hi There");
-
-  std::string msg = "Hi!!!!";
-  transport->send(msg.data(), msg.size()+1);
-
   Net::GetInstance()->mainLoop();
 
-  transport->close();
-  delete transport;
   return 0;
 }

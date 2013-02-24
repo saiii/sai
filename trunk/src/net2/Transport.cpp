@@ -15,21 +15,106 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <Winsock2.h>
+#include <ws2tcpip.h> 
+#else
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <syslog.h>
 #endif
 
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/bind.hpp>
 
 #include <utils/Logger.h>
+#include <utils/ThreadPool.h>
 
 #include <net2/Net.h>
+#include <net2/PGMSocket.h>
 #include "Transport.h"
 
-#define NET_BUFFER_SIZE 8192
+#ifdef _WIN32
+#include <Objbase.h>
+#endif
+
+#define NET_BUFFER_SIZE1  40960
+#define NET_BUFFER_SIZE2 819200
 
 using namespace sai::net2;
+
+DirectDb::DirectDb()
+{
+}
+
+DirectDb::~DirectDb()
+{
+}
+
+void 
+DirectDb::add(DirectReply* d)
+{
+  _list.push_back(d);
+}
+
+void 
+DirectDb::drop(DirectReply* d)
+{
+  DirectReplyListIterator iter;
+  for (iter  = _list.begin(); 
+       iter != _list.end();
+       iter ++)
+  {
+    DirectReply * dp = *iter;
+    if (dp == d)
+    {
+      _list.erase(iter);
+      break;
+    }
+  }
+}
+
+bool 
+DirectDb::has(DirectReply* d)
+{
+  if (_list.size() <= 0) return false;
+
+  DirectReplyListIterator iter;
+  for (iter  = _list.begin(); 
+       iter != _list.end();
+       iter ++)
+  {
+    DirectReply * dp = *iter;
+    if (dp == d)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+Endpoint::Endpoint(std::string addr, uint32_t p, IncomingSource source, TCPPtr* ptr):
+  _port(p),
+  _source(source),
+  _tcpPtr(0, 0)
+{
+  _tcpPtr.obj = 0;
+  if (ptr)
+  {
+    _tcpPtr.db  = ptr->db;
+    _tcpPtr.obj = ptr->obj;
+  }
+  _addr.assign(addr.c_str(), addr.length()+1);
+}
+
+Endpoint::~Endpoint()
+{
+}
 
 Transport::Transport()
 {
@@ -54,61 +139,208 @@ namespace sai
 namespace net2
 {
 
-typedef std::vector<std::string>           StringList;
-typedef std::vector<std::string>::iterator StringListIterator;
-
-class McastSetImpl
+class BufferManager
 {
-public:
-  StringList list;
-
-public:
-  McastSetImpl()
-  {}
-
-  ~McastSetImpl()
-  {}
-
-  void add(std::string mcast)
-  {
-    list.push_back(mcast);
-  }
-};
-
-class Session
-{
-public:
+private:
   char*                         buffer;
-  boost::asio::ip::tcp::socket  sckt;
+  char*                         buffer2;
+  uint32_t                      &buffer2Size;
+
+public:
   RawDataHandler*               handler; 
 
 public:
-  Session():
-    buffer(0),
-    sckt(*((boost::asio::io_service*)Net::GetInstance()->getIO())),
-    handler(0)
+  BufferManager(char * buf, char * buf2, uint32_t& size, RawDataHandler * hdlr);
+  ~BufferManager();
+  void processBuffer(Endpoint& endpoint, char * ptr, int32_t bytes_received);
+};
+
+BufferManager::BufferManager(char * buf, char * buf2, uint32_t& size, RawDataHandler * hdlr):
+  buffer(buf),
+  buffer2(buf2),
+  buffer2Size(size),
+  handler(hdlr)
+{
+}
+
+BufferManager::~BufferManager()
+{
+}
+
+void 
+BufferManager::processBuffer(Endpoint& endpoint, char * ptr, int32_t bytes_received)
+{
+  if (buffer2Size) 
   {
-    buffer = new char[NET_BUFFER_SIZE];
+    memcpy(buffer2+buffer2Size, buffer, bytes_received);
+    buffer2Size += bytes_received;
+
+    memcpy(buffer, buffer2, buffer2Size);
+    bytes_received = buffer2Size;
+    buffer2Size = 0;
+  }
+
+  uint32_t size = 0;
+  memcpy(&size, buffer+6, sizeof(size));
+  size  = ntohl(size);
+
+  if (size == 0)
+  {
+	  return;
+  }
+
+#ifdef DEBUG_NET
+  uint16_t seqNo = 0;
+  memcpy(&seqNo, buffer+10, sizeof(seqNo));
+  seqNo = ntohs(seqNo);
+#endif
+
+  if (size < (uint32_t)bytes_received)
+  {
+    char *ptr = buffer;
+    do
+    {
+      //printf("[1] Got %u Size %u Receive %u\n", seqNo, size, bytes_received);
+      handler->processDataEvent(&endpoint, ptr, size);
+      ptr += size;
+      bytes_received -= size;
+
+      memcpy(&size, ptr+6, sizeof(size));
+      size  = ntohl(size);
+
+#ifdef DEBUG_NET
+      memcpy(&seqNo, ptr+10, sizeof(seqNo));
+      seqNo = ntohs(seqNo);
+#endif
+    }while(bytes_received > size);
+
+    if (bytes_received != size)
+    {
+      memcpy(buffer2+buffer2Size, ptr, bytes_received);
+      buffer2Size += bytes_received;
+    }
+    else
+    {
+      //printf("[2] Got %u Size %u Receive %u\n", seqNo, size, bytes_received);
+      handler->processDataEvent(&endpoint, ptr, size);
+    }
+  }
+  else if (size == bytes_received)
+  {
+    //printf("[3] Got %u Size %u Receive %u\n", seqNo, size, bytes_received);
+    handler->processDataEvent(&endpoint, buffer, bytes_received);
+  }
+  else
+  {
+    memcpy(buffer2+buffer2Size, buffer, bytes_received);
+    buffer2Size += bytes_received;
+  }
+  //fflush(stdout);
+}
+
+typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
+
+class Session : public DirectReply
+{
+private:
+  RawDataHandler*               handler; 
+
+public:
+  char*                         buffer;
+  char*                         buffer2;
+  uint32_t                      buffer2Size;
+  boost::asio::ip::tcp::socket *sckt;
+  ssl_socket                   *sslSckt;
+  BufferManager*                manager;
+  static DirectDb *             db;
+
+public:
+  Session(boost::asio::ssl::context* context, RawDataHandler * hdlr):
+    handler(hdlr),
+    buffer(0),
+    buffer2(0),
+    buffer2Size(0),
+    sckt(0),
+    sslSckt(0),
+    manager(0)
+  {
+    if (!db)
+    {
+      db = new DirectDb();
+    }
+    db->add(this);
+
+    if (!context)
+    {
+      sckt = new boost::asio::ip::tcp::socket(*((boost::asio::io_service*)Net::GetInstance()->getIO()));
+    }
+    else
+    {
+      sslSckt = new ssl_socket(*((boost::asio::io_service*)Net::GetInstance()->getIO()), *context);
+    }
+#ifdef _WIN32
+    buffer = (char*)::CoTaskMemAlloc(NET_BUFFER_SIZE2);
+    buffer2= (char*)::CoTaskMemAlloc(NET_BUFFER_SIZE2);
+#else
+    buffer = new char[NET_BUFFER_SIZE2];
+    buffer2= new char[NET_BUFFER_SIZE2];
+#endif
+    manager = new BufferManager(buffer, buffer2, buffer2Size, handler);
   }
   ~Session()
   {
+    if (_dhandler)
+    {
+      _dhandler->destroyEvent();
+    }
+    delete sckt;
+    delete sslSckt;
+	sckt = 0;
+	sslSckt = 0;
+#ifdef _WIN32
+    ::CoTaskMemFree(buffer2);
+    ::CoTaskMemFree(buffer);
+#else
+    delete [] buffer2;
     delete [] buffer;
+#endif
+    delete manager;
+    db->drop(this);
   }
+  ssl_socket::lowest_layer_type& socket()
+  {
+    return sslSckt->lowest_layer();
+  }
+
   void start()
   {
-    sckt.async_read_some(boost::asio::buffer(buffer, NET_BUFFER_SIZE),
-      boost::bind(&Session::processDataEvent, this,
-      boost::asio::placeholders::error,
-      boost::asio::placeholders::bytes_transferred));
+    if (sckt)
+    {
+      sckt->async_read_some(boost::asio::buffer(buffer, NET_BUFFER_SIZE1),
+        boost::bind(&Session::processDataEvent, this,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred));
+    }
+    else
+    {
+      sslSckt->async_read_some(boost::asio::buffer(buffer, NET_BUFFER_SIZE1),
+        boost::bind(&Session::processDataEvent, this,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred));
+    }
   }
-  void processDataEvent(const boost::system::error_code& err, size_t bytes_transferred)
+  void processDataEvent(const boost::system::error_code& err, size_t bytes_received)
   {
     if (!err)
     {
       if (handler) 
       {
-        // FIXME : How to send data back in this stream before it gets closed
-        handler->processDataEvent(buffer, bytes_transferred);
+        boost::asio::ip::tcp::endpoint ep = sckt ? sckt->remote_endpoint() : socket().remote_endpoint();
+        TCPPtr ptr(db, this);
+        Endpoint endpoint(ep.address().to_string(), ep.port(), TCP, &ptr);
+        PerfMeasure::InCount++;
+
+        manager->processBuffer(endpoint, buffer, bytes_received);
       }
       start();
     }
@@ -118,215 +350,214 @@ public:
       delete this;
     }
   }
+
+  void send(char * data, int size)
+  {
+    std::string message;
+    boost::system::error_code ignored_error;
+
+    bool isOpen = sckt ? sckt->is_open() : socket().is_open();
+    if (!isOpen)
+    {
+      return;
+    }
+
+#if DEBUG_NET
+    static uint16_t seqNo = 0;
+    seqNo++;
+    printf("Seq %u, Size %u\n", seqNo, size);
+    uint16_t nSeqNo = htons(seqNo);
+    memcpy((char*)(data + 10), &nSeqNo, sizeof(nSeqNo));
+#endif
+
+    message.append(data, size);
+
+    if (sckt)
+    {
+      int32_t bytes = boost::asio::write(*sckt, boost::asio::buffer(message), ignored_error);
+      if (bytes != message.size())
+      {
+        if (bytes == 0)
+        {
+          delete this;
+        }
+      }
+    }
+    else
+    {
+      char * nmsg = new char[size];
+      DataSentHandler * handler = new DataSentHandler();
+      handler->msg  = nmsg;
+      handler->impl = this;
+      memcpy(nmsg, data, size);
+      boost::asio::async_write(*sslSckt, boost::asio::buffer(nmsg, size),
+          boost::bind(&Session::DataSentHandler::processDataSent, handler,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
+    }
+  }
+  class DataSentHandler
+  {
+    public:
+      Session * impl;
+      char    * msg;
+
+    public:
+      void processDataSent(const boost::system::error_code& error, size_t bytes_transferred)
+      {
+        if (error)
+        {
+          delete [] msg;
+          delete this;
+          delete impl;
+          return;
+        }
+        delete [] msg;
+        delete this;
+      }
+  };
 };
+
+DirectDb * Session::db = 0;
 
 class InternalTransportImpl
 {
 public:
   // TCP Stuff
   boost::asio::ip::tcp::acceptor* acceptor;
-  RawDataHandler*                 handler; 
-
-  // UDP Stuff
-  boost::asio::ip::udp::socket   udpSocket;
-  boost::asio::ip::udp::endpoint udpSenderEndpoint;
-  char                          *udpBuffer;
+  boost::asio::ssl::context     * context;
+  PGMSocket                     * localSckt;
+  RawDataHandler                * handler; 
 
 public:
   InternalTransportImpl():
     acceptor(0),
+    context(0),
     handler(0),
-    udpSocket(*((boost::asio::io_service*)Net::GetInstance()->getIO()))
+    localSckt(0)
   {
-    udpBuffer = new char[NET_BUFFER_SIZE];
   }
 
   ~InternalTransportImpl()
   {
-    delete [] udpBuffer;
+    delete localSckt;
   }
 
-  void initialize(std::string ip, uint16_t port, McastSet* mcastSet, RawDataHandler * hndlr)
+  void initialize(NetworkOptions* opt, RawDataHandler * hndlr)
   {
     handler = hndlr;
 
-    // TCP Stuff
-    try{
-      boost::asio::ip::tcp::endpoint endpoint;
-      const boost::asio::ip::address address = boost::asio::ip::address::from_string(ip);
-      endpoint.address(address);
-      endpoint.port(port);
-
-      acceptor = new boost::asio::ip::tcp::acceptor(
-        *((boost::asio::io_service*)Net::GetInstance()->getIO()), endpoint);
-      acceptor->set_option(boost::asio::ip::tcp::socket::reuse_address(true));
-  
-      Session * session = new Session();
-      acceptor->async_accept(session->sckt,
-        boost::bind(&InternalTransportImpl::processConnectionRequestEvent,
-                    this, session, boost::asio::placeholders::error));
-    }
-    catch(boost::system::system_error& e) {}
-
-    // UDP Stuff
+    if (!opt->usePGM())
     {
-      boost::asio::ip::udp::endpoint endpoint;
-      const boost::asio::ip::address address = boost::asio::ip::address::from_string(ip);
-      endpoint.address(address);
-      endpoint.port(port);
-
-      // open
-      udpSocket.open(endpoint.protocol());
-      udpSocket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-
-      // bind
-      struct sockaddr_in addr;
-      memset(&addr, 0, sizeof(addr));
-      addr.sin_family = AF_INET;
-      addr.sin_port = htons(endpoint.port());
-      //addr.sin_addr.s_addr = htonl(INADDR_ANY);
-      addr.sin_addr.s_addr = endpoint.address().to_string().compare("0.0.0.0") == 0 ?
-                             htonl(INADDR_ANY) : inet_addr(endpoint.address().to_string().c_str());
-
-      if (::bind(udpSocket.native(),(struct sockaddr *)&addr, sizeof(addr)) < 0)
-      {
-        udpSocket.close();
-        return;
-      }
-
-      if (sai::utils::Logger::GetInstance())
-      {
-        sai::utils::Logger::GetInstance()->print(
-          sai::utils::Logger::SAILVL_DEBUG, "InternalTransportImpl bind %s\n", endpoint.address().to_string().c_str());
-      }
-
-      // join (default channel)
-      McastSetImpl * set = mcastSet->_impl;
-      for (uint32_t i = 0; i < set->list.size(); i += 1)
-      {
-        std::string mcast = set->list.at(i);
-        struct ip_mreq imreq;
-        memset(&imreq, 0, sizeof(struct ip_mreq));
+      // TCP Stuff
+      try{
+        boost::asio::ip::tcp::endpoint endpoint;
+        const boost::asio::ip::address address = boost::asio::ip::address::from_string(opt->getInterface());
+        endpoint.address(address);
+        endpoint.port(opt->getPort());
   
-        imreq.imr_multiaddr.s_addr = inet_addr(mcast.c_str());
-        imreq.imr_interface.s_addr = inet_addr(endpoint.address().to_string().c_str());
-        //imreq.imr_interface.s_addr = INADDR_ANY;
-  
-        int ret = setsockopt(udpSocket.native(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&imreq, sizeof(struct ip_mreq));
-        if (ret != 0)
+        acceptor = new boost::asio::ip::tcp::acceptor(
+          *((boost::asio::io_service*)Net::GetInstance()->getIO()), endpoint);
+        acceptor->set_option(boost::asio::ip::tcp::socket::reuse_address(true));
+    
+        if (opt->enableSSL())
         {
-          sai::utils::Logger::GetInstance()->print(
-            sai::utils::Logger::SAILVL_ERROR, "Unable to join the specified multicast group\n");
+          context = new boost::asio::ssl::context(boost::asio::ssl::context::sslv23);
+          context->set_options(boost::asio::ssl::context::default_workarounds | 
+                               boost::asio::ssl::context::no_sslv2 | 
+                               boost::asio::ssl::context::single_dh_use);
+          context->set_password_callback(boost::bind(&InternalTransportImpl::getPassword, this));
+          context->use_certificate_chain_file("server.pem");
+          context->use_private_key_file("server.pem", boost::asio::ssl::context::pem);
+          context->use_tmp_dh_file("dh512.pem");
         }
+        Session * session = new Session(context, handler);
   
-        if (sai::utils::Logger::GetInstance())
-        {
-          sai::utils::Logger::GetInstance()->print(
-            sai::utils::Logger::SAILVL_INFO, "InternalTransportImpl joins mcast group (%s) on the (%s)\n",
-            mcast.c_str(), endpoint.address().to_string().c_str());
-        }
+        acceptor->async_accept(session->sckt ? *session->sckt : session->socket(),
+          boost::bind(&InternalTransportImpl::processConnectionRequestEvent,
+                      this, session, boost::asio::placeholders::error));
       }
-
-      // listen
-      udpSocket.async_receive_from(
-        boost::asio::buffer(udpBuffer, NET_BUFFER_SIZE), udpSenderEndpoint,
-        boost::bind(&InternalTransportImpl::processDataEvent, this,
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));
+      catch(boost::system::system_error& e) 
+      {
+        fprintf(stderr, "Error %s\n", e.what());
+      }
     }
+
+    // PGM Stuff
+    if (opt->usePGM())
+    {
+      localSckt = PGMSocketFactory::GetInstance()->create(opt);
+      localSckt->setEventHandler(handler);
+      localSckt->listen();
+    }
+  }
+
+  std::string 
+  getPassword() const
+  {
+    return "dummy";
   }
 
   void processConnectionRequestEvent(Session * session, const boost::system::error_code& err) // TCP Only
   {
     if (!err)
     {
-      session->handler = handler;
+      boost::asio::ip::tcp::no_delay option(true);
+      if (session->sckt)
+      {
+        session->sckt->set_option(option);
+      }
+      else
+      {
+        session->socket().set_option(option);
+      }
+
+      session->manager->handler = handler;
       session->start();
     }
     else
     {
       delete session;
+	  session = 0;
     }
 
-    Session * sess = new Session();
-    acceptor->async_accept(sess->sckt,
+    Session * sess = new Session(context, handler);
+
+    acceptor->async_accept(sess->sckt ? *sess->sckt : sess->socket(),
       boost::bind(&InternalTransportImpl::processConnectionRequestEvent,
                     this, sess, boost::asio::placeholders::error));
-  }
-
-  void processDataEvent(const boost::system::error_code& error, size_t bytes_recvd) // UDP Only
-  {
-    if (error)
-    {
-      return;
-    }
-
-    if (handler)
-    {
-      // SAI
-      printf("Receive UDP packet from %s, port = %u\n", 
-        udpSenderEndpoint.address().to_string().c_str(),
-        udpSenderEndpoint.port());
-      handler->processDataEvent(udpBuffer, bytes_recvd);
-    }
-
-    udpSocket.async_receive_from(
-      boost::asio::buffer(udpBuffer, NET_BUFFER_SIZE), udpSenderEndpoint,
-      boost::bind(&InternalTransportImpl::processDataEvent, this,
-        boost::asio::placeholders::error,
-        boost::asio::placeholders::bytes_transferred));
   }
 
   void close()
   {
     // TCP Stuff
     {
-      try
+      if (acceptor)
       {
-        acceptor->cancel();
-        acceptor->close();
-        delete acceptor;
-        acceptor = 0;
-      } 
-      catch(boost::system::system_error& e)
-      {
+        try
+        {
+          acceptor->cancel();
+          acceptor->close();
+          delete acceptor;
+          acceptor = 0;
+        } 
+        catch(boost::system::system_error& e)
+        {
 #ifndef _WIN32
-        openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-        syslog(LOG_ERR, "Failed to close InternalTransportImpl");
-        syslog(LOG_ERR, "%s", e.what());
-        closelog();
+          openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+          syslog(LOG_ERR, "Failed to close InternalTransportImpl");
+          syslog(LOG_ERR, "%s", e.what());
+          closelog();
 #endif
+        }
       }
     }
 
-    // UDP Stuff
+    // PGM Stuff
     {
-      try
+      if (localSckt)
       {
-#ifndef _WIN32
-        udpSocket.cancel();
-#endif
-        udpSocket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
-        udpSocket.close();
-        if (sai::utils::Logger::GetInstance())
-        {
-          sai::utils::Logger::GetInstance()->print(
-            sai::utils::Logger::SAILVL_DEBUG, "InternalTransportImpl closed\n");
-        }
-      } 
-      catch(boost::system::system_error& e)
-      {
-        if (sai::utils::Logger::GetInstance())
-        {
-          sai::utils::Logger::GetInstance()->print(
-            sai::utils::Logger::SAILVL_ERROR, "InternalTransportImpl failed to close\n");
-        }
-#ifndef _WIN32
-        openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-        syslog(LOG_ERR, "Failed to close a InternalTransportImpl");
-        syslog(LOG_ERR, "%s", e.what());
-        closelog();
-#endif
+        localSckt->close();
       }
     }
   }
@@ -348,25 +579,13 @@ InternalTransport::~InternalTransport()
 }
 
 void 
-InternalTransport::initialize(std::string ip, uint16_t port, McastSet* mcastSet, RawDataHandler * handler)
+InternalTransport::initialize(NetworkOptions* opt, RawDataHandler * handler)
 {
-  _impl->initialize(ip, port, mcastSet, handler);
+  _impl->initialize(opt, handler);
 }
 
-McastSet::McastSet():
-  _impl(0)
-{
-  _impl = new McastSetImpl();
-}
-
-McastSet::~McastSet()
-{
-  delete _impl;
-}
-
-void 
-McastSet::add(std::string mcast)
-{
-  _impl->add(mcast);
-}
+uint32_t PerfMeasure::IncomingTime = 0;
+uint32_t PerfMeasure::OutgoingTime = 0;
+uint32_t PerfMeasure::InCount = 0;
+uint32_t PerfMeasure::OutCount = 0;
 

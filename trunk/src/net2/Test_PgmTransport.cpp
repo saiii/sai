@@ -5,7 +5,7 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//	        
+//        
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,48 +15,42 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_NET__
-#define __SAI_NET2_NET__
+#include <cstring>
+#include <iostream>
+#include <net2/Net.h>
+#include <net2/Transport.h>
+#include <net2/PGMSocket.h>
+#include <net2/DataHandler.h>
 
-#include <stdint.h>
-#include <string>
-#include <net2/Service.h>
+using namespace sai::net2;
 
-namespace sai
+int main(int argc, char * argv[])
 {
-namespace net2
-{
+  if (argc != 4) 
+  {
+    fprintf(stderr, "Usage: %s <local addr> <mcast> <port>\n", argv[0]);
+    return 1;
+  }
 
-class NicList;
-class Resolver;
-class NetInfo;
-class Net
-{
-private:
-  static Net * _Instance;
-  NicList *    _nicList;
-  Resolver *   _resolver;
-  ServiceList  _serviceList;
-  NetInfo *    _info;
+  NetworkOptions options;
+  options.setHttp(true);
+  options.addReceive(argv[2]);
+  options.setSend("224.1.1.1");
 
-private:
-  Net(); 
+  options.setInterface(argv[1]);
+  options.setPort(atoi(argv[3]));
 
-public:
-  ~Net();
-  static Net * GetInstance();
-  static void  SetInstance(Net* instance);
-  
-  void  initialize();
-  void  mainLoop();
-  void  shutdown();
-  void* getIO();
- 
-  void      addService(Service * svc);
-  NicList*  getNicList()  { return _nicList; }
-  Resolver* getResolver() { return _resolver;}
-};
+  PGMSocket sockt(&options);
 
-}}
+  PgmTransport* transport = new PgmTransport();
+  transport->setOptions(&options);
 
-#endif
+  std::string msg = "Hi!!!!";
+  transport->send(msg.data(), msg.size()+1);
+
+  Net::GetInstance()->mainLoop();
+
+  transport->close();
+  delete transport;
+  return 0;
+}

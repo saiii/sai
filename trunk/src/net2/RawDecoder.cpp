@@ -17,6 +17,7 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
+#include <Objbase.h>
 #else
 #include <netinet/in.h>
 #endif
@@ -25,38 +26,81 @@
 #include <string.h>
 #include <cryptlib.h>
 #include <sha.h>
+#include <net/ProtocolDecoder.h>
+#include <utils/CryptoKey.h>
+#include <utils/CryptoFactory.h>
 #include <net2/DataDescriptor.h>
 #include <net2/DataDispatcher.h>
-#include <net/ProtocolDecoder.h>
 #include <net2/RawDecoder.h>
+#include <net2/KeyManager.h>
 
 using namespace sai::net2;
+using namespace sai::utils;
 
 namespace sai
 {
 namespace net2
 {
 
-class Decoder2
+class Decoder3
 {
 private:
+#ifdef _WIN32
+  CRITICAL_SECTION  _mutex;
+#else
+  pthread_mutex_t   _mutex;
+#endif
   DataDispatcher * disp;
 
 public:
-  Decoder2(DataDispatcher * d);
-  ~Decoder2();
+  Decoder3(DataDispatcher * d);
+  ~Decoder3();
 
-  void processData(const char * data, const uint32_t size);
+  void processData(Endpoint* endpoint, const char * data, const uint32_t size);
+  void lock();
+  void unlock();
 };
+
+inline void Decoder3::lock()
+{
+#ifdef _WIN32
+  EnterCriticalSection(&_mutex);
+#else
+  pthread_mutex_lock(&_mutex);
+#endif
+}
+
+inline void Decoder3::unlock()
+{
+#ifdef _WIN32
+  LeaveCriticalSection(&_mutex);
+#else
+  pthread_mutex_unlock(&_mutex);
+#endif
+}
 
 }}
 
-Decoder2::Decoder2(DataDispatcher * d):
+Decoder3::Decoder3(DataDispatcher * d):
   disp(d)
-{}
+{
+#ifdef _WIN32
+  InitializeCriticalSection(&_mutex);
+#else
+  pthread_mutexattr_t attr;
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+  pthread_mutex_init(&_mutex, &attr);
+  pthread_mutexattr_destroy(&attr);
+#endif
+}
 
-Decoder2::~Decoder2()
-{}
+Decoder3::~Decoder3()
+{
+#ifdef _WIN32
+  DeleteCriticalSection(&_mutex);
+#endif
+}
 
 // Magic <2>, Version <1>
 // EncAlgo <1>, EncTagSize <1>, EncTag <N>
@@ -71,48 +115,70 @@ Decoder2::~Decoder2()
 #define READN(dest,size) memcpy(dest, ptr, size); ptr += size
 
 void 
-Decoder2::processData(const char * data, const uint32_t size)
+Decoder3::processData(Endpoint * endpoint, const char * data, const uint32_t size)
 {
-  if (size < 12) return;
+  if (size < 18) 
+  {
+    return;
+  }
 
-  // Magic and version are already verified so skip it
-  char * ptr = (char *) (data + 6);
+  // Magic, version, seqNo and size are already verified so skip it
+  char * ptr = (char *) (data + 12);
 
   DataDescriptor desc;
-  desc.version = 2;
+  desc.endpoint = endpoint;
+  desc.version = 3;
 
-  desc.raw.r2.encAlgo = 0;
-  READ(desc.raw.r2.encAlgo);
-  READ(desc.raw.r2.encTagSize);
-  READ(desc.raw.r2.comAlgo);
-  READ(desc.raw.r2.comTagSize);
-  READ(desc.raw.r2.hashAlgo);
-  READ(desc.raw.r2.hashTagSize);
-  READ(desc.raw.r2.protSize);
-  READ(desc.raw.r2.xmlSize);
-  READ(desc.raw.r2.binSize);
+  desc.raw->encAlgo = 0;
+  READ(desc.raw->encAlgo);
+  READ(desc.raw->encTagSize); desc.raw->encTagSize = ntohs(desc.raw->encTagSize);
+  READ(desc.raw->comAlgo);
+  READ(desc.raw->comTagSize); desc.raw->comTagSize = ntohs(desc.raw->comTagSize);
+  READ(desc.raw->hashAlgo);
+  READ(desc.raw->hashTagSize);desc.raw->hashTagSize= ntohs(desc.raw->hashTagSize);
+  READ(desc.raw->protSize);
+  READ(desc.raw->xmlSize);
+  READ(desc.raw->binSize);
 
-  if (desc.raw.r2.protSize > 0) desc.raw.r2.protSize = ntohl(desc.raw.r2.protSize);
-  if (desc.raw.r2.xmlSize > 0)  desc.raw.r2.xmlSize  = ntohl(desc.raw.r2.xmlSize);
-  if (desc.raw.r2.binSize > 0)  desc.raw.r2.binSize  = ntohl(desc.raw.r2.binSize);
+  if (desc.raw->protSize > 0) desc.raw->protSize = ntohl(desc.raw->protSize);
+  if (desc.raw->xmlSize > 0)  desc.raw->xmlSize  = ntohl(desc.raw->xmlSize);
+  if (desc.raw->binSize > 0)  desc.raw->binSize  = ntohl(desc.raw->binSize);
 
-  if (desc.raw.r2.encTagSize > 0)  READN(desc.raw.r2.encTag,  desc.raw.r2.encTagSize); 
-  if (desc.raw.r2.comTagSize > 0)  READN(desc.raw.r2.comTag,  desc.raw.r2.comTagSize);
-  if (desc.raw.r2.hashTagSize > 0) READN(desc.raw.r2.hashTag, desc.raw.r2.hashTagSize);
+  if (desc.raw->encTagSize > 0)  READN(desc.raw->encTag,  desc.raw->encTagSize); 
+  if (desc.raw->comTagSize > 0)  READN(desc.raw->comTag,  desc.raw->comTagSize);
+  if (desc.raw->hashTagSize > 0) READN(desc.raw->hashTag, desc.raw->hashTagSize);
 
-  switch(desc.raw.r2.hashAlgo)
+  switch(desc.raw->hashAlgo)
   {
     case HASH_ALGO_SHA256:
     {
       CryptoPP::SHA256 sha256;
       CryptoPP::SecByteBlock digest256(sha256.DigestSize());
-      sha256.Update((const byte*)ptr, desc.raw.r2.protSize + desc.raw.r2.xmlSize + desc.raw.r2.binSize);
+      sha256.Update((const byte*)ptr, desc.raw->protSize + desc.raw->xmlSize + desc.raw->binSize);
       sha256.Final(digest256);
 
-      uint8_t* ptr1 = (uint8_t*)desc.raw.r2.hashTag;
+      uint8_t* ptr1 = (uint8_t*)desc.raw->hashTag;
       for(uint32_t i = 0; i < sha256.DigestSize(); i += 1, ptr1++)
       {
-        if (*ptr1 != digest256[i]) return;
+        if (*ptr1 != digest256[i]) 
+        {
+          return;
+        }
+      }
+    }
+    break;
+    case HASH_ALGO_SAI64:
+    {
+      uint64_t v;
+      DataDescriptor::HashSAI64(ptr, desc.raw->protSize + desc.raw->xmlSize + desc.raw->binSize, v);
+
+      uint64_t m;
+      memcpy(&m, desc.raw->hashTag, sizeof(m));
+      m = ntohll(m);
+
+      if (v != m) 
+      {
+        return;
       }
     }
     break;
@@ -121,49 +187,196 @@ Decoder2::processData(const char * data, const uint32_t size)
   char * protDataPtr, * xmlDataPtr, * binDataPtr;
   protDataPtr = xmlDataPtr = binDataPtr = 0;
 
-  if (desc.raw.r2.protSize > 0)
-  {
-    desc.raw.r2.protData = new char[desc.raw.r2.protSize];
-    READN(desc.raw.r2.protData, desc.raw.r2.protSize);
-    protDataPtr = desc.raw.r2.protData;
-  }
-
-  if (desc.raw.r2.xmlSize > 0)
+  if (desc.raw->protSize > 0)
   {
 #ifdef _WIN32
-	desc.raw.r2.xmlData = (char*)::CoTaskMemAlloc(desc.raw.r2.xmlSize);
+    desc.raw->protData = (char*)::CoTaskMemAlloc(desc.raw->protSize);
 #else
-    desc.raw.r2.xmlData = new char[desc.raw.r2.xmlSize];
+    desc.raw->protData = new char[desc.raw->protSize];
 #endif
-    READN(desc.raw.r2.xmlData, desc.raw.r2.xmlSize);
-    xmlDataPtr = desc.raw.r2.xmlData;
+    READN(desc.raw->protData, desc.raw->protSize);
+    protDataPtr = desc.raw->protData;
   }
 
-  if (desc.raw.r2.binSize > 0)
+  if (desc.raw->xmlSize > 0)
   {
 #ifdef _WIN32
-	desc.raw.r2.binData = (char*)::CoTaskMemAlloc(desc.raw.r2.binSize);
+    desc.raw->xmlData = (char*)::CoTaskMemAlloc(desc.raw->xmlSize);
 #else
-    desc.raw.r2.binData = new char[desc.raw.r2.binSize];
+    desc.raw->xmlData = new char[desc.raw->xmlSize];
 #endif
-    READN(desc.raw.r2.binData, desc.raw.r2.binSize);
-    binDataPtr = desc.raw.r2.binData;
+    READN(desc.raw->xmlData, desc.raw->xmlSize);
+    xmlDataPtr = desc.raw->xmlData;
   }
 
-  // TODO Decrypt message (ptr)
+  if (desc.raw->binSize > 0)
+  {
+#ifdef _WIN32
+    desc.raw->binData = (char*)::CoTaskMemAlloc(desc.raw->binSize);
+#else
+    desc.raw->binData = new char[desc.raw->binSize];
+#endif
+    READN(desc.raw->binData, desc.raw->binSize);
+    binDataPtr = desc.raw->binData;
+  }
+
+  std::string* dProtDataString = new std::string();
+  std::string* dXmlDataString = new std::string();
+  std::string* dBinDataString = new std::string();
+  char * dProtDataPtr = 0;
+  char * dXmlDataPtr = 0;
+  char * dBinDataPtr = 0;
+  switch(desc.raw->encAlgo)
+  {
+    case ENC_ALGO_NONE:
+      {
+      }
+      break;
+    case ENC_ALGO_AES256:
+      {
+        CryptoKeyFactory keyFactory;
+        CryptoFactory cryptFactory;
+
+        SymmetricKey * key = KeyManager::GetInstance()->getSymmetricKey();
+        SymmetricCrypto * crypt = static_cast<SymmetricCrypto*>(cryptFactory.create(AES256));
+
+        std::string iv; 
+        iv.append(desc.raw->encTag, desc.raw->encTagSize);
+        key->setIV(iv);
+        iv.clear();
+
+        std::string* data = new std::string();
+
+        if (desc.raw->protSize > 0)
+        {
+          data->assign(desc.raw->protData, desc.raw->protSize);
+          crypt->decrypt(*key, *data, *dProtDataString);
+#ifdef _WIN32
+          dProtDataPtr = (char*)::CoTaskMemAlloc(dProtDataString->size());
+#else
+          dProtDataPtr = new char[dProtDataString->size()];
+#endif
+          memcpy(dProtDataPtr, dProtDataString->data(), dProtDataString->size());
+          desc.raw->protData = dProtDataPtr;
+          desc.raw->protSize = dProtDataString->size();
+        }
+
+        if (desc.raw->xmlSize > 0)
+        {
+          data->assign(desc.raw->xmlData, desc.raw->xmlSize);
+          crypt->decrypt(*key, *data, *dXmlDataString);
+#ifdef _WIN32
+          dXmlDataPtr = (char*)::CoTaskMemAlloc(dXmlDataString->size());
+#else
+          dXmlDataPtr = new char[dXmlDataString->size()];
+#endif
+          memcpy(dXmlDataPtr, dXmlDataString->data(), dXmlDataString->size());
+          desc.raw->xmlData = dXmlDataPtr;
+          desc.raw->xmlSize = dXmlDataString->size();
+        }
+
+        if (desc.raw->binSize > 0)
+        {
+          data->assign(desc.raw->binData, desc.raw->binSize);
+          crypt->decrypt(*key, *data, *dBinDataString);
+#ifdef _WIN32
+          dBinDataPtr = (char*)::CoTaskMemAlloc(dBinDataString->size());
+#else
+          dBinDataPtr = new char[dBinDataString->size()];
+#endif
+          memcpy(dBinDataPtr, dBinDataString->data(), dBinDataString->size());
+          desc.raw->binData = dBinDataPtr;
+          desc.raw->binSize = dBinDataString->size();
+        }
+
+        delete data;
+        delete crypt;
+      }
+      break;
+    case ENC_ALGO_ECC521:
+      {
+        std::string o;
+        o.assign((char*)desc.raw->encTag, desc.raw->encTagSize);
+        KeyManager::GetInstance()->setOthersPublicKey(o);
+        o.clear();
+
+        CryptoKeyFactory keyFactory;
+        CryptoFactory cryptFactory;
+
+        AsymmetricKey* key = KeyManager::GetInstance()->getAsymmetricKey();
+        AsymmetricCrypto * crypt = static_cast<AsymmetricCrypto*>(cryptFactory.create(ECC521));
+
+        std::string* data = new std::string();
+
+        if (desc.raw->protSize > 0)
+        {
+          data->assign(desc.raw->protData, desc.raw->protSize);
+          crypt->decrypt(*key, *data, *dProtDataString);
+#ifdef _WIN32
+          dProtDataPtr = (char*)::CoTaskMemAlloc(dProtDataString->size());
+#else
+          dProtDataPtr = new char[dProtDataString->size()];
+#endif
+          memcpy(dProtDataPtr, dProtDataString->data(), dProtDataString->size());
+          desc.raw->protData = dProtDataPtr;
+          desc.raw->protSize = dProtDataString->size();
+        }
+
+        if (desc.raw->xmlSize > 0)
+        {
+          data->assign(desc.raw->xmlData, desc.raw->xmlSize);
+          crypt->decrypt(*key, *data, *dXmlDataString);
+#ifdef _WIN32
+          dXmlDataPtr = (char*)::CoTaskMemAlloc(dXmlDataString->size());
+#else
+          dXmlDataPtr = new char[dXmlDataString->size()];
+#endif
+          memcpy(dXmlDataPtr, dXmlDataString->data(), dXmlDataString->size());
+          desc.raw->xmlData = dXmlDataPtr;
+          desc.raw->xmlSize = dXmlDataString->size();
+        }
+
+        if (desc.raw->binSize > 0)
+        {
+          data->assign(desc.raw->binData, desc.raw->binSize);
+          crypt->decrypt(*key, *data, *dBinDataString);
+#ifdef _WIN32
+          dBinDataPtr = (char*)::CoTaskMemAlloc(dBinDataString->size());
+#else
+          dBinDataPtr = new char[dBinDataString->size()];
+#endif
+          memcpy(dBinDataPtr, dBinDataString->data(), dBinDataString->size());
+          desc.raw->binData = dBinDataPtr;
+          desc.raw->binSize = dBinDataString->size();
+        }
+
+        delete data;
+        delete crypt;
+      }
+      break;
+    case ENC_ALGO_ECC571:
+      {
+      }
+      break;
+  }
+
   // TODO Uncompress message (ptr)
 
-  disp->dispatch(desc);
+  disp->dispatch(desc, (char*)data, size);
 
   if (protDataPtr)
   {
+#ifdef _WIN32
+    ::CoTaskMemFree(protDataPtr);
+#else
     delete [] protDataPtr;
+#endif
   }
 
   if (xmlDataPtr)
   {
 #ifdef _WIN32
-	::CoTaskMemFree(xmlDataPtr);
+    ::CoTaskMemFree(xmlDataPtr);
 #else
     delete [] xmlDataPtr;
 #endif
@@ -172,18 +385,49 @@ Decoder2::processData(const char * data, const uint32_t size)
   if (binDataPtr)
   {
 #ifdef _WIN32
-	::CoTaskMemFree(binDataPtr);
+    ::CoTaskMemFree(binDataPtr);
 #else
     delete [] binDataPtr;
 #endif
   }
+
+  if (dProtDataPtr)
+  {
+#ifdef _WIN32
+    ::CoTaskMemFree(dProtDataPtr);
+#else
+    delete [] dProtDataPtr;
+#endif
+  }
+
+  if (dXmlDataPtr)
+  {
+#ifdef _WIN32
+    ::CoTaskMemFree(dXmlDataPtr);
+#else
+    delete [] dXmlDataPtr;
+#endif
+  }
+
+  if (dBinDataPtr)
+  {
+#ifdef _WIN32
+    ::CoTaskMemFree(dBinDataPtr);
+#else
+    delete [] dBinDataPtr;
+#endif
+  }
+
+  delete dBinDataString;
+  delete dXmlDataString;
+  delete dProtDataString;
 }
 
 RawDecoder::RawDecoder(DataDispatcher * disp):
   _old(0),
-  _dec2(0)
+  _dec3(0)
 {
-  _dec2 = new Decoder2(disp);
+  _dec3 = new Decoder3(disp);
   sai::net::ProtocolDecoder *dec = new sai::net::ProtocolDecoder();
   _old = dec;
 }
@@ -192,17 +436,18 @@ RawDecoder::~RawDecoder()
 {
   sai::net::ProtocolDecoder * dec = (sai::net::ProtocolDecoder*) _old;
   delete dec;
-  delete _dec2;
+  delete _dec3;
 }
 
 void 
-RawDecoder::processData(const char * data, const uint32_t size)
+RawDecoder::processData(Endpoint * endpoint, const char * data, const uint32_t size)
 {
   if (size < 4)
   {
     return;
   }
 
+  _dec3->lock();
   uint32_t magic;
   memcpy(&magic, data, sizeof(magic));
   magic = ntohl(magic);
@@ -223,10 +468,11 @@ RawDecoder::processData(const char * data, const uint32_t size)
           dec->processDataEvent(desc, dat);
         }
         break;
-      case 2:
-        _dec2->processData(data, size);
+      case 3:
+        _dec3->processData(endpoint, data, size);
         break;
     }
   }
+  _dec3->unlock();
 }
 

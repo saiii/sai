@@ -33,12 +33,13 @@ public:
   virtual void processDataEvent(DataDescriptor&) = 0;
 };
 
+class Endpoint;
 class RawDataHandler
 {
 public:
   RawDataHandler();
   virtual ~RawDataHandler();
-  virtual void processDataEvent(const char * buffer, const uint32_t size) = 0;
+  virtual void processDataEvent(Endpoint* endpoint, const char * buffer, const uint32_t size) = 0;
 };
 
 }}

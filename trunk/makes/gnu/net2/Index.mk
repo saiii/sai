@@ -31,7 +31,12 @@ NET2_SRC = \
           Nic.cpp \
           NicList.cpp \
           TimerTask.cpp \
-          Resolver.cpp
+          Resolver.cpp \
+          PGMTransport.cpp \
+          KeyManager.cpp \
+          Version.cpp \
+          PGMSocket.cpp \
+          Daemonizer.cpp
 
 NET2_INC = \
           $(SAI_ROOT)/net2/Net.h \
@@ -47,7 +52,11 @@ NET2_INC = \
           $(SAI_ROOT)/net2/Nic.h \
           $(SAI_ROOT)/net2/NicList.h \
           $(SAI_ROOT)/net2/TimerTask.h \
-          $(SAI_ROOT)/net2/Resolver.h
+          $(SAI_ROOT)/net2/Resolver.h \
+          $(SAI_ROOT)/net2/KeyManager.h \
+          $(SAI_ROOT)/net2/PGMSocket.h \
+          $(SAI_ROOT)/net2/Daemonizer.h \
+          $(SAI_ROOT)/net2/ProtId.h
 
 NET2_OBJ1= $(NET2_SRC:.cpp=.o)
 NET2_OBJ = $(addprefix net2/, $(NET2_OBJ1))
