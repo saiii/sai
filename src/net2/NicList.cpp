@@ -5,7 +5,7 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//	        
+//        
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -17,6 +17,7 @@
 
 #ifdef _WIN32
 #include <Ws2tcpip.h>
+#include <Objbase.h>
 #endif
 #include <string>
 #include <boost/asio.hpp>
@@ -68,8 +69,8 @@ NicList::detect()
 
   unsigned long num = bytes / sizeof(INTERFACE_INFO);
 
-  char *interfaceAddr  = new char[MAX_STRING_LEN];
-  char *interfaceBcast = new char[MAX_STRING_LEN];
+  char *interfaceAddr  = (char*)::CoTaskMemAlloc(MAX_STRING_LEN);
+  char *interfaceBcast = (char*)::CoTaskMemAlloc(MAX_STRING_LEN);
 
   for (unsigned long i = 0; i < num; i+=1)
   {
@@ -93,8 +94,8 @@ NicList::detect()
     nic->_bcast.assign(interfaceBcast, strlen(interfaceBcast)+1);
     _nicList.push_back(nic); 
   }
-  delete [] interfaceBcast;
-  delete [] interfaceAddr;
+  ::CoTaskMemFree(interfaceBcast);
+  ::CoTaskMemFree(interfaceAddr);
 
   closesocket(socketfd);
 

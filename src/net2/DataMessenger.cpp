@@ -28,6 +28,32 @@ DataMessenger::DataMessenger(Transport* transport):
 
 DataMessenger::~DataMessenger()
 {
+  delete _transport;
+}
+
+bool 
+DataMessenger::Send(DataDescriptor& desc, Transport * transport)
+{
+  uint32_t size = 0;
+  RawEncoder encoder;
+  char * ptr = encoder.make(desc, size);
+  transport->send(ptr, size);
+  return true;
+}
+
+bool 
+DataMessenger::Send(DataDescriptor& desc, TCPPtr* tptr)
+{
+  if (tptr->db->has(tptr->obj))
+  {
+    uint32_t size = 0;
+    RawEncoder encoder;
+    char * ptr = encoder.make(desc, size);
+    DirectReply * rep = tptr->obj;
+    rep->send(ptr, size);
+    return true;
+  }
+  return false;
 }
 
 bool 

@@ -34,7 +34,7 @@ public:
   Resolver();
   ~Resolver();
 
-  std::string getIpFromName(std::string name, std::string& ret);
+  void getIpFromName(std::string name, std::string& ret);
 };
 
 }}

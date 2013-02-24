@@ -27,7 +27,9 @@ namespace sai
 namespace net2
 {
 
+class TCPPtr;
 class Transport;
+class DataMessengerFactory;
 class DataMessenger
 {
 friend class DataMessengerFactory;
@@ -41,6 +43,8 @@ public:
   virtual ~DataMessenger();
  
   bool send(DataDescriptor& desc); 
+  static bool Send(DataDescriptor& desc, Transport * transport); // The scope of this function is needed to be reviewed again
+  static bool Send(DataDescriptor& desc, TCPPtr* obj);
 };
 
 typedef std::vector<DataMessenger*>           DataMessengerList;

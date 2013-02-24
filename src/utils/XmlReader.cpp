@@ -19,6 +19,7 @@
 #include <Windows.h>
 #endif
 #include <stdint.h>
+#include <string.h>
 #include <cstdio>
 #include <utils/rapidxml.hpp>
 #include <utils/XmlReader.h>

@@ -30,11 +30,14 @@ namespace sai
 namespace net2
 {
 
+class Endpoint;
 class Transport;
 class DataMessenger;
 class InternalTransport;
+class AuthenticationHandler;
 class DataMessengerFactory : public RawDataHandler
 {
+friend class DataMessenger;
 private:
   InternalTransport *          _receiver;
   RawDecoder *                 _decoder;
@@ -42,12 +45,14 @@ private:
   std::vector<DataMessenger*>  _list;
 
 public:
-  DataMessengerFactory(std::string ip, uint16_t port, McastSet* mcastSet);
+  DataMessengerFactory(NetworkOptions* opt, RawDataHandler * handler = 0);
   virtual ~DataMessengerFactory();
-  void processDataEvent(const char *, const uint32_t);
+  void processDataEvent(Endpoint*, const char *, const uint32_t);
 
-  DataMessenger * create(Transport* transport);  
+  DataMessenger *  create(Transport* transport);  
+  void             destroy(DataMessenger * messenger);
   DataDispatcher * getDispatcher() { return _dispatcher; }
+  PgmTransport *   getPgmTransport() { return _receiver->getPgmTransport(); }
 };
 
 }}

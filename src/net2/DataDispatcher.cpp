@@ -25,12 +25,14 @@
 #include <utils/XmlReader.h>
 #include <net/Exception.h>
 #include <net/ProtocolDecoder.h>
+#include <net2/Transport.h>
 #include "DataDispatcher.h"
 
 using namespace sai::net2;
 
 DataDispatcher::DataDispatcher():
-  _defaultHandler(0)
+  _defaultHandler(0),
+  _ignoreDestinationField(false)
 {
 }
 
@@ -40,27 +42,27 @@ DataDispatcher::~DataDispatcher()
 }
 
 void 
-DataDispatcher::dispatch(DataDescriptor& desc)
+DataDispatcher::dispatch(DataDescriptor& desc, char * origMsg, uint32_t origSize)
 {
   std::string protData;
-  protData.append(desc.raw.r2.protData, desc.raw.r2.protSize);
+  protData.append(desc.raw->protData, desc.raw->protSize);
   char * protDataPtr = (char*)protData.data();
   uint16_t version = 0;
   memcpy(&version, protDataPtr, sizeof(version));
   version = ntohs(version);
   protDataPtr += sizeof(version);
-  desc.raw.r2.protData = protDataPtr;
+  desc.raw->protSize -= sizeof(version);
+  desc.raw->protData = protDataPtr;
 
-  sai::utils::XmlReader pReader;
-  sai::utils::XmlReader dReader;
   switch(version)
   {
     case 1:
       {
-        pReader.parseMem(desc.raw.r2.protData);
-        pReader.moveTo("protocol");
+        //desc.raw->print();
+        desc.protMessage->fromString(desc.raw->protData);
         std::string uuid;
-        pReader.get("uuid", "value", uuid);
+        desc.protMessage->get("uuid", uuid);
+
         std::string myUUID;
         ProtMessage::getUUID(myUUID);
         if (strcmp(uuid.c_str(), myUUID.c_str()) == 0)
@@ -69,18 +71,29 @@ DataDispatcher::dispatch(DataDescriptor& desc)
           return;
         }
 
+        if (!_ignoreDestinationField)
+        {
+          std::string destination;
+          desc.protMessage->get("destination", destination);
+          if (destination.length() > 0 && strcmp(destination.c_str(), ".*") != 0)
+          {
+            if (strcmp(myUUID.c_str(), destination.c_str()) != 0)
+            {
+              // We are not support to process this message!
+              return;
+            }
+          }
+        }
+
         std::string sid;
-        pReader.get("id", "value", sid);
+        desc.protMessage->get("id", sid);
         uint32_t id = atoi(sid.c_str());
-        desc.xmlProtReader = &pReader;
 
         std::string xmlData;
-        if (desc.raw.r2.xmlData)
+        if (desc.raw->xmlData)
         {
-          xmlData.append(desc.raw.r2.xmlData, desc.raw.r2.xmlSize);
-          desc.raw.r2.xmlData = (char*)xmlData.data();
-          dReader.parseMem(desc.raw.r2.xmlData);
-          desc.xmlDataReader = &dReader;
+          xmlData.append(desc.raw->xmlData, desc.raw->xmlSize);
+          desc.raw->xmlData = (char*)xmlData.data();
         }
 
         DispatchTableIterator iter;
@@ -107,8 +120,37 @@ DataDispatcher::dispatch(DataDescriptor& desc)
 }
 
 bool 
+DataDispatcher::intlRegisterHandler(uint32_t id, DataHandler * handler)
+{
+  if (id > 1000)
+  {
+    throw sai::net::DataException("The id must be smaller than 1000!");
+    return false;
+  }
+
+  const bool NEW_ENTRY = true;
+  const bool DUPLICATED = false;
+
+  DispatchTableIterator iter = _table.find(id);
+  if (iter != _table.end())
+  {
+    return DUPLICATED;
+  }
+
+  _table.insert(std::make_pair(id, handler));
+
+  return NEW_ENTRY;
+}
+
+bool 
 DataDispatcher::registerHandler(uint32_t id, DataHandler * handler)
 {
+  if (id <= 1000)
+  {
+    throw sai::net::DataException("The id must be greater than 1000!");
+    return false;
+  }
+
   const bool NEW_ENTRY = true;
   const bool DUPLICATED = false;
 

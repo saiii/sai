@@ -5,7 +5,7 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//	        
+//        
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,48 +15,29 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_NET__
-#define __SAI_NET2_NET__
-
 #include <stdint.h>
+#include <iostream>
 #include <string>
-#include <net2/Service.h>
 
-namespace sai
+#define VERSION_MAJOR_STR "1"
+#define VERSION_MINOR_STR "0"
+#define VERSION_COUNT_STR "0"
+#define VERSION_SUFFI_STR "a"
+
+static std::string _version  = "(" VERSION_MAJOR_STR "." VERSION_MINOR_STR "." VERSION_COUNT_STR VERSION_SUFFI_STR ")";
+
+std::string GetNet2Version()
 {
-namespace net2
+  return _version;
+}
+
+const char * cGetNet2Version()
 {
+  return _version.c_str();
+}
 
-class NicList;
-class Resolver;
-class NetInfo;
-class Net
+void PrintNet2Version()
 {
-private:
-  static Net * _Instance;
-  NicList *    _nicList;
-  Resolver *   _resolver;
-  ServiceList  _serviceList;
-  NetInfo *    _info;
+  std::cout << GetNet2Version() << std::endl;
+}
 
-private:
-  Net(); 
-
-public:
-  ~Net();
-  static Net * GetInstance();
-  static void  SetInstance(Net* instance);
-  
-  void  initialize();
-  void  mainLoop();
-  void  shutdown();
-  void* getIO();
- 
-  void      addService(Service * svc);
-  NicList*  getNicList()  { return _nicList; }
-  Resolver* getResolver() { return _resolver;}
-};
-
-}}
-
-#endif

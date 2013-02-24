@@ -18,17 +18,28 @@
 #include <net2/Transport.h>
 #include <net2/DataMessenger.h>
 #include <net2/RawDecoder.h>
+#include <net2/ProtId.h>
 #include "DataMessengerFactory.h"
 
 using namespace sai::net2;
 
-DataMessengerFactory::DataMessengerFactory(std::string ip, uint16_t port, McastSet* mcastSet):
+DataMessengerFactory::DataMessengerFactory(NetworkOptions* opt, RawDataHandler * handler):
   _receiver(0),
   _decoder(0),
   _dispatcher(0)
 {
-  _receiver = new InternalTransport();
-  _receiver->initialize(ip, port, mcastSet, this);
+  if (opt)
+  {
+    _receiver = new InternalTransport();
+    if (handler)
+    {
+      _receiver->initialize(opt, handler);
+    }
+    else
+    {
+      _receiver->initialize(opt, this);
+    }
+  }
 
   _dispatcher = new DataDispatcher();
   _decoder = new RawDecoder(_dispatcher);
@@ -50,9 +61,15 @@ DataMessengerFactory::~DataMessengerFactory()
 }
 
 void 
-DataMessengerFactory::processDataEvent(const char * buffer, const uint32_t size)
+DataMessengerFactory::processDataEvent(Endpoint * endpoint, const char * buffer, const uint32_t size)
 {
-  _decoder->processData(buffer, size);
+  //if (endpoint->source() == TCP && PerfMeasure::InCount != ++PerfMeasure::OutCount)
+  //{
+  //  printf("Packet lost! (In %u) vs. (Out %u)\n", PerfMeasure::InCount, PerfMeasure::OutCount);
+  //  PerfMeasure::OutCount = PerfMeasure::InCount;
+  //}
+
+  _decoder->processData(endpoint, buffer, size);
 }
 
 DataMessenger * 
@@ -73,5 +90,24 @@ DataMessengerFactory::create(Transport* transport)
   DataMessenger * messenger = new DataMessenger(transport);
   _list.push_back(messenger);
   return messenger;
+}
+
+void 
+DataMessengerFactory::destroy(DataMessenger * m)
+{
+  if (_list.size() > 0)
+  {
+    std::vector<DataMessenger*>::iterator iter;
+    for (iter = _list.begin(); iter != _list.end(); iter++)
+    {
+      DataMessenger * messenger = *iter;
+      if (messenger == m)
+      {
+        _list.erase(iter);
+        delete messenger;
+        return;
+      }
+    }
+  }
 }
 

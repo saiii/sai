@@ -19,65 +19,74 @@
 #define __SAI_NET2_DATADESCRIPTOR__
 
 #include <stdint.h>
-#include <map>
+#include <vector>
 #include <string>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <utils/XmlReader.h>
+#include <utils/CryptoKey.h>
+
+#define RAW2_ENCTAG_SIZE  8192
+#define RAW2_COMTAG_SIZE   512
+#define RAW2_HASHTAG_SIZE  512
+
+#define ntohll(x) (((int64_t)(ntohl((int32_t)((x << 32) >> 32))) << 32) | (uint32_t)ntohl(((int32_t)(x >> 32)))) 
+#define htonll(x) ntohll(x)
 
 namespace sai
 {
 namespace net2
 {
 
-class Raw2
+class Raw
 {
 public:
   uint8_t  encAlgo;
-  uint8_t  encTagSize;
+  uint16_t encTagSize;
   uint8_t  comAlgo;
-  uint8_t  comTagSize;
+  uint16_t comTagSize;
   uint8_t  hashAlgo;
-  uint8_t  hashTagSize;
+  uint16_t hashTagSize;
   uint32_t protSize;
   uint32_t xmlSize; 
   uint32_t binSize; 
-  uint8_t  encTag[256];
-  uint8_t  comTag[256];
-  uint8_t  hashTag[256];
+  char *   encTag;
+  char *   comTag;
+  char *   hashTag;
   char *   protData;
   char *   xmlData;
   char *   binData;
 
 public:
-  void print();
+  Raw();
+  virtual ~Raw();
+  virtual void print();
 };
 
-typedef union
-{
-  Raw2 r2;
-}Raw;
-
 class ProtMessage;
+class Endpoint;
 class DataDescriptor
 {
 public:
   uint8_t                 version;
-  Raw                     raw;
-  sai::utils::XmlReader * xmlProtReader;
-  sai::utils::XmlReader * xmlDataReader;
+  Raw *                   raw;
   ProtMessage *           protMessage;
+  Endpoint *              endpoint;
 
 public:
   DataDescriptor();
   ~DataDescriptor();
 
   void print();
+  static void HashSAI64(char * msg, uint32_t size, uint64_t& value);
 };
 
 typedef enum 
 {
-  ENC_ALGO_NONE = 0
+  ENC_ALGO_NONE = 0,
+  ENC_ALGO_AES256 = sai::utils::AES256,
+  ENC_ALGO_ECC521 = sai::utils::ECC521,
+  ENC_ALGO_ECC571 = sai::utils::ECC571
 }EncryptionAlgo;
 
 typedef enum
@@ -88,28 +97,49 @@ typedef enum
 typedef enum
 {
   HASH_ALGO_NONE   = 0,
-  HASH_ALGO_SHA256 = 1
+  HASH_ALGO_SHA256 = 1,
+  HASH_ALGO_SAI64  = 2
 }HashingAlgo;
 
-typedef std::map<std::string, std::string>           ProtMap;
-typedef std::map<std::string, std::string>::iterator ProtMapIterator;
+class ProtKeyValue
+{
+public:
+  std::string* key;
+  std::string* value;
+
+public:
+  ProtKeyValue();
+  ~ProtKeyValue();
+  void set(std::string k, std::string v) { key->assign(k); value->assign(v); }
+};
+
+typedef std::vector<ProtKeyValue*>           ProtList;
+typedef std::vector<ProtKeyValue*>::iterator ProtListIterator;
 
 class ProtMessage
 {
+friend class DataDispatcher;
 private:
   static boost::uuids::uuid _uuid;
-  ProtMap                   _map;
-  std::string               _message;
+  ProtList                  _list;
+
+public:
+  void fromString(std::string xml);
+  void get(const char * name, std::string& value);
+  void set(std::string name, std::string  value);
 
 public:
   ProtMessage();
   ~ProtMessage();
 
-  void setId(uint32_t id);
-  void toString(std::string& ret);
-  uint32_t size();
+  void     setId(uint32_t id);
+  uint32_t getId();
+  void     toString(std::string& ret, uint32_t& size);
+  void     getNodeUUID(std::string&);
+  void     setDestination(std::string&);
+  void     getDestination(std::string&);
 
-  static std::string getUUID(std::string&);
+  static void getUUID(std::string&);
 };
 
 }}

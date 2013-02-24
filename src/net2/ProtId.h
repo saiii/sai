@@ -15,48 +15,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#ifndef __SAI_NET2_NET__
-#define __SAI_NET2_NET__
+#ifndef __SAI_NET2_PROTID__
+#define __SAI_NET2_PROTID__
 
-#include <stdint.h>
-#include <string>
-#include <net2/Service.h>
-
-namespace sai
-{
-namespace net2
-{
-
-class NicList;
-class Resolver;
-class NetInfo;
-class Net
-{
-private:
-  static Net * _Instance;
-  NicList *    _nicList;
-  Resolver *   _resolver;
-  ServiceList  _serviceList;
-  NetInfo *    _info;
-
-private:
-  Net(); 
-
-public:
-  ~Net();
-  static Net * GetInstance();
-  static void  SetInstance(Net* instance);
-  
-  void  initialize();
-  void  mainLoop();
-  void  shutdown();
-  void* getIO();
- 
-  void      addService(Service * svc);
-  NicList*  getNicList()  { return _nicList; }
-  Resolver* getResolver() { return _resolver;}
-};
-
-}}
+#define PROTID_AUTH_PUBKEY_REQUEST                1
+#define PROTID_AUTH_PUBKEY_REPLY                  2
 
 #endif
