@@ -176,10 +176,11 @@ PGMSocket::PGMSocket(NetworkOptions* options):
     closelog();
 #endif
     pgm_error_free(err);
-    return;
+    _addrInfo = 0;
+    //return;
   }
 
-  sa_family_t family = _addrInfo->ai_send_addrs[0].gsr_group.ss_family;
+  sa_family_t family = AF_INET; //_addrInfo->ai_send_addrs[0].gsr_group.ss_family;
   if (!pgm_socket (&_scktRecv, family, SOCK_SEQPACKET, IPPROTO_UDP, &err)) 
   {
 #ifndef _WIN32
@@ -290,14 +291,16 @@ PGMSocket::PGMSocket(NetworkOptions* options):
 
   struct pgm_interface_req_t ifReq;
   memset (&ifReq, 0, sizeof(ifReq));
-  ifReq.ir_interface = _addrInfo->ai_recv_addrs[0].gsr_interface;
+  ifReq.ir_interface = _addrInfo ? _addrInfo->ai_recv_addrs[0].gsr_interface : 2; 
   ifReq.ir_scope_id  = 0;
+#if 0
   if (AF_INET6 == family) 
   {
     struct sockaddr_in6 sa6;
     memcpy (&sa6, &_addrInfo->ai_recv_addrs[0].gsr_group, sizeof(sa6));
     ifReq.ir_scope_id = sa6.sin6_scope_id;
   }
+#endif
   if (!pgm_bind3 (_scktRecv,
                   &addr, sizeof(addr),
                   &ifReq, sizeof(ifReq),        /* tx interface */
@@ -328,14 +331,18 @@ PGMSocket::PGMSocket(NetworkOptions* options):
   }
 
   // Join
-  for (unsigned i = 0; i < _addrInfo->ai_recv_addrs_len; i++)
+  if (_addrInfo)
   {
-    pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_JOIN_GROUP, &_addrInfo->ai_recv_addrs[i], sizeof(struct group_req));
-    pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_JOIN_GROUP, &_addrInfo->ai_recv_addrs[i], sizeof(struct group_req));
+    for (unsigned i = 0; i < _addrInfo->ai_recv_addrs_len; i++)
+    {
+      pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_JOIN_GROUP, &_addrInfo->ai_recv_addrs[i], sizeof(struct group_req));
+      pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_JOIN_GROUP, &_addrInfo->ai_recv_addrs[i], sizeof(struct group_req));
+    }
+    pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_SEND_GROUP, &_addrInfo->ai_send_addrs[0], sizeof(struct group_req));
+    pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_SEND_GROUP, &_addrInfo->ai_send_addrs[0], sizeof(struct group_req));
+    pgm_freeaddrinfo (_addrInfo);
+    _addrInfo = 0;
   }
-  pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_SEND_GROUP, &_addrInfo->ai_send_addrs[0], sizeof(struct group_req));
-  pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_SEND_GROUP, &_addrInfo->ai_send_addrs[0], sizeof(struct group_req));
-  pgm_freeaddrinfo (_addrInfo);
 
   const int nonblocking = 1;
   const int blocking = 0;
