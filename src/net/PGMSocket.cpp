@@ -168,12 +168,17 @@ PGMSocket::PGMSocket(NetworkOptions* options):
 //    }
   }
 
-  if (!pgm_getaddrinfo (network.c_str(), 0, &_addrInfo, &err)) 
+  printf("pgm_getaddrinfo %s\n", network.c_str());
+  int retries = 0;
+  while (!pgm_getaddrinfo (network.c_str(), 0, &_addrInfo, &err) && ++retries < 1000) 
   {
 #ifndef _WIN32
     openlog("sai", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
     syslog(LOG_ERR, "pgm_getaddrinfo (%s)", err->message);
     closelog();
+    sleep(1);
+#else
+    Sleep(1000);
 #endif
     pgm_error_free(err);
     _addrInfo = 0;
@@ -330,11 +335,15 @@ PGMSocket::PGMSocket(NetworkOptions* options):
     return;
   }
 
+  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
   // Join
   if (_addrInfo)
   {
     for (unsigned i = 0; i < _addrInfo->ai_recv_addrs_len; i++)
     {
+      printf("@@@ %d %d\n", 
+        &_addrInfo->ai_recv_addrs[i],
+        &_addrInfo->ai_send_addrs[i]);
       pgm_setsockopt (_scktRecv, IPPROTO_PGM, PGM_JOIN_GROUP, &_addrInfo->ai_recv_addrs[i], sizeof(struct group_req));
       pgm_setsockopt (_scktSend, IPPROTO_PGM, PGM_JOIN_GROUP, &_addrInfo->ai_recv_addrs[i], sizeof(struct group_req));
     }
